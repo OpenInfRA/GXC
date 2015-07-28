@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-Rule'>/**
+</span> * A panel that is used to create style rules according to the SLD standard.
+ */
+Ext.define(&#39;GXC.panel.Rule&#39;, {
+    extend: &#39;Ext.tab.Panel&#39;,
+    requires: [
+        &#39;GeoExt.FeatureRenderer&#39;,
+        &#39;GXC.panel.PointSymbolizer&#39;,
+        &#39;GXC.panel.LineSymbolizer&#39;,
+        &#39;GXC.panel.PolygonSymbolizer&#39;,
+        &#39;GXC.panel.RuleViewController&#39;
+    ],
+
+<span id='GXC-panel-Rule-property-controller'>    controller: &#39;GXC.panel.RuleViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_panel_rule&#39;,
+
+<span id='GXC-panel-Rule-property-fonts'>    /**
+</span>     * List of fonts for the font combo.  If not set,
+     * defaults  to the list provided by the GXC.form.FontComboBox.
+     *
+     * @type{[String]}
+     */
+    fonts: null,
+
+<span id='GXC-panel-Rule-property-symbolType'>    /**
+</span>     * One of &#39;Point&#39;, &#39;Line&#39;, or &#39;Polygon&#39;.  If no rule is
+     * provided, default is &#39;Point&#39;.
+     *
+     * @type {String}
+     */
+    symbolType: null,
+
+<span id='GXC-panel-Rule-property-rule'>    /**
+</span>     * Optional rule provided in the initial
+     * configuration.  If a rule is provided and no `symbolType` is provided,
+     * the symbol type will be derived from the first symbolizer found in the
+     * rule.
+     *
+     * @type {OpenLayers.Rule}
+     */
+    rule: null,
+
+<span id='GXC-panel-Rule-property-attributes'>    /**
+</span>     * A configured attributes store for use
+     * in the filter property combo.
+     *
+     * @type {GeoExt.data.AttributeStore}
+     */
+    attributes: null,
+
+<span id='GXC-panel-Rule-property-simple'>    /**
+</span>     * Only allow styling of Point, Line and Polygon Symbolizers for compatibility
+     * with Vector layers.
+     *
+     * @type {Boolean}
+     */
+    simple: false,
+
+<span id='GXC-panel-Rule-property-'>    /**
+</span>     *  A list of objects to be used as the root of the data for a
+     *  JsonStore.  These will become records used in the selection of
+     *  a point graphic.  If an object in the list has no &#39;value&#39; property,
+     *  the user will be presented with an input to provide their own URL
+     *  for an external graphic.  By default, names of well-known marks are
+     *  provided.  In addition, the default list will produce a record with
+     *  display of &#39;external&#39; that create an input for an external graphic
+     *  URL.
+     *
+     *  Fields:
+     *
+     *  * display - ``String`` The name to be displayed to the user.
+     *  * preview - ``String`` URL to a graphic for preview.
+     *  * value - ``String`` Value to be sent to the server.
+     *  * mark - ``Boolean`` The value is a well-known name for a mark.  If
+     *    false, the value will be assumed to be a url for an external graphic.
+     *
+     * @type {[]}
+     * @private
+     */
+
+<span id='GXC-panel-Rule-property-nestedFilters'>    /**
+</span>     * Allow addition of nested logical filters.  This sets the
+     * allowGroups property of the filter builder.  Default is true.
+     *
+     * @type {Boolean}
+     * @private
+     */
+    nestedFilters: true,
+
+<span id='GXC-panel-Rule-property-minScaleDenominatorLimit'>    /**
+</span>     * Lower limit for scale denominators.  Default is what you get
+     * when  you assume 20 zoom levels starting with the world in Spherical
+     * Mercator on a single 256 x 256 tile at zoom 0 where the zoom factor is 2.
+     *
+     * @type {Number}
+     * @private
+     */
+    minScaleDenominatorLimit: Math.pow(0.5, 19) * 40075016.68 * 39.3701 * OpenLayers.DOTS_PER_INCH / 256,
+
+<span id='GXC-panel-Rule-property-maxScaleDenominatorLimit'>    /**
+</span>     * Upper limit for scale denominators.  Default is what you get
+     * when you project the world in Spherical Mercator onto a single
+     * 256 x 256 pixel tile and assume OpenLayers.DOTS_PER_INCH (this
+     * corresponds to zoom level 0 in Google Maps).
+     *
+     * @type {Number}
+     * @private
+     */
+    maxScaleDenominatorLimit: 40075016.68 * 39.3701 * OpenLayers.DOTS_PER_INCH / 256,
+
+<span id='GXC-panel-Rule-property-scaleLevels'>    /**
+</span>     *  ``Number`` Number of scale levels to assume.  This is only for scaling
+     *  values exponentially along the slider.  Scale values are not
+     *  required to one of the discrete levels.  Default is 20.
+     */
+    scaleLevels: 20,
+
+<span id='GXC-panel-Rule-property-scaleSliderTemplate'>    /** private: property[scaleSliderTemplate]
+</span>     *  ``String`` Template for the tip displayed by the scale threshold slider.
+     *
+     *  Can be customized using the following keywords in curly braces:
+     *
+     *  * zoom - the zoom level
+     *  * scale - the scale denominator
+     *  * type - &#39;Max&#39; or &#39;Min&#39; denominator
+     *  * scaleType - &#39;Min&#39; or &#39;Max&#39; scale (sense is opposite of type)
+     *
+     *  Default is &#39;{scaleType} Scale 1:{scale}&#39;.
+     */
+    scaleSliderTemplate: &#39;{scaleType} Scale 1:{scale}&#39;,
+
+<span id='GXC-panel-Rule-method-modifyScaleTipContext'>    /** private: method[modifyScaleTipContext]
+</span>     *  Called from the multi-slider tip&#39;s getText function.  The function
+     *  will receive two arguments - a reference to the panel and a data
+     *  object.  The data object will have scale, zoom, and type properties
+     *  already calculated.  Other properties added to the data object
+     *  are available to the &lt;scaleSliderTemplate&gt;.
+     */
+    modifyScaleTipContext: Ext.emptyFn,
+
+<span id='GXC-panel-Rule-property-labelFeaturesText'>    /** i18n */
+</span>    labelFeaturesText: &#39;Label Features&#39;,
+<span id='GXC-panel-Rule-property-labelsText'>    labelsText: &#39;Labels&#39;,
+</span><span id='GXC-panel-Rule-property-basicText'>    basicText: &#39;Basic&#39;,
+</span><span id='GXC-panel-Rule-property-advancedText'>    advancedText: &#39;Advanced&#39;,
+</span><span id='GXC-panel-Rule-property-limitByScaleText'>    limitByScaleText: &#39;Limit by scale&#39;,
+</span><span id='GXC-panel-Rule-property-limitByConditionText'>    limitByConditionText: &#39;Limit by condition&#39;,
+</span><span id='GXC-panel-Rule-property-symbolText'>    symbolText: &#39;Symbol&#39;,
+</span><span id='GXC-panel-Rule-property-nameText'>    nameText: &#39;Name&#39;,
+</span><span id='GXC-panel-Rule-property-abstractText'>    abstractText: &#39;Abstract&#39;,
+</span>
+<span id='GXC-panel-Rule-cfg-defaults'>    defaults: {
+</span>        border: false
+    },
+
+<span id='GXC-panel-Rule-method-initComponent'>    /** private */
+</span>    initComponent: function() {
+        var items = [];
+
+        if(!this.rule) {
+            this.rule = new OpenLayers.Rule({
+                name: this.uniqueRuleName()
+            });
+        } else {
+            if (!this.initialConfig.symbolType) {
+                this.symbolType = this.getSymbolTypeFromRule(this.rule) ||
+                                  this.symbolType;
+            }
+        }
+
+        this.activeTab = 0;
+
+        // basic symbolizer form
+        items.push({
+            title: this.basicText,
+            autoScroll: true,
+            items: [
+                this.createHeaderPanel(),
+                this.createSymbolizerPanel()
+            ]
+        });
+
+        if (!this.simple) {
+            // label symbolizer
+            items.push({
+                title: this.labelsText,
+                autoScroll: true,
+                bodyStyle: {&#39;padding&#39;: &#39;10px&#39;},
+                items: [{
+                    itemId: &#39;textSymbolizerFieldSet&#39;,
+                    xtype: &#39;fieldset&#39;,
+                    title: this.labelFeaturesText,
+                    autoHeight: true,
+                    checkboxToggle: true,
+                    collapsed: !this.hasTextSymbolizer(),
+                    defaults: {
+                        border: false
+                    },
+                    items: [{
+                        itemId: &#39;textSymbolizer&#39;,
+                        xtype: &#39;gxc_form_textsymbolizer&#39;,
+                        symbolizer: this.getTextSymbolizer(),
+                        attributes: this.attributes,
+                        fonts: this.fonts
+                    }]
+                }]
+            });
+
+            // filter panel
+            items.push({
+                title: this.advancedText,
+                autoScroll: true,
+                bodyStyle: {&#39;padding&#39;: &#39;10px&#39;},
+                items: [{
+                    itemId: &#39;filterBuilderFieldSet&#39;,
+                    xtype: &#39;fieldset&#39;,
+                    title: this.limitByConditionText,
+                    checkboxToggle: true,
+                    collapsed: !(this.rule &amp;&amp; this.rule.filter),
+                    autoHeight: true,
+                    items: [{
+                        itemId: &#39;filterBuilder&#39;,
+                        xtype: &#39;gxc_panel_filterbuilder&#39;,
+                        allowGroups: this.nestedFilters,
+                        filter: this.rule &amp;&amp;
+                                this.rule.filter &amp;&amp;
+                                this.rule.filter.clone(),
+                        attributes: this.attributes
+                    }]
+                }]
+            });
+        } // end if !simple
+
+        this.items = items;
+
+<span id='GXC-panel-Rule-property-'>        /**
+</span>         * The interpretation here is that scale values of zero are equivalent to
+         * no scale value.  If someone thinks that a scale value of zero should have
+         * a different interpretation, this needs to be changed.
+         */
+        // this.scaleLimitPanel = new gxp.ScaleLimitPanel({
+        //     maxScaleDenominator: this.rule.maxScaleDenominator || undefined,
+        //     limitMaxScaleDenominator: !!this.rule.maxScaleDenominator,
+        //     maxScaleDenominatorLimit: this.maxScaleDenominatorLimit,
+        //     minScaleDenominator: this.rule.minScaleDenominator || undefined,
+        //     limitMinScaleDenominator: !!this.rule.minScaleDenominator,
+        //     minScaleDenominatorLimit: this.minScaleDenominatorLimit,
+        //     scaleLevels: this.scaleLevels,
+        //     scaleSliderTemplate: this.scaleSliderTemplate,
+        //     modifyScaleTipContext: this.modifyScaleTipContext,
+        //     listeners: {
+        //         change: function(comp, min, max) {
+        //             this.rule.minScaleDenominator = min;
+        //             this.rule.maxScaleDenominator = max;
+        //             this.fireEvent(&#39;change&#39;, this, this.rule);
+        //         },
+        //         scope: this
+        //     }
+        // });
+
+            //     title: this.advancedText,
+            //     defaults: {
+            //         style: {
+            //             margin: &#39;7px&#39;
+            //         }
+            //     },
+            //     autoScroll: true,
+            //     items: [{
+            //         xtype: &#39;fieldset&#39;,
+            //         title: this.limitByScaleText,
+            //         checkboxToggle: true,
+            //         collapsed: !(this.rule &amp;&amp; (this.rule.minScaleDenominator || this.rule.maxScaleDenominator)),
+            //         autoHeight: true,
+            //         items: [this.scaleLimitPanel],
+            //         listeners: {
+            //             collapse: function() {
+            //                 delete this.rule.minScaleDenominator;
+            //                 delete this.rule.maxScaleDenominator;
+            //                 this.fireEvent(&#39;change&#39;, this, this.rule);
+            //             },
+            //             expand: function() {
+            //                 /**
+            //                  * Start workaround for
+            //                  * http://projects.opengeo.org/suite/ticket/676
+            //                  */
+            //                 var tab = this.getActiveTab();
+            //                 this.activeTab = null;
+            //                 this.setActiveTab(tab);
+            //                 /**
+            //                  * End workaround for
+            //                  * http://projects.opengeo.org/suite/ticket/676
+            //                  */
+            //                 var changed = false;
+            //                 if (this.scaleLimitPanel.limitMinScaleDenominator) {
+            //                     this.rule.minScaleDenominator = this.scaleLimitPanel.minScaleDenominator;
+            //                     changed = true;
+            //                 }
+            //                 if (this.scaleLimitPanel.limitMaxScaleDenominator) {
+            //                     this.rule.maxScaleDenominator = this.scaleLimitPanel.maxScaleDenominator;
+            //                     changed = true;
+            //                 }
+            //                 if (changed) {
+            //                     this.fireEvent(&#39;change&#39;, this, this.rule);
+            //                 }
+            //             },
+            //             scope: this
+            //         }
+            //     }, {
+
+        this.addEvents(
+<span id='GXC-panel-Rule-property-change'>            /** api: events[change]
+</span>             *  Fires when any rule property changes.
+             *
+             *  Listener arguments:
+             *  * panel - :class:`gxp.RulePanel` This panel.
+             *  * rule - ``OpenLayers.Rule`` The updated rule.
+             */
+            &#39;change&#39;
+        );
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-panel-Rule-method-hasTextSymbolizer'>    /** private: method[hasTextSymbolizer]
+</span>     */
+    hasTextSymbolizer: function() {
+        var candidate, symbolizer;
+
+        if (this.rule.symbolizers) {
+            for (var i=0, ii=this.rule.symbolizers.length; i&lt;ii; ++i) {
+                candidate = this.rule.symbolizers[i];
+                if (candidate instanceof OpenLayers.Symbolizer.Text) {
+                    symbolizer = candidate;
+                    break;
+                }
+            }
+        } else {
+            // add compatibility with simple vector rules
+            if (this.rule.symbolizer instanceof OpenLayers.Symbolizer.Text) {
+                symbolizer = this.rule.symbolizer;
+            }
+        }
+
+        return symbolizer;
+    },
+
+<span id='GXC-panel-Rule-method-getTextSymbolizer'>    /** private: method[getTextSymbolizer]
+</span>     *  Get the first text symbolizer in the rule.  If one does not exist,
+     *  create one.
+     */
+    getTextSymbolizer: function() {
+        var symbolizer = this.hasTextSymbolizer();
+        if (!symbolizer) {
+            symbolizer = new OpenLayers.Symbolizer.Text({graphic: false});
+        }
+        return symbolizer;
+    },
+
+<span id='GXC-panel-Rule-method-setTextSymbolizer'>    /** private: method[setTextSymbolizer]
+</span>     *  Update the first text symbolizer in the rule.  If one does not exist,
+     *  add it.
+     */
+    setTextSymbolizer: function(symbolizer) {
+        var found;
+        for (var i=0, ii=this.rule.symbolizers.length; i&lt;ii; ++i) {
+            if (this.rule.symbolizers[i] instanceof OpenLayers.Symbolizer.Text) {
+                this.rule.symbolizers[i] = symbolizer;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            this.rule.symbolizers.push(symbolizer);
+        }
+    },
+
+<span id='GXC-panel-Rule-method-uniqueRuleName'>    /** private: method[uniqueRuleName]
+</span>     *  Generate a unique rule name.  This name will only be unique for this
+     *  session assuming other names are created by the same method.  If
+     *  name needs to be unique given some other context, override it.
+     */
+    uniqueRuleName: function() {
+        return OpenLayers.Util.createUniqueID(&#39;rule_&#39;);
+    },
+
+<span id='GXC-panel-Rule-method-createHeaderPanel'>    /** private: method[createHeaderPanel]
+</span>     *  Creates a panel config containing rule name, symbolizer, and scale
+     *  constraints.
+     */
+    createHeaderPanel: function() {
+        return {
+            xtype: &#39;fieldset&#39;,
+            layout: &#39;column&#39;,
+            bodyStyle: {padding: &#39;10px&#39;},
+            border: false,
+            defaults: {
+                labelAlign: &#39;top&#39;,
+                border: false
+            },
+            items: [{
+                columnWidth: 0.75,
+                xtype: &#39;textfield&#39;,
+                flex: 3,
+                fieldLabel: this.nameText,
+                itemId: &#39;nameField&#39;,
+                value: this.rule &amp;&amp; (this.rule.title || this.rule.name || &#39;&#39;)
+            }, {
+                columnWidth: 0.25,
+                xtype: &#39;gx_renderer&#39;,
+                width: 30,
+                height: 30,
+                padding: 10,
+                itemId: &#39;symbolizerSwatch&#39;,
+                symbolizers: [this.symbolizer]
+            }, {
+                columnWidth: 1,
+                itemId: &#39;abstractField&#39;,
+                xtype: &#39;textarea&#39;,
+                fieldLabel: this.abstractText,
+                name: &#39;description&#39;,
+                value: this.rule &amp;&amp; this.rule.description
+            }]
+        };
+    },
+
+<span id='GXC-panel-Rule-method-createSymbolizerPanel'>    /** private: method[createSymbolizerPanel]
+</span>     */
+    createSymbolizerPanel: function() {
+        // use first symbolizer that matches symbolType
+        var candidate, symbolizer,
+            rule = this.rule,
+            Type = OpenLayers.Symbolizer[this.symbolType];
+
+        this.symbolizerExists = false;
+
+        if (Type) {
+            if (rule.symbolizers) {
+                for (var i=0, ii=rule.symbolizers.length; i&lt;ii; ++i) {
+                    candidate = rule.symbolizers[i];
+                    if (candidate instanceof Type) {
+                        this.symbolizerExists = true;
+                        symbolizer = candidate;
+                        break;
+                    }
+                }
+            } else {
+                symbolizer = rule.symbolizer;
+            }
+
+            if (!symbolizer) {
+                // allow addition of new symbolizer
+                symbolizer = new Type({
+                    fill: false,
+                    stroke: false
+                });
+            }
+            this.symbolizer = symbolizer;
+        } else {
+            throw new Error(&#39;Appropriate symbolizer type not included in build: &#39; + this.symbolType);
+        }
+
+        var cfg = {
+            xtype: &#39;gxc_panel_&#39; + this.symbolType.toLowerCase() + &#39;symbolizer&#39;,
+            itemId: &#39;symbolizerPanel&#39;,
+            bodyPadding: &#39;10px&#39;,
+            symbolizer: symbolizer,
+            border: false
+        };
+
+        if (this.symbolType === &#39;Point&#39; &amp;&amp; this.pointGraphics) {
+            cfg.pointGraphics = this.pointGraphics;
+        }
+
+        return cfg;
+
+    },
+
+<span id='GXC-panel-Rule-method-getSymbolTypeFromRule'>    /** private: method[getSymbolTypeFromRule]
+</span>     *  :arg rule: `OpenLayers.Rule`
+     *  :return: `String` &#39;Point&#39;, &#39;Line&#39; or &#39;Polygon&#39; (or undefined if none
+     *      of the three.
+     *
+     *  Determines the symbol type of the first symbolizer of a rule that is
+     *  not a text symbolizer
+     */
+    getSymbolTypeFromRule: function(rule) {
+        var candidate, type;
+        if (rule.symbolizers) {
+            for (var i=0, ii=rule.symbolizers.length; i&lt;ii; ++i) {
+                candidate = rule.symbolizers[i];
+                if (!(candidate instanceof OpenLayers.Symbolizer.Text)) {
+                    type = candidate.CLASS_NAME.split(&#39;.&#39;).pop();
+                    break;
+                }
+            }
+        } else if (rule.symbolizer) {
+            type = rule.symbolizer.CLASS_NAME.split(&#39;.&#39;).pop();
+        }
+        return type;
+    }
+});
+</pre>
+</body>
+</html>

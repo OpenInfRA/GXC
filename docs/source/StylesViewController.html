@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;GXC.panel.StylesViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+    requires: [
+        &#39;GXC.panel.Style&#39;
+    ],
+
+    control: {
+        &#39;view&#39;: {
+            &#39;boxready&#39;: &#39;onViewBoxready&#39;
+        },
+        &#39;stylesFieldSet&#39;: true,
+        &#39;stylesCombo&#39;: {
+            &#39;select&#39;: &#39;onStylesComboSelect&#39;
+        },
+        &#39;stylesToolbar&#39;: true,
+        &#39;addButton&#39;: {
+            &#39;click&#39;: &#39;onAddButtonClick&#39;
+        },
+        &#39;deleteButton&#39;: {
+            &#39;click&#39;: &#39;onDeleteButtonClick&#39;
+        },
+        &#39;editButton&#39;: {
+            &#39;click&#39;: &#39;onEditButtonClick&#39;
+        },
+        &#39;exportButton&#39;: {
+            &#39;click&#39;: &#39;onExportButtonClick&#39;
+        },
+        &#39;duplicateButton&#39;: {
+            &#39;click&#39;: &#39;onDuplicateButtonClick&#39;
+        }
+    },
+
+<span id='global-property-editingDialog'>    /**
+</span>     * The editing dialog.
+     * @type {Ext.window.Window}
+     *
+     * @private
+     */
+    editingDialog: null,
+
+    onViewBoxready: function(view) {
+        this.getStyles();
+    },
+
+    onStylesComboSelect: function(combo, records) {
+        var view = this.getView(),
+            record = records[0];
+
+        view.fireEvent(&#39;styleselected&#39;, view, record);
+    },
+
+<span id='global-method-onAddButtonClick'>    /**
+</span>     * Create a new style record and select it in the stlyes combo box.
+     */
+    onAddButtonClick: function() {
+        var view = this.getView(),
+            combo = this.getStylesCombo(),
+            store = view.stylesStore,
+            newStyle = new OpenLayers.Style2({
+                name: this.newStyleName(),
+                rules: []
+            }),
+            records;
+
+        records = store.add(Ext.create(store.model, {
+            &#39;name&#39;: newStyle.name,
+            &#39;userStyle&#39;: newStyle
+        }));
+
+        if (records.length) {
+            combo.select(records[0]);
+        }
+    },
+
+    onDeleteButtonClick: function() {
+        var view = this.getView(),
+            combo = this.getStylesCombo(),
+            store = view.stylesStore,
+            record = store.getById(combo.getValue());
+
+        if (record) {
+            store.remove(record);
+        }
+    },
+
+    onEditButtonClick: function() {
+        this.editStyle();
+    },
+
+    onExportButtonClick: function() {
+        var combo = this.getStylesCombo(),
+            record = combo.findRecordByValue(combo.getValue()),
+            sld, blob;
+
+        if (record.get(&#39;userStyle&#39;)) {
+            sld = this.createSld(record);
+            blob = new Blob([sld], {
+                type: &#39;text/xml;charset=utf-8&#39;
+            });
+            saveAs(blob, record.get(&#39;name&#39;) + &#39;.sld&#39;);
+        }
+    },
+
+    onDuplicateButtonClick: function() {
+        var view = this.getView(),
+            combo = this.getStylesCombo(),
+            store = view.stylesStore,
+            record, newRecords, newStyle;
+
+        record = store.getById(combo.getValue());
+
+        if (record) {
+            newStyle = record.get(&#39;userStyle&#39;);
+            newStyle.isDefault = false;
+            newStyle.name = this.newStyleName();
+
+            newRecords = store.add(Ext.create(store.model, {
+                &#39;name&#39;: newStyle.name,
+                &#39;title&#39;: newStyle.title,
+                &#39;abstract&#39;: newStyle.description,
+                &#39;userStyle&#39;: newStyle
+            }));
+
+            if (newRecords.length) {
+                combo.select(newRecords[0]);
+            }
+        }
+    },
+
+    onStylePanelSavestyle: function(panel, userStyle) {
+        var view = this.getView(),
+            combo = this.getStylesCombo(),
+            store = view.stylesStore,
+            record = store.getById(combo.getValue());
+
+        if (record) {
+            record.set(&#39;userStyle&#39;, userStyle);
+            combo.setValue(userStyle.name);
+        }
+        this.hideEditingDialog();
+    },
+
+    onStylePanelCancelstyle: function() {
+        this.hideEditingDialog();
+    },
+
+    getStyles: function() {
+        var view = this.getView(),
+            combo = this.getStylesCombo(),
+            store = view.stylesStore,
+            layer = view.layerRecord.getLayer(),
+            version, userStyle;
+
+        if (layer.CLASS_NAME === &#39;OpenLayers.Layer.WMS&#39;) {
+            version = layer.params[&#39;VERSION&#39;];
+
+            if (parseFloat(version) &gt; 1.1) {
+                //TODO don&#39;t force 1.1.1, fall back instead
+                version = &#39;1.1.1&#39;;
+            }
+            Ext.Ajax.request({
+                url: layer.url,
+                params: {
+                    &#39;SERVICE&#39;: &#39;WMS&#39;,
+                    &#39;VERSION&#39;: version,
+                    &#39;REQUEST&#39;: &#39;GetStyles&#39;,
+                    &#39;LAYERS&#39;: [layer.params[&#39;LAYERS&#39;]].join(&#39;,&#39;)
+                },
+                method: &#39;GET&#39;,
+                disableCaching: false,
+                success: this.parseSLD,
+                failure: this.setupNonEditable,
+                scope: this
+            });
+        } else if (layer.CLASS_NAME === &#39;OpenLayers.Layer.Vector&#39;) {
+            var userStyle = layer.styleMap.styles[&#39;default&#39;],
+                type, styleRecord;
+
+
+            if (layer.features.length) {
+                type = layer.features[0].geometry.CLASS_NAME.split(&#39;.&#39;).pop();
+            } else if (layer.geometryType) {
+                type = layer.geometryType.CLASS_NAME.split(&#39;.&#39;).pop();
+            }
+
+            // sanity check to provide at least one rule per style
+            if (!userStyle.rules.length) {
+                userStyle.rules.push(new OpenLayers.Rule({
+                    symbolizer: new OpenLayers.Symbolizer[type](
+                        OpenLayers.Renderer.defaultSymbolizer
+                    )
+                }));
+            }
+
+            // we can use the style map entry directly without further ado
+            styleRecord = Ext.create(store.model, {
+                &#39;name&#39;: userStyle.id,
+                &#39;title&#39;: userStyle.title,
+                &#39;abstract&#39;: userStyle.description,
+                &#39;userStyle&#39;: userStyle
+            });
+
+            // add the style to the combo box and select it right away
+            store.add(styleRecord);
+            combo.setValue(styleRecord.get(&#39;name&#39;));
+            view.fireEvent(&#39;styleselected&#39;, view, styleRecord);
+
+            // for vector layers, keep the user from adding more styles
+            this.getStylesFieldSet().hide();
+            this.getStylesToolbar().hide();
+        }
+    },
+
+<span id='global-method-parseSLD'>    /**
+</span>     *  private: method[parseSLD]
+     *  :arg response: ``Object``
+     *  :arg options: ``Object``
+     *
+     *  Success handler for the GetStyles response. Includes a fallback
+     *  to GetLegendGraphic if no valid SLD is returned.
+     */
+    parseSLD: function(response, options) {
+        var view = this.getView(),
+            combo = this.getStylesCombo(),
+            store = view.stylesStore,
+            layerRecord = view.layerRecord,
+            layerParams = layerRecord.getLayer().params,
+            data = response.responseXML,
+            format = new OpenLayers.Format.SLD({
+                profile: &#39;GeoServer&#39;,
+                multipleSymbolizers: true
+            });
+
+        if (!data || !data.documentElement) {
+            data = new OpenLayers.Format.XML().read(response.responseText);
+        }
+
+        try {
+            var sld = format.read(data);
+
+            // add userStyle objects to the stylesStore
+            //TODO this only works if the LAYERS param contains one layer
+            var userStyles = sld.namedLayers[layerParams.LAYERS].userStyles;
+
+            // add styles from the layer&#39;s SLD_BODY *after* the userStyles
+            var inlineStyles;
+            if (layerParams.SLD_BODY) {
+                var sldBody = format.read(layerParams.SLD_BODY);
+                inlineStyles = sldBody.namedLayers[layerParams.LAYERS].userStyles;
+                Array.prototype.push.apply(userStyles, inlineStyles);
+            }
+
+            // our stylesStore comes from the layerRecord&#39;s styles - clear it
+            // and repopulate from GetStyles
+            store.removeAll();
+
+            var userStyle, record, index, defaultStyle;
+            for (var i=0, len=userStyles.length; i&lt;len; ++i) {
+                userStyle = userStyles[i];
+                // remove existing record - this way we replace styles from
+                // userStyles with inline styles.
+                index = view.stylesStore.findExact(&#39;name&#39;, userStyle.name);
+                index !== -1 &amp;&amp; store.removeAt(index);
+                record = Ext.create(store.model, {
+                    &#39;name&#39;: userStyle.name,
+                    &#39;title&#39;: userStyle.title,
+                    &#39;abstract&#39;: userStyle.description,
+                    &#39;edited&#39;: true,
+                    &#39;userStyle&#39;: userStyle
+                });
+
+                record.phantom = false;
+                store.add(record);
+
+                // preselect inline style of default style
+                if (index !== -1 || userStyle.isDefault === true) {
+                    defaultStyle = record;
+                }
+            }
+            // fallback to the default style, this can happen when the layer referenced
+            // a non-existing style as initialStyle
+            if (!combo.getValue() &amp;&amp; defaultStyle) {
+                combo.setValue(defaultStyle.get(&#39;name&#39;));
+                view.fireEvent(&#39;styleselected&#39;, view, defaultStyle);
+            }
+        }
+        catch(e) {
+            if (window.console) {
+                console.warn(e.message);
+            }
+        }
+    },
+
+    editStyle: function() {
+        var view = this.getView(),
+            combo = this.getStylesCombo(),
+            store = view.stylesStore,
+            record = store.getById(combo.getValue()),
+            userStyle;
+
+        if (!record) {
+            return;
+        }
+
+        userStyle = record.get(&#39;userStyle&#39;);
+
+        this.editingDialog = Ext.create(view.dialogCls, {
+            title: Ext.String.format(view.styleWindowTitle,
+                userStyle.title || userStyle.name),
+            shortTitle: userStyle.title || userStyle.name,
+            bodyBorder: false,
+            autoHeight: true,
+            width: 300,
+            modal: true,
+            defaults: {
+                border: false
+            },
+            items: [{
+                xtype: &#39;gxc_panel_style&#39;,
+                userStyle: userStyle.clone(),
+                listeners: {
+                    &#39;savestyle&#39;: this.onStylePanelSavestyle,
+                    &#39;cancelstyle&#39;: this.onStylePanelCancelstyle,
+                    scope: this
+                }
+            }],
+            listeners: {
+                &#39;hide&#39;: this.onStylePanelCancelstyle,
+                scope: this
+            }
+        }).show();
+    },
+
+    hideEditingDialog: function() {
+        var panel;
+
+        if (this.editingDialog) {
+            panel = this.editingDialog.query(&#39;gxc_panel_style&#39;)[0];
+
+            panel.un({
+                &#39;savestyle&#39;: this.onStylePanelSavestyle,
+                &#39;cancelstyle&#39;: this.onStylePanelCancelstyle,
+                scope: this
+            });
+
+            this.editingDialog.hide().destroy();
+            this.editingDialog = null;
+        }
+    },
+
+    newStyleName: function() {
+        return Math.random().toString(36).substring(7);
+    },
+
+    createSld: function(styleRecord, options) {
+        var view = this.getView(),
+            layerRecord = view.layerRecord,
+            layer = layerRecord.getLayer(),
+            layerName = layer.metadata.name,
+            sld = {
+                version: &#39;1.0.0&#39;,
+                namedLayers: {}
+            };
+
+        sld.namedLayers[layerName] = {
+            name: layerName,
+            userStyles: [styleRecord.get(&#39;userStyle&#39;)]
+        };
+
+        return new OpenLayers.Format.SLD({
+            multipleSymbolizers: true,
+            profile: &#39;GeoServer&#39;
+        }).write(sld);
+    },
+
+<span id='global-method-setupNonEditable'>    /** private: methos[setNonEditable]
+</span>     */
+    setupNonEditable: function() {
+        var view = this.getView(),
+            combo = this.getStylesCombo(),
+            value = combo.getValue(),
+            record;
+
+        this.getStylesToolbar().hide();
+
+        if (value) {
+            record = combo.findRecordByValue(value);
+        }
+
+        if (record) {
+            view.fireEvent(&#39;styleselected&#39;, view, record);
+        }
+    }
+});
+</pre>
+</body>
+</html>

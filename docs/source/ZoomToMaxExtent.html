@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-ZoomToMaxExtent'>/**
+</span> * Zooms to the maximum extent of the map or to zoom level 0 if no layer is
+ * visible.
+ */
+Ext.define(&#39;GXC.button.ZoomToMaxExtent&#39;, {
+    extend: &#39;GXC.button.Button&#39;,
+
+    alias: &#39;widget.gxc_button_zoomtomaxextent&#39;,
+
+<span id='GXC-button-ZoomToMaxExtent-property-inject'>    inject: [
+</span>        &#39;layerStore&#39;,
+        &#39;mapService&#39;
+    ],
+
+<span id='GXC-button-ZoomToMaxExtent-cfg-iconCls'>    iconCls: &#39;gxc-icon-zoom-extent&#39;,
+</span>
+<span id='GXC-button-ZoomToMaxExtent-cfg-tooltip'>    tooltip: &#39;Zoom to max extent&#39;,
+</span>
+<span id='GXC-button-ZoomToMaxExtent-method-handler'>    handler: function() {
+</span>        var map = this.mapService.getMap(),
+            store = this.layerStore,
+            bounds = new OpenLayers.Bounds();
+
+        store.each(function(rec) {
+            var layer = rec.getLayer()
+            if (layer.displayInLayerSwitcher &amp;&amp; layer.getVisibility()) {
+                if (layer.getMaxExtent) {
+                    bounds.extend(layer.getMaxExtent());
+                } else {
+                    bounds.extend(layer.getDataExtent());
+                }
+            }
+        });
+
+        if (bounds.toBBOX() === &#39;0,0,0,0&#39;) {
+            map.zoomTo(0);
+        } else {
+            map.zoomToExtent(bounds);
+        }
+    }
+});
+</pre>
+</body>
+</html>

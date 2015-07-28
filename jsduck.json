@@ -5,7 +5,6 @@
         "../GeoExt/src/GeoExt",
         "src"
     ],
-    "--welcome": "Readme.md",
     "--title": "GXC",
     "--warnings": [
         "-no_doc:../../ext/src",

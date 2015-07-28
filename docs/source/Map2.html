@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-Map'>/**
+</span> * The main map panel that retrieves the map configuration from an injected
+ * map service.
+ */
+Ext.define(&#39;GXC.panel.Map&#39;, {
+    extend: &#39;GeoExt.panel.Map&#39;,
+    requires: [
+        &#39;GXC.panel.MapViewController&#39;,
+        &#39;GeoExt.slider.Zoom&#39;,
+        &#39;GeoExt.slider.Tip&#39;
+    ],
+
+    alias: &#39;widget.gxc_panel_map&#39;,
+
+<span id='GXC-panel-Map-property-inject'>    inject: [
+</span>        &#39;mapService&#39;
+    ],
+
+<span id='GXC-panel-Map-property-controller'>    controller: &#39;GXC.panel.MapViewController&#39;,
+</span>
+<span id='GXC-panel-Map-cfg-cls'>    cls: &#39;gxc-panel-map&#39;,
+</span>
+<span id='GXC-panel-Map-cfg-stateful'>    stateful: true,
+</span><span id='GXC-panel-Map-cfg-stateId'>    stateId: &#39;gxcMap&#39;,
+</span>
+<span id='GXC-panel-Map-method-initComponent'>    initComponent: function() {
+</span>        var map = this.mapService.getMap();
+
+        if (this.center) {
+            map.setCenter(this.center, this.zoom);
+        }
+
+        Ext.apply(this, {
+            map: this.mapService.getMap(),
+            items: [{
+                xtype: &#39;gx_zoomslider&#39;,
+                aggressive: true,
+                vertical: true,
+                height: 150,
+                maxHeight: 150,
+                maxWidth: 15,
+                x: 10,
+                y: 20,
+                plugins: Ext.create(&#39;GeoExt.slider.Tip&#39;, {
+                    getText: function(thumb) {
+                        var slider = thumb.slider,
+                            map = slider.map,
+                            out = &#39;&lt;div&gt;Zoom Level: {0}&lt;/div&gt;&#39; +
+                                  &#39;&lt;div&gt;Resolution: {1}&lt;/div&gt;&#39; +
+                                  &#39;&lt;div&gt;Scale: 1 : {2}&lt;/div&gt;&#39;,
+                            zoom, resolution, scale;
+
+                            zoom = map.getZoom();
+                            resolution = map.getResolution();
+                            scale = map.getScale();
+
+                        return Ext.String.format(out,
+                            Math.round(zoom * 10) / 10,
+                            resolution,
+                            Math.round(scale)
+                        );
+                    }
+                })
+            }]
+        });
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

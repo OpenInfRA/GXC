@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-Button'>/**
+</span> * A simple button component wrapper that adds minor functionality.
+ * Most importantly this class is used to trigger SASS compilation of GXC specific
+ * icon classes that are defined in sass/src/GXC/button/Button.scss and may be
+ * overriden in derieved projects.
+ *
+ * Generally, this component would not be instantiated in a GXC application directly.
+ */
+Ext.define(&#39;GXC.button.Button&#39;, {
+    extend: &#39;Ext.button.Button&#39;,
+
+    alias: &#39;widget.gxc_button&#39;,
+
+<span id='GXC-button-Button-cfg-listeners'>    listeners: {
+</span>        toggle: function(btn, pressed) {
+            if (pressed &amp;&amp; btn.untoggleByEsc) {
+                this.keymap = new Ext.util.KeyMap(Ext.getBody(), [{
+                    key: Ext.EventObject.ESC,
+                    defaultEventAction: &#39;preventDefault&#39;,
+                    scope: this,
+                    fn: this.onEscKey
+                }]);
+            } else {
+                this.destroyKeymap();
+            }
+        }
+    },
+
+<span id='GXC-button-Button-cfg-untoggleByEsc'>    /**
+</span>     * Allows to untoggle the button by pressing the ESC key.
+     * @cfg {Boolean}
+     */
+    untoggleByEsc: true,
+
+<span id='GXC-button-Button-method-initComponent'>    /**
+</span>     * If no overflowText is set is mirroring the text or tooltip attribute if
+     * not provided seperatly.
+     */
+    initComponent: function() {
+        var overflowText = this.overflowText || this.text || this.tooltip;
+        this.overflowText = overflowText;
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-Button-method-onEscKey'>    onEscKey: function() {
+</span>        this.toggle(false);
+    },
+
+<span id='GXC-button-Button-method-destroyKeymap'>    destroyKeymap: function() {
+</span>        if (this.keymap) {
+            this.keymap.destroy();
+            this.keymap = null;
+        }
+    },
+
+<span id='GXC-button-Button-method-destroy'>    destroy: function() {
+</span>        this.destroyKeymap();
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

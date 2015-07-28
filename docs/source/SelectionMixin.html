@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-plugin-SelectionMixin'>/**
+</span> * @class
+ */
+Ext.define(&#39;GXC.plugin.SelectionMixin&#39;, {
+
+<span id='GXC-plugin-SelectionMixin-property-selModel'>    selModel: {
+</span>        allowDeselect: true,
+        enableKeyNav: true,
+        mode: &#39;MULTI&#39;
+    },
+
+<span id='GXC-plugin-SelectionMixin-property-listeners'>    listeners: {
+</span><span id='GXC-plugin-SelectionMixin-method-selectionchange'>        /**
+</span>         * Selection change handler of the services panel.
+         * Item specific action buttons should only be enabled when
+         * user selection has the length of 1.
+         */
+        selectionchange: function(sm, selection) {
+            var length = selection.length
+                buttons = this.query(&#39;toolbar button&#39;);
+
+            if (length === 0) {
+                Ext.Array.forEach(buttons, function(button) {
+                    button.setDisabled(!button.hasCls(&#39;independentAction&#39;));
+                });
+            } else if (length === 1) {
+                Ext.Array.forEach(buttons, function(button) {
+                    button.setDisabled(false);
+                });
+            } else {
+                Ext.Array.forEach(buttons, function(button) {
+                    button.setDisabled(button.hasCls(&#39;itemAction&#39;));
+                });
+            }
+        }
+    }
+})
+</pre>
+</body>
+</html>

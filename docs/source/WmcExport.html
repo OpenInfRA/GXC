@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-WmcExport'>/**
+</span> * A button that allows to export the added WMS-Layers of the map view to
+ * WMC format.
+ */
+Ext.define(&#39;GXC.button.WmcExport&#39;, {
+    extend: &#39;GXC.button.Button&#39;,
+
+<span id='GXC-button-WmcExport-property-inject'>    inject: [
+</span>        &#39;mapService&#39;
+    ],
+
+    alias: &#39;widget.gxc_button_wmcexport&#39;,
+
+<span id='GXC-button-WmcExport-cfg-iconCls'>    /**
+</span>     * The GXC icon class.
+     * @cfg {String}
+     */
+    iconCls: &#39;gxc-icon-wmc&#39;,
+
+<span id='GXC-button-WmcExport-property-format'>    /**
+</span>     * The OpenLayers format to write WMC documents.
+     * @type {OpenLayers.Format.WMC}
+     */
+    format: null,
+
+<span id='GXC-button-WmcExport-cfg-tooltip'>    tooltip: &#39;Export WMS layers as WMC document&#39;,
+</span>
+<span id='GXC-button-WmcExport-method-initComponent'>    initComponent: function() {
+</span>        this.format = new OpenLayers.Format.WMC();
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-WmcExport-method-handler'>    handler: function() {
+</span>        var map = this.mapService.getMap(),
+            text = this.format.write(map),
+            blob = new Blob([text], {
+            type: &#39;text/xml;charset=utf-8&#39;
+        });
+        saveAs(blob, &#39;map.wmc&#39;);
+    },
+
+<span id='GXC-button-WmcExport-method-destroy'>    destroy: function() {
+</span>        this.format.destroy();
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

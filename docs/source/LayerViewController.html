@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-menu-LayerViewController'>/**
+</span> * The view control of the GXC.menu.Layer class.
+ *
+ * It maps interaction with the context menu to higher class actions like
+ * opening the style editor or exporting layer data.
+ */
+Ext.define(&#39;GXC.menu.LayerViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+    requires: [
+        &#39;GXC.panel.StyleEditor&#39;
+    ],
+
+<span id='GXC-menu-LayerViewController-property-inject'>    inject: [
+</span>        &#39;appConfig&#39;,
+        &#39;layerService&#39;,
+        &#39;layerStore&#39;
+    ],
+
+<span id='GXC-menu-LayerViewController-property-control'>    control: {
+</span>        &#39;serviceInfo&#39;: {
+            live: true,
+            listeners: {
+                &#39;click&#39;: &#39;onServiceInfoClick&#39;
+            }
+        },
+        &#39;metadata&#39;: {
+            live: true,
+            listeners: {
+                &#39;click&#39;: &#39;onMetadataClick&#39;
+            }
+        },
+        &#39;style&#39;: {
+            live: true,
+            listeners: {
+                &#39;click&#39;: &#39;onStyleClick&#39;
+            }
+        },
+        &#39;attributesButton&#39;: {
+            live: true,
+            listeners: {
+                &#39;click&#39;: &#39;onAttributesButtonClick&#39;
+            }
+        },
+        &#39;raiseLayer&#39;: {
+            &#39;click&#39;: &#39;onRaiseLayerClick&#39;
+        },
+        &#39;lowerLayer&#39;: {
+            &#39;click&#39;: &#39;onLowerLayerClick&#39;
+        },
+        &#39;maxExtent&#39;: {
+            &#39;click&#39;: &#39;onMaxExtentClick&#39;
+        },
+        &#39;remove&#39;: {
+            &#39;click&#39;: &#39;onRemoveClick&#39;
+        },
+        &#39;exportLayer&#39;: {
+            live: true,
+            listeners: {
+                &#39;select&#39;: &#39;onExportLayerSelect&#39;
+            }
+        }
+    },
+
+<span id='GXC-menu-LayerViewController-method-onServiceInfoClick'>    /**
+</span>     * Shows provided contact information of a layer.
+     */
+    onServiceInfoClick: function() {
+        var layer = this.getView().layer,
+            contactInfo = layer.metadata.service.contactInformation,
+            tpl = new Ext.XTemplate(
+                &#39;&lt;p&gt;&lt;b&gt;{personPrimary.person}&lt;/b&gt; ({position})&lt;/p&gt;&#39;,
+                &#39;&lt;p&gt;{contactAddress.email}&lt;/p&gt;&#39;,
+                &#39;&lt;p&gt;&#39;,
+                    &#39;{personPrimary.organization}&lt;br&gt;&#39;,
+                    &#39;{contactAddress.address}&lt;br&gt;&#39;,
+                    &#39;{contactAddress.postcode} {contactAddress.city}&lt;br&gt;&#39;,
+                    &#39;{contactAddress.stateOrProvince}&lt;br&gt;&#39;,
+                    &#39;{contactAddress.country}&lt;br&gt;&#39;,
+                &#39;&lt;/p&gt;&#39;
+            );
+
+            Ext.create(&#39;Ext.window.Window&#39;, {
+                title: &#39;Contact: &#39; + layer.name,
+                bodyPadding: &#39;5px&#39;,
+                html: tpl.apply(contactInfo),
+                autoShow: true
+            });
+    },
+
+<span id='GXC-menu-LayerViewController-method-onMetadataClick'>    /**
+</span>     * Opens the metadata url if provided.
+     */
+    onMetadataClick: function() {
+        var meta = this.getView().layer.metadata.metadataURLs;
+
+        if (meta.length &gt; 0) {
+            window.open(meta[0].href, &#39;_blank&#39;);
+        }
+    },
+
+<span id='GXC-menu-LayerViewController-method-onAttributesButtonClick'>    /**
+</span>     * Opens an editable attributes table of the layers features.
+     */
+    onAttributesButtonClick: function() {
+        var layer = this.getView().layer;
+        this.layerService.editLayer(layer);
+    },
+
+<span id='GXC-menu-LayerViewController-method-onRaiseLayerClick'>    /**
+</span>     * Calls the layer service to raise the selected layer.
+     */
+    onRaiseLayerClick: function() {
+        var layer = this.getView().layer;
+        this.layerService.raiseLayer(layer);
+    },
+
+<span id='GXC-menu-LayerViewController-method-onLowerLayerClick'>    /**
+</span>     * Calls the layer service to lower the selected layer.
+     */
+    onLowerLayerClick: function() {
+        var layer = this.getView().layer;
+        this.layerService.lowerLayer(layer);
+    },
+
+<span id='GXC-menu-LayerViewController-method-onMaxExtentClick'>    /**
+</span>     * Zooms to the extent of the underlying OpenLayers layer.
+     * Extent is extracted via Capabilities of the OWS Layer.
+     *
+     * @returns {undefined}
+     */
+    onMaxExtentClick: function() {
+        var layer = this.getView().layer;
+        this.layerService.zoomToLayerExtent(layer);
+    },
+
+<span id='GXC-menu-LayerViewController-method-onStyleClick'>    /**
+</span>     * Opens the style layer for this layer.
+     */
+    onStyleClick: function() {
+        var layer = this.getView().layer,
+            layerRecord;
+
+        layerRecord = this.layerStore.getByLayer(layer);
+
+        if (layerRecord) {
+            Ext.create(&#39;Ext.window.Window&#39;, {
+                layout: &#39;fit&#39;,
+                autoScroll: true,
+                width: 400,
+                items: [{
+                    xtype: &#39;gxc_panel_styleeditor&#39;,
+                    border: 0,
+                    layerRecord: layerRecord
+                }]
+            }).show();
+        }
+    },
+
+<span id='GXC-menu-LayerViewController-method-onRemoveClick'>    /**
+</span>     * Handles the deletion of layers.
+     */
+    onRemoveClick: function() {
+        var layer = this.getView().layer;
+        this.layerService.removeLayer(layer);
+    },
+
+<span id='GXC-menu-LayerViewController-method-onExportLayerSelect'>    /**
+</span>     * Exports the layers features in the choosen format.
+     * @param  {Ext.form.ComboBox} combo The format ComboBox
+     * @param  {String} newValue The choosen format
+     */
+    onExportLayerSelect: function(combo, newValue) {
+        var layer = this.getView().layer,
+            format, url;
+
+        if (!newValue.length) {
+            return;
+        } else {
+            format = newValue[0].get(&#39;field1&#39;);
+        }
+
+        if (layer.CLASS_NAME === &#39;OpenLayers.Layer.Vector&#39;) {
+            url = this.exportVectorFormat(layer, format);
+        } else {
+            url = this.exportRasterFormat(layer, format);
+        }
+
+        window.open(url, &#39;_blank&#39;);
+    },
+
+<span id='GXC-menu-LayerViewController-method-exportRasterFormat'>    /**
+</span>     * Returns an url that can be used to export the layers features in raster
+     * format by calling the layers WMS-GetMap endpoint.
+     * @param  {OpenLayers.Layer.WMS} layer
+     * @param  {String} format
+     * @return {String}
+     */
+    exportRasterFormat: function(layer, format) {
+        var bounds = layer.adjustBounds(layer.getExtent()),
+            imageSize = layer.getImageSize(bounds),
+            newParams = {},
+            reverseAxisOrder = layer.reverseAxisOrder();
+
+        newParams.FORMAT = format;
+        newParams.BBOX = layer.encodeBBOX ?
+            bounds.toBBOX(null, reverseAxisOrder) :
+            bounds.toArray(reverseAxisOrder);
+        newParams.WIDTH = imageSize.w;
+        newParams.HEIGHT = imageSize.h;
+
+        return layer.getFullRequestString(newParams);
+    },
+
+<span id='GXC-menu-LayerViewController-method-exportVectorFormat'>    /**
+</span>     * Returns an url that can be used to export layer features in vector format
+     * by calling the GetFeature request with the provided format param.
+     * @param  {OpenLayers.Layer.Vector} layer
+     * @param  {String} format
+     * @return {String}
+     */
+    exportVectorFormat: function(layer, format) {
+        var protocol = layer.protocol;
+
+        return protocol.url + &#39;?service=wfs&amp;version=&#39; + protocol.version +
+            &#39;&amp;request=GetFeature&amp;typeNames=&#39; + protocol.featureType +
+            &#39;&amp;outputFormat=&#39; + format;
+    }
+});
+</pre>
+</body>
+</html>

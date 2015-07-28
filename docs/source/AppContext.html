@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-context-AppContext'>/**
+</span> * Fire events related to the Layer UI, which other objects can respond to.
+ */
+Ext.define(&#39;GXC.context.AppContext&#39;, {
+    mixins: {
+        observable: &#39;Ext.util.Observable&#39;
+    },
+
+<span id='GXC-context-AppContext-property-statics'>    /**
+</span>     * Available UI modi
+     */
+    statics: {
+<span id='GXC-context-AppContext-static-property-UI_MODE_SIMPLE'>        UI_MODE_SIMPLE: 1,
+</span><span id='GXC-context-AppContext-static-property-UI_MODE_ADVANCED'>        UI_MODE_ADVANCED: 2,
+</span><span id='GXC-context-AppContext-static-property-UI_MODE_ADMIN'>        UI_MODE_ADMIN: 3
+</span>    },
+
+    config: {
+<span id='GXC-context-AppContext-cfg-uiMode'>        /**
+</span>         * Active ui mode.
+         * Defaults to &#39;simple&#39; on startup.
+         */
+        uiMode: null
+    },
+
+<span id='GXC-context-AppContext-method-constructor'>    /**
+</span>     * Constructor.
+     */
+    constructor: function(config) {
+        if (config === null) {
+            config = {};
+        }
+        this.mixins.observable.constructor.call(this);
+        this.initConfig(config);
+        this.callParent(arguments);
+    },
+
+<span id='GXC-context-AppContext-method-mapIsReady'>    /**
+</span>     * Notifies interested objects that the map has been loaded.
+     */
+    mapIsReady: function(mapPanel, width, height) {
+<span id='GXC-context-AppContext-event-mapready'>        /**
+</span>         * @event mapready Maps boxready has been seen.
+         */
+        this.fireEvent(&#39;mapready&#39;, mapPanel, width, height);
+    },
+
+<span id='GXC-context-AppContext-method-initialDataLoaded'>    /**
+</span>     * Notifies interested objects that initial data has been loaded.
+     */
+    initialDataLoaded: function() {
+<span id='GXC-context-AppContext-event-initialDataLoaded'>        /**
+</span>         * @event initialDataLoaded Initial data loaded.
+         */
+        this.fireEvent(&#39;initialdataloaded&#39;);
+    },
+
+<span id='GXC-context-AppContext-method-addLayer'>    addLayer: function(layer) {
+</span>        this.fireEvent(&#39;addlayer&#39;, layer);
+    },
+
+<span id='GXC-context-AppContext-method-fileLayerLoaded'>    fileLayerLoaded: function(layer) {
+</span>        this.fireEvent(&#39;filelayerloaded&#39;, layer);
+    },
+
+<span id='GXC-context-AppContext-method-showServiceCapabilities'>    /**
+</span>     * Notifies interested objects that initial data has been loaded.
+     */
+    showServiceCapabilities: function(service) {
+<span id='GXC-context-AppContext-event-initialDataLoaded'>        /**
+</span>         * @event initialDataLoaded Initial data loaded.
+         */
+        this.fireEvent(&#39;showservicecapabilities&#39;, service);
+    },
+
+<span id='GXC-context-AppContext-method-zoomToExtent'>    zoomToExtent: function(extent) {
+</span><span id='GXC-context-AppContext-event-zoomtoextent'>        /**
+</span>         * @event zoomtoextent About to zoom listening map views to this extent.
+         */
+         this.fireEvent(&#39;zoomtoextent&#39;, extent);
+    }
+});
+</pre>
+</body>
+</html>

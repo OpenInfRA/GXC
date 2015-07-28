@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-Print'>/**
+</span> * A button control to open a floating overview map.
+ * The overview mirrors active layers of the map view.
+ */
+Ext.define(&#39;GXC.button.Print&#39;, {
+    extend: &#39;GXC.button.ViewDelegator&#39;,
+    requires: [
+        &#39;GeoExt.data.MapfishPrintProvider&#39;
+    ],
+
+<span id='GXC-button-Print-property-inject'>    inject: [
+</span>        &#39;appConfig&#39;
+    ],
+
+    alias: &#39;widget.gxc_button_print&#39;,
+
+<span id='GXC-button-Print-property-iconCls'>    iconCls: &#39;gxc-icon-print&#39;,
+</span>
+<span id='GXC-button-Print-cfg-tooltip'>    tooltip: &#39;Print&#39;,
+</span>
+<span id='GXC-button-Print-property-txtWindowTitle'>    txtWindowTitle: &#39;Print Map&#39;,
+</span>
+<span id='GXC-button-Print-cfg-printUrl'>    /**
+</span>     * The base url of the print service. It will be retrieved from the application
+     * configuration by key &#39;printBaseUrl&#39;.
+     *
+     * @cfg {String}
+     */
+    printUrl: null,
+
+<span id='GXC-button-Print-property-printProvider'>    /**
+</span>     * The print provider that will be init when the button is rendered.
+     * Capabilities will be retrieved from the url set in the configuration
+     * object.
+     * @type {GeoExt.data.MapFishPrintProvider}
+     */
+    printProvider: null,
+
+<span id='GXC-button-Print-method-initComponent'>    initComponent: function() {
+</span>        var me = this,
+            printUrl = this.printUrl || this.appConfig.get(&#39;printBaseUrl&#39;);
+
+        this.printProvider = Ext.create(&#39;GeoExt.data.MapfishPrintProvider&#39;, {
+            autoLoad: true,
+            url: printUrl
+        });
+
+        this.dConfig = {
+            title: this.txtWindowTitle,
+            layout: &#39;fit&#39;,
+            width: 300,
+            items: [{
+                xtype: &#39;gxc_panel_print&#39;,
+                printProvider: this.printProvider
+            }]
+        };
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

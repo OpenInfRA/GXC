@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
+*/
+// @tag dom,core
+// @require AbstractQuery.js
+
+<span id='Ext-dom-AbstractHelper'>/**
+</span> * Abstract base class for {@link Ext.dom.Helper}.
+ * @private
+ */
+Ext.define(&#39;Ext.dom.AbstractHelper&#39;, {
+<span id='Ext-dom-AbstractHelper-property-emptyTags'>    emptyTags : /^(?:br|frame|hr|img|input|link|meta|range|spacer|wbr|area|param|col)$/i,
+</span><span id='Ext-dom-AbstractHelper-property-confRe'>    confRe : /^(?:tag|children|cn|html|tpl|tplData)$/i,
+</span><span id='Ext-dom-AbstractHelper-property-endRe'>    endRe : /end/i,
+</span><span id='Ext-dom-AbstractHelper-property-styleSepRe'>    styleSepRe: /\s*(?::|;)\s*/,
+</span>
+<span id='Ext-dom-AbstractHelper-property-attributeTransform'>    // Since cls &amp; for are reserved words, we need to transform them
+</span>    attributeTransform: { cls : &#39;class&#39;, htmlFor : &#39;for&#39; },
+
+<span id='Ext-dom-AbstractHelper-property-closeTags'>    closeTags: {},
+</span>
+<span id='Ext-dom-AbstractHelper-property-decamelizeName'>    decamelizeName : (function () {
+</span>        var camelCaseRe = /([a-z])([A-Z])/g,
+            cache = {};
+
+        function decamel (match, p1, p2) {
+            return p1 + &#39;-&#39; + p2.toLowerCase();
+        }
+
+        return function (s) {
+            return cache[s] || (cache[s] = s.replace(camelCaseRe, decamel));
+        };
+    }()),
+
+<span id='Ext-dom-AbstractHelper-method-generateMarkup'>    generateMarkup: function(spec, buffer) {
+</span>        var me = this,
+            specType = typeof spec,
+            attr, val, tag, i, closeTags;
+
+        if (specType == &quot;string&quot; || specType == &quot;number&quot;) {
+            buffer.push(spec);
+        } else if (Ext.isArray(spec)) {
+            for (i = 0; i &lt; spec.length; i++) {
+                if (spec[i]) {
+                    me.generateMarkup(spec[i], buffer);
+                }
+            }
+        } else {
+            tag = spec.tag || &#39;div&#39;;
+            buffer.push(&#39;&lt;&#39;, tag);
+
+            for (attr in spec) {
+                if (spec.hasOwnProperty(attr)) {
+                    val = spec[attr];
+                    if (!me.confRe.test(attr)) {
+                        if (typeof val == &quot;object&quot;) {
+                            buffer.push(&#39; &#39;, attr, &#39;=&quot;&#39;);
+                            me.generateStyles(val, buffer).push(&#39;&quot;&#39;);
+                        } else {
+                            buffer.push(&#39; &#39;, me.attributeTransform[attr] || attr, &#39;=&quot;&#39;, val, &#39;&quot;&#39;);
+                        }
+                    }
+                }
+            }
+
+            // Now either just close the tag or try to add children and close the tag.
+            if (me.emptyTags.test(tag)) {
+                buffer.push(&#39;/&gt;&#39;);
+            } else {
+                buffer.push(&#39;&gt;&#39;);
+
+                // Apply the tpl html, and cn specifications
+                if ((val = spec.tpl)) {
+                    val.applyOut(spec.tplData, buffer);
+                }
+                if ((val = spec.html)) {
+                    buffer.push(val);
+                }
+                if ((val = spec.cn || spec.children)) {
+                    me.generateMarkup(val, buffer);
+                }
+
+                // we generate a lot of close tags, so cache them rather than push 3 parts
+                closeTags = me.closeTags;
+                buffer.push(closeTags[tag] || (closeTags[tag] = &#39;&lt;/&#39; + tag + &#39;&gt;&#39;));
+            }
+        }
+
+        return buffer;
+    },
+
+<span id='Ext-dom-AbstractHelper-method-generateStyles'>    /**
+</span>     * Converts the styles from the given object to text. The styles are CSS style names
+     * with their associated value.
+     * 
+     * The basic form of this method returns a string:
+     * 
+     *      var s = Ext.DomHelper.generateStyles({
+     *          backgroundColor: &#39;red&#39;
+     *      });
+     *      
+     *      // s = &#39;background-color:red;&#39;
+     *
+     * Alternatively, this method can append to an output array.
+     * 
+     *      var buf = [];
+     *
+     *      ...
+     *
+     *      Ext.DomHelper.generateStyles({
+     *          backgroundColor: &#39;red&#39;
+     *      }, buf);
+     *
+     * In this case, the style text is pushed on to the array and the array is returned.
+     * 
+     * @param {Object} styles The object describing the styles.
+     * @param {String[]} [buffer] The output buffer.
+     * @return {String/String[]} If buffer is passed, it is returned. Otherwise the style
+     * string is returned.
+     */
+    generateStyles: function (styles, buffer) {
+        var a = buffer || [],
+            name;
+
+        for (name in styles) {
+            if (styles.hasOwnProperty(name)) {
+                a.push(this.decamelizeName(name), &#39;:&#39;, styles[name], &#39;;&#39;);
+            }
+        }
+
+        return buffer || a.join(&#39;&#39;);
+    },
+
+<span id='Ext-dom-AbstractHelper-method-markup'>    /**
+</span>     * Returns the markup for the passed Element(s) config.
+     * @param {Object} spec The DOM object spec (and children)
+     * @return {String}
+     */
+    markup: function(spec) {
+        if (typeof spec == &quot;string&quot;) {
+            return spec;
+        }
+
+        var buf = this.generateMarkup(spec, []);
+        return buf.join(&#39;&#39;);
+    },
+
+<span id='Ext-dom-AbstractHelper-method-applyStyles'>    /**
+</span>     * Applies a style specification to an element.
+     * @param {String/HTMLElement} el The element to apply styles to
+     * @param {String/Object/Function} styles A style specification string e.g. &#39;width:100px&#39;, or object in the form {width:&#39;100px&#39;}, or
+     * a function which returns such a specification.
+     */
+    applyStyles: function(el, styles) {
+        if (styles) {
+            var i = 0,
+                len;
+
+            el = Ext.fly(el, &#39;_applyStyles&#39;);
+            if (typeof styles == &#39;function&#39;) {
+                styles = styles.call();
+            }
+            if (typeof styles == &#39;string&#39;) {
+                styles = Ext.util.Format.trim(styles).split(this.styleSepRe);
+                for (len = styles.length; i &lt; len;) {
+                    el.setStyle(styles[i++], styles[i++]);
+                }
+            } else if (Ext.isObject(styles)) {
+                el.setStyle(styles);
+            }
+        }
+    },
+
+<span id='Ext-dom-AbstractHelper-method-insertHtml'>    /**
+</span>     * Inserts an HTML fragment into the DOM.
+     * @param {String} where Where to insert the html in relation to el - beforeBegin, afterBegin, beforeEnd, afterEnd.
+     *
+     * For example take the following HTML: `&lt;div&gt;Contents&lt;/div&gt;`
+     *
+     * Using different `where` values inserts element to the following places:
+     *
+     * - beforeBegin: `&lt;HERE&gt;&lt;div&gt;Contents&lt;/div&gt;`
+     * - afterBegin: `&lt;div&gt;&lt;HERE&gt;Contents&lt;/div&gt;`
+     * - beforeEnd: `&lt;div&gt;Contents&lt;HERE&gt;&lt;/div&gt;`
+     * - afterEnd: `&lt;div&gt;Contents&lt;/div&gt;&lt;HERE&gt;`
+     *
+     * @param {HTMLElement/TextNode} el The context element
+     * @param {String} html The HTML fragment
+     * @return {HTMLElement} The new node
+     */
+    insertHtml: function(where, el, html) {
+        var hash = {},
+            setStart,
+            range,
+            frag,
+            rangeEl;
+
+        where = where.toLowerCase();
+
+        // add these here because they are used in both branches of the condition.
+        hash[&#39;beforebegin&#39;] = [&#39;BeforeBegin&#39;, &#39;previousSibling&#39;];
+        hash[&#39;afterend&#39;] = [&#39;AfterEnd&#39;, &#39;nextSibling&#39;];
+
+        range = el.ownerDocument.createRange();
+        setStart = &#39;setStart&#39; + (this.endRe.test(where) ? &#39;After&#39; : &#39;Before&#39;);
+        if (hash[where]) {
+            range[setStart](el);
+            frag = range.createContextualFragment(html);
+            el.parentNode.insertBefore(frag, where == &#39;beforebegin&#39; ? el : el.nextSibling);
+            return el[(where == &#39;beforebegin&#39; ? &#39;previous&#39; : &#39;next&#39;) + &#39;Sibling&#39;];
+        }
+        else {
+            rangeEl = (where == &#39;afterbegin&#39; ? &#39;first&#39; : &#39;last&#39;) + &#39;Child&#39;;
+            if (el.firstChild) {
+                range[setStart](el[rangeEl]);
+                frag = range.createContextualFragment(html);
+                if (where == &#39;afterbegin&#39;) {
+                    el.insertBefore(frag, el.firstChild);
+                }
+                else {
+                    el.appendChild(frag);
+                }
+            }
+            else {
+                el.innerHTML = html;
+            }
+            return el[rangeEl];
+        }
+
+        throw &#39;Illegal insertion point -&gt; &quot;&#39; + where + &#39;&quot;&#39;;
+    },
+
+<span id='Ext-dom-AbstractHelper-method-insertBefore'>    /**
+</span>     * Creates new DOM element(s) and inserts them before el.
+     * @param {String/HTMLElement/Ext.Element} el The context element
+     * @param {Object/String} o The DOM object spec (and children) or raw HTML blob
+     * @param {Boolean} [returnElement] true to return a Ext.Element
+     * @return {HTMLElement/Ext.Element} The new node
+     */
+    insertBefore: function(el, o, returnElement) {
+        return this.doInsert(el, o, returnElement, &#39;beforebegin&#39;);
+    },
+
+<span id='Ext-dom-AbstractHelper-method-insertAfter'>    /**
+</span>     * Creates new DOM element(s) and inserts them after el.
+     * @param {String/HTMLElement/Ext.Element} el The context element
+     * @param {Object} o The DOM object spec (and children)
+     * @param {Boolean} [returnElement] true to return a Ext.Element
+     * @return {HTMLElement/Ext.Element} The new node
+     */
+    insertAfter: function(el, o, returnElement) {
+        return this.doInsert(el, o, returnElement, &#39;afterend&#39;, &#39;nextSibling&#39;);
+    },
+
+<span id='Ext-dom-AbstractHelper-method-insertFirst'>    /**
+</span>     * Creates new DOM element(s) and inserts them as the first child of el.
+     * @param {String/HTMLElement/Ext.Element} el The context element
+     * @param {Object/String} o The DOM object spec (and children) or raw HTML blob
+     * @param {Boolean} [returnElement] true to return a Ext.Element
+     * @return {HTMLElement/Ext.Element} The new node
+     */
+    insertFirst: function(el, o, returnElement) {
+        return this.doInsert(el, o, returnElement, &#39;afterbegin&#39;, &#39;firstChild&#39;);
+    },
+
+<span id='Ext-dom-AbstractHelper-method-append'>    /**
+</span>     * Creates new DOM element(s) and appends them to el.
+     * @param {String/HTMLElement/Ext.Element} el The context element
+     * @param {Object/String} o The DOM object spec (and children) or raw HTML blob
+     * @param {Boolean} [returnElement] true to return a Ext.Element
+     * @return {HTMLElement/Ext.Element} The new node
+     */
+    append: function(el, o, returnElement) {
+        return this.doInsert(el, o, returnElement, &#39;beforeend&#39;, &#39;&#39;, true);
+    },
+
+<span id='Ext-dom-AbstractHelper-method-overwrite'>    /**
+</span>     * Creates new DOM element(s) and overwrites the contents of el with them.
+     * @param {String/HTMLElement/Ext.Element} el The context element
+     * @param {Object/String} o The DOM object spec (and children) or raw HTML blob
+     * @param {Boolean} [returnElement] true to return a Ext.Element
+     * @return {HTMLElement/Ext.Element} The new node
+     */
+    overwrite: function(el, o, returnElement) {
+        el = Ext.getDom(el);
+        el.innerHTML = this.markup(o);
+        return returnElement ? Ext.get(el.firstChild) : el.firstChild;
+    },
+
+<span id='Ext-dom-AbstractHelper-method-doInsert'>    doInsert: function(el, o, returnElement, pos, sibling, append) {
+</span>        var newNode = this.insertHtml(pos, Ext.getDom(el), this.markup(o));
+        return returnElement ? Ext.get(newNode, true) : newNode;
+    }
+
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-data-reader-WmsCapabilities'>/**
+</span> * A Ext.data.reader.Json implementation to read WMS-Capabilities responses parsed
+ * by Openlayers.Format.WMSCapabilities.
+ * Instead of mapping nested WMS layers to a flat table structure, this reader
+ * returns a tree structure of nested layers.
+ */
+Ext.define(&#39;GXC.data.reader.WmsCapabilities&#39;, {
+    extend: &#39;Ext.data.reader.Json&#39;,
+
+    alias: &#39;reader.gxc_wmscapabilities&#39;,
+
+<span id='GXC-data-reader-WmsCapabilities-method-constructor'>    /**
+</span>     * Creates new Reader.
+     *
+     * @param {Object} [config] Config object.
+     */
+    constructor: function(config) {
+        this.callParent(arguments);
+
+        if (!this.format) {
+            this.format = new OpenLayers.Format.WMSCapabilities();
+        }
+    },
+
+<span id='GXC-data-reader-WmsCapabilities-method-getResponseData'>    /**
+</span>     * Gets the records.
+     *
+     * @param {Object} request The XHR object which contains the parsed XML
+     *     document.
+     * @return {Object} A data block which is used by an Ext.data.Store
+     *     as a cache of Ext.data.Model objects.
+     */
+    getResponseData: function(request) {
+        var data = request.responseXML;
+
+        if(!data || !data.documentElement) {
+            data = request.responseText;
+        }
+
+        if (Ext.isArray(data)) {
+            return this.callParent(data);
+        }
+
+        if(typeof data === &quot;string&quot; || data.nodeType) {
+            data = this.format.read(data);
+        }
+
+        if (!!data.error) {
+            Ext.Error.raise({
+                msg: &quot;Error parsing WMS GetCapabilities&quot;,
+                arg: data.error
+            });
+        }
+
+        var root = data.capability.nestedLayers[0];
+        root.root = true;
+
+        return this.readRecords({
+            layers: data.capability.layers,
+            nestedLayers: root,
+            metaData: {
+                request: data.capability.request,
+                exceptions: data.capability.exception,
+                service: data.service,
+                version: data.version
+            }
+        });
+    },
+
+<span id='GXC-data-reader-WmsCapabilities-method-destroyReader'>    destroyReader: function() {
+</span>        if (this.format) {
+            this.format.destroy();
+            delete this.format;
+        }
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

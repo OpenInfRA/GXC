@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-menu-Layer'>/**
+</span> * A context menu that is used in the layers tree view.
+ */
+Ext.define(&#39;GXC.menu.Layer&#39;, {
+    extend: &#39;Ext.menu.Menu&#39;,
+    requires: [
+        &#39;Ext.data.ArrayStore&#39;,
+        &#39;GXC.menu.LayerViewController&#39;,
+        &#39;GeoExt.slider.LayerOpacity&#39;
+    ],
+
+    alias: &#39;widget.gxc_menu_layer&#39;,
+
+<span id='GXC-menu-Layer-property-controller'>    controller: &#39;GXC.menu.LayerViewController&#39;,
+</span>
+<span id='GXC-menu-Layer-property-inject'>    inject: [
+</span>        &#39;appConfig&#39;
+    ],
+
+<span id='GXC-menu-Layer-property-layer'>    /**
+</span>     * The OpenLayers layer this menu interacts with.
+     * @type {OpenLayers.Layer}
+     */
+    layer: null,
+
+<span id='GXC-menu-Layer-property-txtAttributes'>    txtAttributes: &#39;Show attributes table&#39;,
+</span><span id='GXC-menu-Layer-property-txtContactInfo'>    txtContactInfo: &#39;Show contact info&#39;,
+</span><span id='GXC-menu-Layer-property-txtMetadata'>    txtMetadata: &#39;Open medadata url&#39;,
+</span><span id='GXC-menu-Layer-property-txtRaiseLayer'>    txtRaiseLayer: &#39;Raise layer&#39;,
+</span><span id='GXC-menu-Layer-property-txtLowerLayer'>    txtLowerLayer: &#39;Lower layer&#39;,
+</span><span id='GXC-menu-Layer-property-txtMaxExtent'>    txtMaxExtent: &#39;Zoom to max extent&#39;,
+</span><span id='GXC-menu-Layer-property-txtStyleLayer'>    txtStyleLayer: &#39;Edit style&#39;,
+</span><span id='GXC-menu-Layer-property-txtRemoveLayer'>    txtRemoveLayer: &#39;Remove layer&#39;,
+</span><span id='GXC-menu-Layer-property-txtExport'>    txtExport: &#39;Export to file&#39;,
+</span><span id='GXC-menu-Layer-property-txtGroupLayer'>    txtGroupLayer: &#39;Group:&#39;,
+</span>
+<span id='GXC-menu-Layer-method-initComponent'>    initComponent: function() {
+</span>        var layer = this.layer,
+            rasterFormats = layer.metadata.formats,
+            vecOps = layer.metadata.operationsMetadata,
+            title = &#39;&#39;,
+            items = [],
+            gsSettings = this.appConfig.get(&#39;geoserver&#39;);
+
+        if (layer.metadata &amp;&amp; layer.metadata.nestedLayers &amp;&amp;
+                layer.metadata.nestedLayers.length) {
+            title += this.txtGroupLayer + &#39; &#39;;
+        }
+
+        // contact information
+        if (layer.metadata.service &amp;&amp;
+                layer.metadata.service.contactInformation) {
+            items.push({
+                text: this.txtContactInfo,
+                iconCls: &#39;gxc-icon-info&#39;,
+                itemId: &#39;serviceInfo&#39;
+            });
+        }
+
+        // metadata link
+        if (layer.metadata &amp;&amp; layer.metadata.metadataURLs &amp;&amp;
+                layer.metadata.metadataURLs.length &gt; 0) {
+            items.push({
+                text: this.txtMetadata,
+                iconCls: &#39;gxc-icon-link&#39;,
+                itemId: &#39;metadata&#39;
+            });
+        }
+
+        if (layer.CLASS_NAME === &#39;OpenLayers.Layer.Vector&#39; ||
+            layer.url.startsWith(gsSettings.host)) {
+            items.push({
+                text: this.txtAttributes,
+                iconCls: &#39;gxc-icon-edit&#39;,
+                itemId: &#39;attributesButton&#39;
+            });
+        }
+
+        if (Ext.isArray(rasterFormats)) {
+            items.push({
+                xtype: &#39;combo&#39;,
+                emptyText: this.txtExport,
+                store: rasterFormats,
+                itemId: &#39;exportLayer&#39;
+            });
+        } else if (vecOps &amp;&amp; vecOps.GetFeature &amp;&amp;
+                vecOps.GetFeature.parameters &amp;&amp;
+                vecOps.GetFeature.parameters.outputFormat) {
+            items.push({
+                xtype: &#39;combo&#39;,
+                emptyText: this.txtExport,
+                store: Ext.Object.getKeys(vecOps.GetFeature.parameters.outputFormat),
+                itemId: &#39;exportLayer&#39;
+            });
+        }
+
+        items = items.concat([{
+            text: this.txtStyleLayer,
+            iconCls: &#39;gxc-icon-palette&#39;,
+            itemId: &#39;style&#39;
+        }, {
+            text: this.txtRaiseLayer,
+            iconCls: &#39;gxc-icon-up&#39;,
+            itemId: &#39;raiseLayer&#39;
+        }, {
+            text: this.txtLowerLayer,
+            iconCls: &#39;gxc-icon-down&#39;,
+            itemId: &#39;lowerLayer&#39;
+        }, {
+            text: this.txtMaxExtent,
+            iconCls: &#39;gxc-icon-zoom-extent&#39;,
+            itemId: &#39;maxExtent&#39;
+        }, {
+            text: this.txtRemoveLayer,
+            iconCls: &#39;gxc-icon-remove&#39;,
+            itemId: &#39;remove&#39;
+        }, {
+            xtype: &#39;gx_opacityslider&#39;,
+            iconCls: &#39;gxc-icon-eye&#39;,
+            layer: layer,
+            width: 100
+        }]);
+
+        Ext.apply(this, {
+            title: title + layer.name,
+            items: items
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

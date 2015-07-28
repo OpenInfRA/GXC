@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-Fullscreen'>/**
+</span> * Button component that allows to launch app into fullscreen mode
+ * by calling the browsers HTML5 Fullscreen API.
+ */
+Ext.define(&#39;GXC.button.Fullscreen&#39;, {
+    extend: &#39;GXC.button.Button&#39;,
+
+    alias: &#39;widget.gxc_button_fullscreen&#39;,
+
+<span id='GXC-button-Fullscreen-property-inject'>    /**
+</span>     * Component is injected with appConfig and runtime.
+     * @type {Array}
+     */
+    inject: [
+        &#39;appConfig&#39;
+    ],
+
+<span id='GXC-button-Fullscreen-property-enableToggle'>    /**
+</span>     * Defaults to true to enable toggling the fullscreen mode.
+     *
+     * @inheritdoc
+     */
+    enableToggle: true,
+
+<span id='GXC-button-Fullscreen-cfg-iconCls'>    /**
+</span>     * The GXC icon class.
+     * @cfg {String}
+     */
+    iconCls: &#39;gis-icon-fullscreen&#39;,
+
+<span id='GXC-button-Fullscreen-cfg-tooltip'>    /**
+</span>     * The buttons tooltip on mouseover.
+     * @cfg {String}
+     */
+    tooltip: &#39;Fullscreen mode&#39;,
+
+<span id='GXC-button-Fullscreen-method-initComponent'>    /**
+</span>     * @inheritdoc
+     */
+    initComponent: function() {
+        // listening to this document for fullscreen events.
+        Ext.getDoc().on({
+            &#39;webkitfullscreenchange&#39;: this.onFullScreenChange,
+            &#39;mozfullscreenchange&#39;: this.onFullScreenChange,
+            &#39;fullscreenchange&#39;: this.onFullScreenChange,
+            &#39;MSFullscreenChange&#39;: this.onFullScreenChange,
+            scope: this
+        });
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-Fullscreen-method-toggleHandler'>    /**
+</span>     * Launch app viewport into fullscreen using html 5 fullscreen api.
+     * @inheritdoc
+     */
+    toggleHandler: function(btn, pressed) {
+        var node;
+        if (pressed) {
+            node = this.appConfig.getContainer();
+            this.launchIntoFullscreen(Ext.get(node).dom);
+        } else {
+            this.exitFullscreen();
+        }
+    },
+
+<span id='GXC-button-Fullscreen-method-onFullScreenChange'>    /**
+</span>     * Deactivate toggle button when fullscreen mode is quit via key.
+     */
+    onFullScreenChange: function() {
+        if (
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement
+        ) {
+            this.toggle(true, true);
+        } else {
+            this.toggle(false, true);
+        }
+    },
+
+<span id='GXC-button-Fullscreen-method-launchIntoFullscreen'>    /**
+</span>     * Helper function to cope with browser differences implementing
+     * the Fullscreen API.
+     * @param  {HTMLElement} element The dom element of the viewport.
+     */
+    launchIntoFullscreen: function(element) {
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+        }
+    },
+
+<span id='GXC-button-Fullscreen-method-exitFullscreen'>    /**
+</span>     * Helper function to cope with browser differences implementing
+     * the Fullscreen API.
+     */
+    exitFullscreen: function() {
+        if (document.exitFullscreen) {
+           document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    },
+
+<span id='GXC-button-Fullscreen-method-destroy'>    /**
+</span>     * @inheritdoc
+     */
+    destroy: function() {
+        // Used to un all bound events.
+        Ext.getDoc().un({
+            &#39;webkitfullscreenchange&#39;: this.onFullScreenChange,
+            &#39;mozfullscreenchange&#39;: this.onFullScreenChange,
+            &#39;fullscreenchange&#39;: this.onFullScreenChange,
+            &#39;MSFullscreenChange&#39;: this.onFullScreenChange,
+            scope: this
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

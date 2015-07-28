@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-Geolocate'>/**
+</span> * Button that triggers a Geolocation control that allows to find ones
+ * own position on the map. Uses the Html5 Geolocation API.
+ */
+Ext.define(&#39;GXC.button.Geolocate&#39;, {
+    extend: &#39;GXC.button.OlButton&#39;,
+
+    alias: &#39;widget.gxc_button_geolocate&#39;,
+
+<span id='GXC-button-Geolocate-cfg-inject'>    /**
+</span>     * Component is injected with
+     * * appConfig - to decorate the mouse control with a waiting icon
+     * * mapService - to have access to the actual map
+     * * notificationService - to proclaim errors
+     * @cfg {Array}
+     */
+    inject: [
+        &#39;appConfig&#39;,
+        &#39;mapService&#39;,
+        &#39;notificationService&#39;
+    ],
+
+<span id='GXC-button-Geolocate-cfg-iconCls'>    /**
+</span>     * The icon class of the button.
+     * @cfg {String}
+     */
+    iconCls: &#39;gxc-icon-marker&#39;,
+
+<span id='GXC-button-Geolocate-cfg-tooltip'>    /**
+</span>     * The buttons tooltip on mouseover.
+     * @cfg {String}
+     */
+    tooltip: &#39;My Position&#39;,
+
+<span id='GXC-button-Geolocate-property-enableToggle'>    /**
+</span>     * Geolocation can be toggled.
+     *
+     * @inheritDoc
+     */
+    enableToggle: true,
+
+<span id='GXC-button-Geolocate-cfg-untoggleByEsc'>    /**
+</span>     * Allows to untoggle the button by pressing the ESC key.
+     * @cfg {Boolean}
+     */
+    untoggleByEsc: false,
+
+<span id='GXC-button-Geolocate-cfg-layerName'>    /**
+</span>     * The name of the layer that will be added to the OpenLayers map.
+     * @cfg {String}
+     */
+    layerName: &#39;gx_geolocation&#39;,
+
+<span id='GXC-button-Geolocate-cfg-layerOptions'>    /**
+</span>     * Custom options that will be merged into the layers default options.
+     * @cfg {Object}
+     */
+    layerOptions: null,
+
+<span id='GXC-button-Geolocate-cfg-txtErrorTitle'>    /**
+</span>     * The notification title if an error occours during geolocation call.
+     * @cfg {String}
+     */
+    txtErrorTitle: &#39;Geolocation error&#39;,
+
+<span id='GXC-button-Geolocate-cfg-txtError'>    /**
+</span>     * The notification body if an error occours during geolocation call.
+     * @cfg {String}
+     */
+    txtError: &#39;Geolocation could not be retrieved&#39;,
+
+<span id='GXC-button-Geolocate-method-initComponent'>    /**
+</span>     * @inheritdoc
+     */
+    initComponent: function(config) {
+        config = config || {};
+
+        this.map = config.map || this.mapService.getMap();
+        this.control = config.control || new OpenLayers.Control.Geolocate({
+            bind: false,
+            geolocationOptions: {
+                enableHighAccuracy: false,
+                maximumAge: 0,
+                timeout: 7000
+            }
+        });
+
+        this.layer = new OpenLayers.Layer.Vector(this.layerName, Ext.apply({
+            displayInLayerSwitcher: false
+        }, this.layerOptions));
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-Geolocate-method-onControlActivate'>    /**
+</span>     * @inheritdoc
+     */
+    onControlActivate: function() {
+        this.control.events.on({
+            &#39;locationupdated&#39;: this.onLocationUpdate,
+            &#39;locationfailed&#39;: this.onLocationFailed,
+            scope: this
+        });
+
+        // clear the layer of old positions if any
+        this.layer.removeAllFeatures();
+
+        // add it to the map with index insuring visibility
+        this.map.addLayer(this.layer);
+        this.map.setLayerIndex(this.layer, 99);
+
+        // add css class to viewport to show status
+        this.appConfig.getViewport().addCls(&#39;wait&#39;);
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-Geolocate-method-onControlDeactivate'>    /**
+</span>     * @inheritDoc
+     */
+    onControlDeactivate: function() {
+        this.control.events.un({
+            &#39;locationupdated&#39;: this.onLocationUpdate,
+            &#39;locationfailed&#39;: this.onLocationFailed,
+            scope: this
+        });
+
+        this.map.removeLayer(this.layer);
+        this.clearCursorClass();
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-Geolocate-method-onLocationUpdate'>    /**
+</span>     * Called when the location is updated.
+     * @param  {OpenLayers.Event} e The Event Object
+     */
+    onLocationUpdate: function(e) {
+        var coords = e.position.coords,
+            point = new OpenLayers.Geometry.Point(coords.longitude,
+                coords.latitude),
+            pointOSM = point.clone().transform(&#39;EPSG:4326&#39;, &#39;EPSG:900913&#39;),
+            accuracy = coords.accuracy,
+            projection = this.map.getProjectionObject(),
+            circle, polygon, layer, zoom;
+
+        // polygon plotting accuracy of coordinates
+        // calculation is in Spherical Mercator coordinates to be safe
+        // using accuracy in meteric units
+        polygon = new OpenLayers.Geometry.Polygon.createRegularPolygon(pointOSM,
+            accuracy / 2, 40, 0);
+
+        // make sure to transform features to maps actual projection
+        point.transform(&#39;EPSG:4326&#39;, projection);
+        polygon.transform(&#39;EPSG:900913&#39;, projection);
+
+        // clear the layer of old positions if any
+        this.layer.removeAllFeatures();
+
+        this.layer.addFeatures([
+            // position marker
+            new OpenLayers.Feature.Vector(point, {}, {
+                graphicName: &#39;cross&#39;,
+                strokeColor: &#39;#f00&#39;,
+                strokeWidth: 2,
+                fillOpacity: 0,
+                pointRadius: 10
+            }),
+            // accuracy
+            new OpenLayers.Feature.Vector(polygon, {}, {
+                    fillColor: &#39;#000&#39;,
+                    fillOpacity: 0.1,
+                    strokeWidth: 0
+                }
+            )
+        ]);
+
+        // center on position
+        this.map.setCenter(this.layer.getDataExtent().getCenterLonLat());
+
+        // remove waiting cursor
+        this.clearCursorClass();
+    },
+
+<span id='GXC-button-Geolocate-method-onLocationError'>    /**
+</span>     * Called when an error occured when retrieving the geolocation.
+     */
+    onLocationError: function() {
+        this.notificationService.error(this.txtErrorTitle, this.txtError);
+        this.clearCursorClass();
+    },
+
+<span id='GXC-button-Geolocate-method-clearCursorClass'>    /**
+</span>     * Removes waiting cursor class from viewport div.
+     */
+    clearCursorClass: function() {
+        this.appConfig.getViewport().removeCls(&#39;wait&#39;);
+    }
+});
+</pre>
+</body>
+</html>

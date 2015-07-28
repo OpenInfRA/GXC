@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-Rules'>/**
+</span> * @class
+ */
+Ext.define(&#39;GXC.panel.Rules&#39;, {
+    extend: &#39;Ext.panel.Panel&#39;,
+    requires: [
+        &#39;Ext.form.FieldSet&#39;,
+        &#39;GXC.panel.RulesViewController&#39;
+    ],
+
+<span id='GXC-panel-Rules-property-controller'>    controller: &#39;GXC.panel.RulesViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_panel_rules&#39;,
+
+<span id='GXC-panel-Rules-property-layerRecord'>    layerRecord: null,
+</span>
+<span id='GXC-panel-Rules-property-layerStyle'>    layerStyle: null,
+</span>
+<span id='GXC-panel-Rules-property-addRuleText'>    /** api: config[addStyleText] (i18n) */
+</span>    addRuleText: &quot;Add&quot;,
+<span id='GXC-panel-Rules-property-addRuleTip'>    /** api: config[addStyleTip] (i18n) */
+</span>    addRuleTip: &quot;Add a new rule&quot;,
+<span id='GXC-panel-Rules-property-newRuleText'>    /** api: config[newRuleText] (i18n) */
+</span>    newRuleText: &quot;New Rule&quot;,
+<span id='GXC-panel-Rules-property-deleteRuleText'>    /** api: config[addStyleText] (i18n) */
+</span>    deleteRuleText: &quot;Remove&quot;,
+<span id='GXC-panel-Rules-property-deleteRuleTip'>    /** api: config[addStyleTip] (i18n) */
+</span>    deleteRuleTip: &quot;Delete the selected rule&quot;,
+<span id='GXC-panel-Rules-property-editRuleText'>    /** api: config[addStyleText] (i18n) */
+</span>    editRuleText: &quot;Edit&quot;,
+<span id='GXC-panel-Rules-property-editRuleTip'>    /** api: config[addStyleTip] (i18n) */
+</span>    editRuleTip: &quot;Edit the selected rule&quot;,
+<span id='GXC-panel-Rules-property-duplicateRuleText'>    /** api: config[addStyleText] (i18n) */
+</span>    duplicateRuleText: &quot;Duplicate&quot;,
+<span id='GXC-panel-Rules-property-duplicateRuleTip'>    /** api: config[addStyleTip] (i18n) */
+</span>    duplicateRuleTip: &quot;Duplicate the selected rule&quot;,
+<span id='GXC-panel-Rules-property-rulesFieldsetTitle'>    /** api: config[rulesFieldsetTitle] (i18n) */
+</span>     rulesFieldsetTitle: &quot;Rules&quot;,
+<span id='GXC-panel-Rules-property-ruleWindowTitle'>    /** api: config[ruleWindowTitle] (i18n) */
+</span>    ruleWindowTitle: &quot;Style Rule: {0}&quot;,
+<span id='GXC-panel-Rules-property-cancelText'>    /** api: config[cancelText] (i18n) */
+</span>    cancelText: &quot;Cancel&quot;,
+<span id='GXC-panel-Rules-property-saveText'>    /** api: config[saveText] (i18n) */
+</span>    saveText: &quot;Save&quot;,
+
+<span id='GXC-panel-Rules-property-dialogCls'>    dialogCls: &#39;Ext.window.Window&#39;,
+</span>
+<span id='GXC-panel-Rules-cfg-bodyPadding'>    bodyPadding: &#39;10px&#39;,
+</span>
+<span id='GXC-panel-Rules-method-initComponent'>    initComponent: function() {
+</span>        Ext.apply(this, {
+            items: [{
+                xtype: &#39;fieldset&#39;,
+                itemId: &#39;rulesFieldset&#39;,
+                title: this.rulesFieldsetTitle,
+                autoScroll: true
+            }, {
+                xtype: &#39;toolbar&#39;,
+                items: [{
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;addButton&#39;,
+                    iconCls: &#39;gxc-icon-add&#39;,
+                    text: this.addRuleText,
+                    tooltip: this.addRuleTip
+                }, {
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;deleteButton&#39;,
+                    iconCls: &#39;gxc-icon-remove&#39;,
+                    text: this.deleteRuleText,
+                    tooltip: this.deleteRuleTip,
+                    disabled: true
+                }, {
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;editButton&#39;,
+                    iconCls: &#39;gxc-icon-edit&#39;,
+                    text: this.editRuleText,
+                    toolitp: this.editRuleTip,
+                    disabled: true
+                }, {
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;upButton&#39;,
+                    iconCls: &#39;gxc-icon-up&#39;,
+                    text: this.upRuleText,
+                    toolitp: this.upRuleTip,
+                    disabled: true
+                }, {
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;downButton&#39;,
+                    iconCls: &#39;gxc-icon-down&#39;,
+                    text: this.downRuleText,
+                    toolitp: this.downRuleTip,
+                    disabled: true
+                }, {
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;duplicateButton&#39;,
+                    iconCls: &#39;gxc-icon-duplicate&#39;,
+                    text: this.duplicateRuleText,
+                    tip: this.duplicateRuleTip,
+                    disabled: true
+                }]
+            }]
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

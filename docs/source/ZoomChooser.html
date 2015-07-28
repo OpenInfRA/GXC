@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-ZoomChooser'>/**
+</span> * @class
+ */
+Ext.define(&#39;GXC.form.ZoomChooser&#39;, {
+    extend: &#39;Ext.form.field.ComboBox&#39;,
+    requires: [
+        &#39;GeoExt.data.ScaleStore&#39;
+    ],
+
+    alias: &#39;widget.gxc_form_zoomchooser&#39;,
+
+<span id='GXC-form-ZoomChooser-property-inject'>    inject: [
+</span>        &#39;mapService&#39;
+    ],
+
+<span id='GXC-form-ZoomChooser-cfg-emptyText'>    emptyText: &#39;Scale..&#39;,
+</span>
+<span id='GXC-form-ZoomChooser-cfg-listConfig'>    listConfig: {
+</span>        getInnerTpl: function() {
+            return &#39;1 : {scale:round(0)}&#39;;
+        }
+    },
+
+<span id='GXC-form-ZoomChooser-cfg-displayField'>    displayField: &#39;scale&#39;,
+</span><span id='GXC-form-ZoomChooser-cfg-typeAhead'>    typeAhead: true,
+</span><span id='GXC-form-ZoomChooser-cfg-queryMode'>    queryMode: &#39;local&#39;,
+</span><span id='GXC-form-ZoomChooser-cfg-triggerAction'>    triggerAction: &#39;all&#39;,
+</span><span id='GXC-form-ZoomChooser-cfg-selectOnFocus'>    selectOnFocus: true,
+</span>
+<span id='GXC-form-ZoomChooser-cfg-listeners'>    listeners: {
+</span>        &#39;change&#39;: &#39;onChange&#39;,
+        &#39;select&#39;: &#39;onSelect&#39;,
+        &#39;specialkey&#39;: &#39;onSpecialKey&#39;
+    },
+
+<span id='GXC-form-ZoomChooser-method-initComponent'>    initComponent: function() {
+</span>        var map = this.mapService.getMap(),
+            store = Ext.create(&#39;GeoExt.data.ScaleStore&#39;, {
+                map: map
+            });
+
+        Ext.apply(this, {
+            map: map,
+            store: store
+        });
+
+        map.events.on({
+            &#39;zoomend&#39;: this.onZoomend,
+            scope: this
+        });
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-form-ZoomChooser-method-onSelect'>    onSelect: function(combo, record, index) {
+</span>        this.map.zoomTo(record[0].get(&#39;level&#39;));
+    },
+
+<span id='GXC-form-ZoomChooser-method-onSpecialKey'>    onSpecialKey: function(combo, e) {
+</span>        var v = this.getValue();
+
+        v = parseInt(v.substring(v.length, v.indexOf(&#39;:&#39;) + 1));
+
+        if (!isNaN(v) &amp;&amp; e.getKey() == e.ENTER) {
+            this.map.zoomToScale(v);
+        } else if (e.getKey() == e.ESC) {
+            this.onZoomend();
+        }
+    },
+
+<span id='GXC-form-ZoomChooser-method-onZoomend'>    onZoomend: function() {
+</span>        var value;
+        if (this.rendered) {
+            value = Math.round(parseInt(this.map.getScale())/10)*10;
+            this.setValue(&#39;1 : &#39; + value, false);
+        }
+    },
+
+<span id='GXC-form-ZoomChooser-method-destroy'>    destroy: function() {
+</span>        this.map.un({
+            &#39;zoomend&#39;: this.onZoomend,
+            scope: this
+        });
+
+        delete this.map;
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-LineSymbolizer'>/**
+</span> * A form to configure line symbolizers.
+ */
+Ext.define(&#39;GXC.panel.LineSymbolizer&#39;, {
+    extend: &#39;Ext.form.Panel&#39;,
+    requires: [
+        &#39;GXC.form.StrokeSymbolizer&#39;
+    ],
+
+    alias: &#39;widget.gxc_panel_linesymbolizer&#39;,
+
+<span id='GXC-panel-LineSymbolizer-property-symbolizer'>    /** api: config[symbolizer]
+</span>     *  ``Object``
+     *  A symbolizer object that will be used to fill in form values.
+     *  This object will be modified when values change.  Clone first if
+     *  you do not want your symbolizer modified.
+     */
+    symbolizer: null,
+
+<span id='GXC-panel-LineSymbolizer-cfg-layout'>    layout: &#39;fit&#39;,
+</span>
+<span id='GXC-panel-LineSymbolizer-method-initComponent'>    initComponent: function() {
+</span>
+        this.items = [{
+            xtype: &quot;gxc_form_strokesymbolizer&quot;,
+            symbolizer: this.symbolizer,
+            listeners: {
+                change: function(symbolizer) {
+                    this.fireEvent(&quot;change&quot;, this.symbolizer);
+                },
+                scope: this
+            }
+        }];
+
+        this.addEvents(
+<span id='GXC-panel-LineSymbolizer-property-change'>            /**
+</span>             * Event: change
+             * Fires before any field blurs if the field value has changed.
+             *
+             * Listener arguments:
+             * symbolizer - {Object} A symbolizer with stroke related properties
+             *     updated.
+             */
+            &quot;change&quot;
+        );
+
+        this.callParent(arguments);
+
+    }
+
+
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='global-property-FillSymbolizer'>/**
+</span> * A symbolizer to choose feature fills with.
+ * @type {String}
+ */
+Ext.define(&#39;GXC.form.FillSymbolizer&#39;, {
+    extend: &#39;Ext.form.FieldSet&#39;,
+    requires: [
+        &#39;GXC.form.ColorField&#39;,
+        &#39;Ext.slider.Single&#39;,
+        &#39;GXC.form.FillSymbolizerViewController&#39;
+    ],
+
+    controller: &#39;GXC.form.FillSymbolizerViewController&#39;,
+
+    alias: &#39;widget.gxc_form_fillsymbolizer&#39;,
+
+<span id='global-property-symbolizer'>    /**
+</span>     *  A symbolizer object that will be used to fill in form values.
+     *  This object will be modified when values change.  Clone first if
+     *  you do not want your symbolizer modified.
+     *
+     * @type {Object}
+     */
+    symbolizer: null,
+
+<span id='global-property-colorProperty'>    /**
+</span>     * The property that should be set on the symbolizer to
+     * represent the fill color. Defaults to fillColor. But can also be
+     * set to fontColor for labels.
+     *
+     * @type {String}
+     */
+    colorProperty: &#39;fillColor&#39;,
+
+<span id='global-property-opacityProperty'>    /**
+</span>     * The property that should be set on the symbolizer to
+     * represent the fill opacity. Defaults to fillOpacity. But can also be
+     * set to fontOpacity for labels.
+     *
+     * @type {String}
+     */
+    opacityProperty: &#39;fillOpacity&#39;,
+
+<span id='global-property-checkboxToggle'>    /**
+</span>     * Set to false if the &#39;Fill&#39; fieldset should not be
+     * toggleable. Default is true.
+     *
+     * @type {Boolean}
+     */
+    checkboxToggle: true,
+
+<span id='global-property-defaultColor'>    /**
+</span>     * Default background color for the Color field. This
+     * color will be displayed when no fillColor value for the symbolizer
+     * is available. Defaults to the ``fillColor`` property of
+     * ``OpenLayers.Renderer.defaultSymbolizer``.
+     *
+     * @type {String}
+     */
+    defaultColor: null,
+
+    fillText: &#39;Fill&#39;,
+    colorText: &#39;Color&#39;,
+    opacityText: &#39;Opacity&#39;,
+
+    layout: &#39;anchor&#39;,
+    defaults: {
+        anchor: &#39;100%&#39;
+    },
+
+    initComponent: function() {
+
+        if(!this.symbolizer) {
+            this.symbolizer = {};
+        }
+
+        var sliderValue = 100;
+        if (this.opacityProperty in this.symbolizer) {
+            sliderValue = this.symbolizer[this.opacityProperty]*100;
+        }
+        else if (OpenLayers.Renderer.defaultSymbolizer[this.opacityProperty]) {
+            sliderValue = OpenLayers.Renderer.defaultSymbolizer[this.opacityProperty]*100;
+        }
+
+        Ext.apply(this, {
+            title: this.fillText,
+            autoHeight: true,
+            checkboxToggle: this.checkboxToggle,
+            collapsed: this.checkboxToggle === true &amp;&amp;
+                    this.symbolizer.fill === false,
+            hideMode: &#39;offsets&#39;,
+            items: [{
+                xtype: &#39;gxc_form_colorfield&#39;,
+                fieldLabel: this.colorText,
+                itemId: &#39;colorField&#39;,
+                name: &#39;color&#39;,
+                allowBlank: true,
+                emptyText: OpenLayers.Renderer.defaultSymbolizer[this.colorProperty],
+                value: this.symbolizer[this.colorProperty],
+                defaultBackground: this.defaultColor ||
+                    OpenLayers.Renderer.defaultSymbolizer[this.colorProperty]
+            }, {
+                xtype: &#39;slider&#39;,
+                fieldLabel: this.opacityText,
+                name: &#39;opacity&#39;,
+                itemId: &#39;opacitySlider&#39;,
+                width: 250,
+                values: [sliderValue],
+                isFormField: true
+            }]
+        });
+
+        this.addEvents(
+<span id='global-property-change'>            /**
+</span>             * Event: change
+             * Fires before any field blurs if the field value has changed.
+             *
+             * Listener arguments:
+             * symbolizer - {Object} A symbolizer with fill related properties
+             *     updated.
+             */
+            &#39;change&#39;
+        );
+
+        this.callParent(arguments);
+
+    }
+
+
+});
+</pre>
+</body>
+</html>

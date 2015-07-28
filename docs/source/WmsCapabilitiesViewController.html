@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;GXC.panel.WmsCapabilitiesViewController&#39;, {
+    extend: &#39;GXC.panel.OwsCapabilitiesViewController&#39;,
+
+    // control: {
+    //     &#39;view&#39;: {
+    //         &#39;boxready&#39;: &#39;onViewBoxready&#39;,
+    //         &#39;itemdblclick&#39;: &#39;onItemDblClick&#39;
+    //     },
+    //     &#39;addButton&#39;: {
+    //         &#39;click&#39;: &#39;onAddButtonClick&#39;
+    //     }
+    // },
+
+<span id='global-method-'>    /**
+</span>     * Loads the treestore as soon as the panel is loaded.
+     * @param  {GXC.panel.WmsCapabilities} panel
+     */
+    // onViewBoxready: function(panel) {
+    //     var service = panel.service,
+    //         store = panel.getStore();
+    //
+    //     store.on(&#39;load&#39;, function(records, operation, success) {
+    //         if (success)
+    //           if (records.length) {
+    //             var root = store.setRootNode(records[0]);
+    //             root.expand(true);
+    //         }
+    //     });
+    //
+    //     this.callParent(arguments);
+    // },
+
+<span id='global-method-onItemDblClick'>    /**
+</span>     * Double clicking an entry effectivly adds the layer to the map.
+     */
+    onItemDblClick: function(panel, record, item, index) {
+        this.addLayer(record);
+    },
+
+    onAddButtonClick: function(button, event) {
+        var grid = this.getView(),
+            selection = grid.getSelectionModel().getSelection(),
+            length = selection.length;
+
+        for (var i = 0; i &lt; length; i++) {
+            this.addLayer(selection[i]);
+        }
+    },
+
+    addLayer: function(record) {
+        var layer = record.getLayer(),
+            i;
+        if (layer) {
+            this.appContext.addLayer(layer.clone());
+        } else {
+            // add unnamed layer containers as single layers
+            i = record.childNodes.length;
+            for (i = i - 1; i &gt;= 0; i--) {
+                this.addLayer(record.childNodes[i]);
+            }
+        }
+    },
+
+    onStoreLoad: function(records, operation, success) {
+      var view = this.getView(),
+          store = view.store;
+
+      if (success)
+        if (records.length) {
+          var root = store.setRootNode(records[0]);
+          root.expand(true);
+      }
+
+      this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

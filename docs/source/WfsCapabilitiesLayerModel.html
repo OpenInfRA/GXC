@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+/*
+ * @include GeoExt/data/reader/WfsCapabilities.js
+ */
+
+<span id='GeoExt-data-WfsCapabilitiesLayerModel'>/**
+</span> * The model for WFS layers coming from a WFS GetCapabilities document.
+ *
+ * @class GeoExt.data.WfsCapabilitiesLayerModel
+ */
+Ext.define(&#39;GeoExt.data.WfsCapabilitiesLayerModel&#39;,{
+    extend: &#39;GeoExt.data.LayerModel&#39;,
+    alternateClassName: [
+        &#39;GeoExt.data.WFSCapabilitiesModel&#39;,
+        &#39;GeoExt.data.WfsCapabilitiesModel&#39;
+    ],
+    requires: [&#39;GeoExt.data.reader.WfsCapabilities&#39;],
+    alias: &#39;model.gx_wfscapabilities&#39;,
+<span id='GeoExt-data-WfsCapabilitiesLayerModel-property-fields'>    fields: [
+</span>        {name: &quot;name&quot;, type: &quot;string&quot;, mapping: &quot;metadata.name&quot;},
+        {name: &quot;namespace&quot;, type: &quot;string&quot;, mapping: &quot;metadata.featureNS&quot;},
+        {name: &quot;abstract&quot;, type: &quot;string&quot;, mapping: &quot;metadata.abstract&quot;}
+    ],
+<span id='GeoExt-data-WfsCapabilitiesLayerModel-cfg-proxy'>    proxy: {
+</span>        type: &#39;ajax&#39;,
+        reader: {
+            type: &#39;gx_wfscapabilities&#39;
+        }
+    }
+});
+</pre>
+</body>
+</html>

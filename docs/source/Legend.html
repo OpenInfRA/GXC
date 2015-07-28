@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
+*/
+<span id='Ext-chart-Legend'>/**
+</span> * @class Ext.chart.Legend
+ *
+ * Defines a legend for a chart&#39;s series.
+ * The &#39;chart&#39; member must be set prior to rendering.
+ * The legend class displays a list of legend items each of them related with a
+ * series being rendered. In order to render the legend item of the proper series
+ * the series configuration object must have `showInLegend` set to true.
+ *
+ * The legend configuration object accepts a `position` as parameter.
+ * The `position` parameter can be `left`, `right`
+ * `top` or `bottom`. For example:
+ *
+ *     legend: {
+ *         position: &#39;right&#39;
+ *     },
+ *
+ * ## Example
+ *
+ *     @example
+ *     var store = Ext.create(&#39;Ext.data.JsonStore&#39;, {
+ *         fields: [&#39;name&#39;, &#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;, &#39;data4&#39;, &#39;data5&#39;],
+ *         data: [
+ *             { &#39;name&#39;: &#39;metric one&#39;,   &#39;data1&#39;: 10, &#39;data2&#39;: 12, &#39;data3&#39;: 14, &#39;data4&#39;: 8,  &#39;data5&#39;: 13 },
+ *             { &#39;name&#39;: &#39;metric two&#39;,   &#39;data1&#39;: 7,  &#39;data2&#39;: 8,  &#39;data3&#39;: 16, &#39;data4&#39;: 10, &#39;data5&#39;: 3  },
+ *             { &#39;name&#39;: &#39;metric three&#39;, &#39;data1&#39;: 5,  &#39;data2&#39;: 2,  &#39;data3&#39;: 14, &#39;data4&#39;: 12, &#39;data5&#39;: 7  },
+ *             { &#39;name&#39;: &#39;metric four&#39;,  &#39;data1&#39;: 2,  &#39;data2&#39;: 14, &#39;data3&#39;: 6,  &#39;data4&#39;: 1,  &#39;data5&#39;: 23 },
+ *             { &#39;name&#39;: &#39;metric five&#39;,  &#39;data1&#39;: 27, &#39;data2&#39;: 38, &#39;data3&#39;: 36, &#39;data4&#39;: 13, &#39;data5&#39;: 33 }
+ *         ]
+ *     });
+ *
+ *     Ext.create(&#39;Ext.chart.Chart&#39;, {
+ *         renderTo: Ext.getBody(),
+ *         width: 500,
+ *         height: 300,
+ *         animate: true,
+ *         store: store,
+ *         shadow: true,
+ *         theme: &#39;Category1&#39;,
+ *         legend: {
+ *             position: &#39;top&#39;
+ *         },
+ *         axes: [
+ *             {
+ *                 type: &#39;Numeric&#39;,
+ *                 position: &#39;left&#39;,
+ *                 fields: [&#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;, &#39;data4&#39;, &#39;data5&#39;],
+ *                 title: &#39;Sample Values&#39;,
+ *                 grid: {
+ *                     odd: {
+ *                         opacity: 1,
+ *                         fill: &#39;#ddd&#39;,
+ *                         stroke: &#39;#bbb&#39;,
+ *                         &#39;stroke-width&#39;: 1
+ *                     }
+ *                 },
+ *                 minimum: 0,
+ *                 adjustMinimumByMajorUnit: 0
+ *             },
+ *             {
+ *                 type: &#39;Category&#39;,
+ *                 position: &#39;bottom&#39;,
+ *                 fields: [&#39;name&#39;],
+ *                 title: &#39;Sample Metrics&#39;,
+ *                 grid: true,
+ *                 label: {
+ *                     rotate: {
+ *                         degrees: 315
+ *                     }
+ *                 }
+ *             }
+ *         ],
+ *         series: [{
+ *             type: &#39;area&#39;,
+ *             highlight: false,
+ *             axis: &#39;left&#39;,
+ *             xField: &#39;name&#39;,
+ *             yField: [&#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;, &#39;data4&#39;, &#39;data5&#39;],
+ *             style: {
+ *                 opacity: 0.93
+ *             }
+ *         }]
+ *     });
+ */
+Ext.define(&#39;Ext.chart.Legend&#39;, {
+
+    /* Begin Definitions */
+
+    requires: [&#39;Ext.chart.LegendItem&#39;],
+
+    /* End Definitions */
+
+<span id='Ext-chart-Legend-cfg-visible'>    /**
+</span>     * @cfg {Boolean} visible
+     * Whether or not the legend should be displayed.
+     */
+    visible: true,
+    
+<span id='Ext-chart-Legend-cfg-update'>    /**
+</span>     * @cfg {Boolean} update
+     * If set to true the legend will be refreshed when the chart is.
+     * This is useful to update the legend items if series are
+     * added/removed/updated from the chart. Default is true.
+     */
+    update: true,
+
+<span id='Ext-chart-Legend-cfg-position'>    /**
+</span>     * @cfg {String} position
+     * The position of the legend in relation to the chart. One of: &quot;top&quot;,
+     * &quot;bottom&quot;, &quot;left&quot;, &quot;right&quot;, or &quot;float&quot;. If set to &quot;float&quot;, then the legend
+     * box will be positioned at the point denoted by the x and y parameters.
+     */
+    position: &#39;bottom&#39;,
+
+<span id='Ext-chart-Legend-cfg-x'>    /**
+</span>     * @cfg {Number} x
+     * X-position of the legend box. Used directly if position is set to &quot;float&quot;, otherwise
+     * it will be calculated dynamically.
+     */
+    x: 0,
+
+<span id='Ext-chart-Legend-cfg-y'>    /**
+</span>     * @cfg {Number} y
+     * Y-position of the legend box. Used directly if position is set to &quot;float&quot;, otherwise
+     * it will be calculated dynamically.
+     */
+    y: 0,
+
+<span id='Ext-chart-Legend-cfg-labelColor'>    /**
+</span>     * @cfg {String} labelColor
+     * Color to be used for the legend labels, eg &#39;#000&#39;
+     */
+    labelColor: &#39;#000&#39;,
+
+<span id='Ext-chart-Legend-cfg-labelFont'>    /**
+</span>     * @cfg {String} labelFont
+     * Font to be used for the legend labels, eg &#39;12px Helvetica&#39;
+     */
+    labelFont: &#39;12px Helvetica, sans-serif&#39;,
+
+<span id='Ext-chart-Legend-cfg-boxStroke'>    /**
+</span>     * @cfg {String} boxStroke
+     * Style of the stroke for the legend box
+     */
+    boxStroke: &#39;#000&#39;,
+
+<span id='Ext-chart-Legend-cfg-boxStrokeWidth'>    /**
+</span>     * @cfg {String} boxStrokeWidth
+     * Width of the stroke for the legend box
+     */
+    boxStrokeWidth: 1,
+
+<span id='Ext-chart-Legend-cfg-boxFill'>    /**
+</span>     * @cfg {String} boxFill
+     * Fill style for the legend box
+     */
+    boxFill: &#39;#FFF&#39;,
+
+<span id='Ext-chart-Legend-cfg-itemSpacing'>    /**
+</span>     * @cfg {Number} itemSpacing
+     * Amount of space between legend items
+     */
+    itemSpacing: 10,
+
+<span id='Ext-chart-Legend-cfg-padding'>    /**
+</span>     * @cfg {Number} padding
+     * Amount of padding between the legend box&#39;s border and its items
+     */
+    padding: 5,
+
+<span id='Ext-chart-Legend-property-width'>    // @private
+</span>    width: 0,
+<span id='Ext-chart-Legend-property-height'>    // @private
+</span>    height: 0,
+
+<span id='Ext-chart-Legend-cfg-boxZIndex'>    /**
+</span>     * @cfg {Number} boxZIndex
+     * Sets the z-index for the legend. Defaults to 100.
+     */
+    boxZIndex: 100,
+
+<span id='Ext-chart-Legend-method-constructor'>    /**
+</span>     * Creates new Legend.
+     * @param {Object} config  (optional) Config object.
+     */
+    constructor: function(config) {
+        var me = this;
+        if (config) {
+            Ext.apply(me, config);
+        }
+        me.items = [];
+<span id='Ext-chart-Legend-property-isVertical'>        /**
+</span>         * Whether the legend box is oriented vertically, i.e. if it is on the left or right side or floating.
+         * @type {Boolean}
+         */
+        me.isVertical = (&quot;left|right|float&quot;.indexOf(me.position) !== -1);
+
+        // cache these here since they may get modified later on
+        me.origX = me.x;
+        me.origY = me.y;
+    },
+
+<span id='Ext-chart-Legend-method-create'>    /**
+</span>     * @private Create all the sprites for the legend
+     */
+    create: function() {
+        var me = this,
+            seriesItems = me.chart.series.items,
+            i, ln, series;
+
+        me.createBox();
+        
+        if (me.rebuild !== false) {
+            me.createItems();
+        }
+        
+        if (!me.created &amp;&amp; me.isDisplayed()) {
+            me.created = true;
+
+            // Listen for changes to series titles to trigger regeneration of the legend
+            for (i = 0, ln = seriesItems.length; i &lt; ln; i++) {
+                series = seriesItems[i];
+                series.on(&#39;titlechange&#39;, me.redraw, me);
+            }
+        }
+    },
+
+<span id='Ext-chart-Legend-method-redraw'>    /**
+</span>     * @private Redraws the Legend
+     */
+    redraw: function() {
+        var me = this;
+        
+        me.create();
+        me.updatePosition();
+    },
+
+<span id='Ext-chart-Legend-method-isDisplayed'>    /**
+</span>     * @private Determine whether the legend should be displayed. Looks at the legend&#39;s &#39;visible&#39; config,
+     * and also the &#39;showInLegend&#39; config for each of the series.
+     */
+    isDisplayed: function() {
+        return this.visible &amp;&amp; this.chart.series.findIndex(&#39;showInLegend&#39;, true) !== -1;
+    },
+
+<span id='Ext-chart-Legend-method-createItems'>    /**
+</span>     * @private Create the series markers and labels
+     */
+    createItems: function() {
+        var me = this,
+            seriesItems = me.chart.series.items,
+            items = me.items,
+            fields, i, li, j, lj, series, item;
+
+        //remove all legend items
+        me.removeItems();
+        
+        // Create all the item labels
+        for (i = 0, li = seriesItems.length; i &lt; li; i++) {
+            series = seriesItems[i];
+            
+            if (series.showInLegend) {
+                fields = [].concat(series.yField);
+                
+                for (j = 0, lj = fields.length; j &lt; lj; j++) {
+                    item = me.createLegendItem(series, j);
+                    items.push(item);
+                }
+            }
+        }
+        
+        me.alignItems();
+    },
+    
+<span id='Ext-chart-Legend-method-removeItems'>    /**
+</span>     * @private Removes all legend items.
+     */
+    removeItems: function() {
+        var me = this,
+            items = me.items,
+            len = items ? items.length : 0,
+            i;
+
+        if (len) {
+            for (i = 0; i &lt; len; i++) {
+                items[i].destroy();
+            }
+        }
+        
+        //empty array
+        items.length = [];
+    },
+    
+<span id='Ext-chart-Legend-method-alignItems'>    /**
+</span>     * @private
+     * Positions all items within Legend box.
+     */
+    alignItems: function() {
+        var me = this,
+            padding = me.padding,
+            vertical = me.isVertical,
+            mfloor = Math.floor,
+            dim, maxWidth, maxHeight, totalWidth, totalHeight;
+        
+        dim = me.updateItemDimensions();
+
+        maxWidth    = dim.maxWidth;
+        maxHeight   = dim.maxHeight;
+        totalWidth  = dim.totalWidth;
+        totalHeight = dim.totalHeight;
+
+        // Store the collected dimensions for later
+        me.width = mfloor((vertical ? maxWidth : totalWidth) + padding * 2);
+        me.height = mfloor((vertical ? totalHeight : maxHeight) + padding * 2);
+    },
+    
+<span id='Ext-chart-Legend-method-updateItemDimensions'>    updateItemDimensions: function() {
+</span>        var me = this,
+            items = me.items,
+            padding = me.padding,
+            itemSpacing = me.itemSpacing,
+            maxWidth = 0,
+            maxHeight = 0,
+            totalWidth = 0,
+            totalHeight = 0,
+            vertical = me.isVertical,
+            mfloor = Math.floor,
+            mmax = Math.max,
+            spacing = 0,
+            i, l, item, bbox, width, height;
+
+        // Collect item dimensions and position each one
+        // properly in relation to the previous item
+        for (i = 0, l = items.length; i &lt; l; i++) {
+            item = items[i];
+                
+            bbox = item.getBBox();
+
+            //always measure from x=0, since not all markers go all the way to the left
+            width  = bbox.width;
+            height = bbox.height;
+
+            spacing = (i === 0 ? 0 : itemSpacing);
+            
+            // Set the item&#39;s position relative to the legend box
+            item.x = padding + mfloor(vertical ? 0 : totalWidth + spacing);
+            item.y = padding + mfloor(vertical ? totalHeight + spacing : 0) + height / 2;
+
+            // Collect cumulative dimensions
+            totalWidth  += spacing + width;
+            totalHeight += spacing + height;
+            maxWidth     = mmax(maxWidth, width);
+            maxHeight    = mmax(maxHeight, height);
+        }
+
+        return {
+            totalWidth:  totalWidth,
+            totalHeight: totalHeight,
+            maxWidth:    maxWidth,
+            maxHeight:   maxHeight
+        };
+    },
+    
+<span id='Ext-chart-Legend-method-createLegendItem'>    /**
+</span>     * @private Creates single Legend Item
+     */
+    createLegendItem: function(series, yFieldIndex) {
+        var me = this;
+        
+        return new Ext.chart.LegendItem({
+            legend: me,
+            series: series,
+            surface: me.chart.surface,
+            yFieldIndex: yFieldIndex
+        });
+    },
+    
+<span id='Ext-chart-Legend-method-getBBox'>    /**
+</span>     * @private Get the bounds for the legend&#39;s outer box
+     */
+    getBBox: function() {
+        var me = this;
+        return {
+            x: Math.round(me.x) - me.boxStrokeWidth / 2,
+            y: Math.round(me.y) - me.boxStrokeWidth / 2,
+            width: me.width + me.boxStrokeWidth,
+            height: me.height + me.boxStrokeWidth
+        };
+    },
+
+<span id='Ext-chart-Legend-method-createBox'>    /**
+</span>     * @private Create the box around the legend items
+     */
+    createBox: function() {
+        var me = this,
+            box, bbox;
+
+        if (me.boxSprite) {
+            me.boxSprite.destroy();
+        }
+
+        bbox = me.getBBox();
+        //if some of the dimensions are NaN this means that we
+        //cannot set a specific width/height for the legend
+        //container. One possibility for this is that there are
+        //actually no items to show in the legend, and the legend
+        //should be hidden.
+        if (isNaN(bbox.width) || isNaN(bbox.height)) {
+            me.boxSprite = false;
+            return;
+        }
+        
+        box = me.boxSprite = me.chart.surface.add(Ext.apply({
+            type: &#39;rect&#39;,
+            stroke: me.boxStroke,
+            &quot;stroke-width&quot;: me.boxStrokeWidth,
+            fill: me.boxFill,
+            zIndex: me.boxZIndex
+        }, bbox));
+
+        box.redraw();
+    },
+
+<span id='Ext-chart-Legend-method-calcPosition'>    /**
+</span>     * @private Calculates Legend position with respect to other Chart elements.
+     */
+    calcPosition: function() {
+        var me = this,
+            x, y,
+            legendWidth = me.width,
+            legendHeight = me.height,
+            chart = me.chart,
+            chartBBox = chart.chartBBox,
+            insets = chart.insetPadding,
+            chartWidth = chartBBox.width - (insets * 2),
+            chartHeight = chartBBox.height - (insets * 2),
+            chartX = chartBBox.x + insets,
+            chartY = chartBBox.y + insets,
+            surface = chart.surface,
+            mfloor = Math.floor;
+
+        // Find the position based on the dimensions
+        switch(me.position) {
+            case &quot;left&quot;:
+                x = insets;
+                y = mfloor(chartY + chartHeight / 2 - legendHeight / 2);
+                break;
+            case &quot;right&quot;:
+                x = mfloor(surface.width - legendWidth) - insets;
+                y = mfloor(chartY + chartHeight / 2 - legendHeight / 2);
+                break;
+            case &quot;top&quot;:
+                x = mfloor(chartX + chartWidth / 2 - legendWidth / 2);
+                y = insets;
+                break;
+            case &quot;bottom&quot;:
+                x = mfloor(chartX + chartWidth / 2 - legendWidth / 2);
+                y = mfloor(surface.height - legendHeight) - insets;
+                break;
+            default:
+                x = mfloor(me.origX) + insets;
+                y = mfloor(me.origY) + insets;
+        }
+        
+        return { x: x, y: y };
+    },
+    
+<span id='Ext-chart-Legend-method-updatePosition'>    /**
+</span>     * @private Update the position of all the legend&#39;s sprites to match its current x/y values
+     */
+    updatePosition: function() {
+        var me = this,
+            items = me.items,
+            pos, i, l, bbox;
+
+        if (me.isDisplayed()) {
+            // Find the position based on the dimensions
+            pos = me.calcPosition();
+            
+            me.x = pos.x;
+            me.y = pos.y;
+
+            // Update the position of each item
+            for (i = 0, l = items.length; i &lt; l; i++) {
+                items[i].updatePosition();
+            }
+
+            bbox = me.getBBox();
+
+            //if some of the dimensions are NaN this means that we
+            //cannot set a specific width/height for the legend
+            //container. One possibility for this is that there are
+            //actually no items to show in the legend, and the legend
+            //should be hidden.
+            if (isNaN(bbox.width) || isNaN(bbox.height)) {
+                if (me.boxSprite) {
+                    me.boxSprite.hide(true);
+                }
+            }
+            else {
+                if (!me.boxSprite) {
+                    me.createBox();
+                }
+                
+                // Update the position of the outer box
+                me.boxSprite.setAttributes(bbox, true);
+                me.boxSprite.show(true);
+            }
+        }
+    },
+    
+<span id='Ext-chart-Legend-method-toggle'>    /** toggle
+</span>     * @param {Boolean} show Whether to show or hide the legend.
+     *
+     */
+    toggle: function(show) {
+      var me = this,
+          i = 0,
+          items = me.items,
+          len = items.length;
+
+      if (me.boxSprite) {
+          if (show) {
+              me.boxSprite.show(true);
+          } else {
+              me.boxSprite.hide(true);
+          }
+      }
+
+      for (; i &lt; len; ++i) {
+          if (show) {
+            items[i].show(true);
+          } else {
+              items[i].hide(true);
+          }
+      }
+
+      me.visible = show;
+    }
+});
+</pre>
+</body>
+</html>

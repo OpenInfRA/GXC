@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-Add'>/**
+</span> * A component that allows to add WMS/WFS-Layers to the application.
+ * It lists predefined services in a drop down list. Layers can be selected
+ * and will be added to the map.
+ */
+Ext.define(&#39;GXC.panel.Add&#39;, {
+    extend: &#39;Ext.panel.Panel&#39;,
+    requires: [
+        &#39;Ext.form.FieldSet&#39;,
+        &#39;Ext.form.field.Text&#39;,
+        &#39;Ext.form.field.ComboBox&#39;,
+        &#39;Ext.layout.container.Column&#39;,
+        &#39;Ext.layout.container.VBox&#39;,
+        &#39;GXC.data.OwsTypeStore&#39;,
+        &#39;GXC.panel.AddViewController&#39;
+    ],
+
+<span id='GXC-panel-Add-property-inject'>    inject: [
+</span>        &#39;serviceStore&#39;
+    ],
+
+<span id='GXC-panel-Add-property-controller'>    controller: &#39;GXC.panel.AddViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_panel_add&#39;,
+
+<span id='GXC-panel-Add-cfg-layout'>    layout: {
+</span>        type: &#39;vbox&#39;,
+        align: &#39;stretch&#39;
+    },
+
+<span id='GXC-panel-Add-cfg-bodyPadding'>    bodyPadding: &#39;5px&#39;,
+</span>
+<span id='GXC-panel-Add-property-txtPreviewMask'>    txtPreviewMask: &#39;Select a layer..&#39;,
+</span><span id='GXC-panel-Add-property-txtCapabilitiesLoadErrorTitle'>    txtCapabilitiesLoadErrorTitle: &#39;Error loading capabilities&#39;,
+</span><span id='GXC-panel-Add-property-txtCapabilitiesLoadErrorMessage'>    txtCapabilitiesLoadErrorMessage: &#39;There has been an error loading service:&lt;br&gt;{0}&#39;,
+</span>
+<span id='GXC-panel-Add-property-previewMaskCls'>    previewMaskCls: &#39;gxc-preview-mask&#39;,
+</span>
+<span id='GXC-panel-Add-method-initComponent'>    initComponent: function() {
+</span>        // owsTypeStore is an optional Provider
+        if (Deft.Injector.canResolve(&#39;owsTypeStore&#39;)) {
+            Deft.Injector.inject(&#39;owsTypeStore&#39;, this);
+        } else {
+            this.owsTypeStore = Ext.create(&#39;GXC.data.OwsTypeStore&#39;);
+        }
+
+        this.items = [{
+            border: 0,
+            layout: {
+                type: &#39;hbox&#39;,
+                align: &#39;stretch&#39;
+            },
+            defaults: {
+                border: 0
+            },
+            items: [{
+                xtype: &#39;fieldset&#39;,
+                flex: 3,
+                title: &#39;Choose Service&#39;,
+                layout: {
+                    type: &#39;vbox&#39;,
+                    align: &#39;stretch&#39;
+                },
+                defaults: {
+                    padding: &#39;3px&#39;
+                },
+                items: [{
+                    // a simple combo box to filter WMS/WFS layers
+                    xtype: &#39;combobox&#39;,
+                    itemId: &#39;serviceTypeComboBox&#39;,
+                    fieldLabel: &#39;OWS Type&#39;,
+                    store: this.owsTypeStore,
+                    queryMode: &#39;local&#39;,
+                    displayField: &#39;name&#39;,
+                    valueField: &#39;abbr&#39;
+                }, {
+                    // a combobox to select from the configured services
+                    xtype: &#39;combobox&#39;,
+                    itemId: &#39;serviceComboBox&#39;,
+                    fieldLabel: &#39;OWS Service&#39;,
+                    store: this.serviceStore,
+                    queryMode: &#39;local&#39;,
+                    displayField: &#39;title&#39;,
+                    valueField: &#39;id&#39;
+                }]
+            }, {
+                // a preview window to present the layer before adding it to
+                // the map if available
+                xtype: &#39;fieldset&#39;,
+                flex: 2,
+                title: &#39;Preview&#39;,
+                layout: &#39;fit&#39;,
+                items: [{
+                    xtype: &#39;gx_mappanel&#39;,
+                    itemId: &#39;previewMap&#39;,
+                    border: 0,
+                    map: new OpenLayers.Map({
+                        fallThrough: true,
+                        projection: &#39;EPSG:4326&#39;,
+                        extent: [180, 90, -180, -90],
+                        controls: [],
+                        layers: [
+                            new OpenLayers.Layer(&#39;gxc_base&#39;, {
+                                isBaseLayer: true
+                            })
+                        ]
+                    })
+                }]
+            }]
+        }, {
+            // a form to add new services to the dropdown list
+            xtype: &#39;fieldset&#39;,
+            border: 0,
+            title: &#39;Add Service&#39;,
+            itemId: &#39;addServiceFieldset&#39;,
+            collapsible: true,
+            collapsed: true,
+            items: [{
+                xtype: &#39;form&#39;,
+                itemId: &#39;serviceForm&#39;,
+                border: 0,
+                layout: {
+                    type: &#39;vbox&#39;,
+                    align: &#39;stretch&#39;
+                },
+                defaults: {
+                    xtype: &#39;textfield&#39;
+                },
+                items: [{
+                    fieldLabel: &#39;Title&#39;,
+                    name: &#39;title&#39;,
+                    allowBlank: false
+                }, {
+                    xtype: &#39;combo&#39;,
+                    store: this.owsTypeStore,
+                    displayField: &#39;name&#39;,
+                    valueField: &#39;abbr&#39;,
+                    fieldLabel: &#39;Typ&#39;,
+                    name: &#39;type&#39;,
+                    allowBlank: false
+                }, {
+                    xtype: &#39;textfield&#39;,
+                    fieldLabel: &#39;URL&#39;,
+                    flex: 1,
+                    name: &#39;url&#39;,
+                    vtype: &#39;url&#39;,
+                    allowBlank: false,
+                    validateBlank: true,
+                    stripCharsRe: /(^\s+|\s+$)/g
+                }],
+                bbar: [{
+                    xtype: &#39;button&#39;,
+                    formBind: true,
+                    text: &#39;save&#39;,
+                    itemId: &#39;saveService&#39;
+                }]
+            }]
+        }];
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

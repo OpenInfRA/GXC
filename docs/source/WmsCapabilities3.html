@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-WmsCapabilities'>/**
+</span> * @class
+ */
+Ext.define(&#39;GXC.panel.WmsCapabilities&#39;, {
+    extend: &#39;Ext.tree.Panel&#39;,
+    requires: [
+        &#39;Ext.data.TreeStore&#39;,
+        &#39;GXC.data.reader.WmsCapabilities&#39;,
+        &#39;GXC.data.WmsCapabilitiesModel&#39;,
+        &#39;GXC.panel.WmsCapabilitiesViewController&#39;,
+        &#39;GXC.plugin.SelectionMixin&#39;
+    ],
+
+    alias: &#39;widget.gxc_panel_wmscapabilities&#39;,
+
+<span id='GXC-panel-WmsCapabilities-property-controller'>    controller: &#39;GXC.panel.WmsCapabilitiesViewController&#39;,
+</span>
+    mixins: [
+        &#39;GXC.plugin.SelectionMixin&#39;
+    ],
+
+<span id='GXC-panel-WmsCapabilities-property-service'>    /**
+</span>     * The service that capabilities will be retrieved for.
+     * @type {GXC.model.Service}
+     */
+    service: null,
+
+<span id='GXC-panel-WmsCapabilities-property-txtAdd'>    txtAdd: &#39;Add..&#39;,
+</span><span id='GXC-panel-WmsCapabilities-property-txtAddLayers'>    txtAddLayers: &#39;Add&#39;,
+</span><span id='GXC-panel-WmsCapabilities-property-txtTitle'>    txtTitle: &#39;Title&#39;,
+</span><span id='GXC-panel-WmsCapabilities-property-txtName'>    txtName: &#39;Name&#39;,
+</span>
+<span id='GXC-panel-WmsCapabilities-method-initComponent'>    /**
+</span>     * @inheritDoc
+     */
+    initComponent: function() {
+        var service = this.service,
+            store = Ext.create(Ext.data.TreeStore, {
+                model: &#39;GXC.data.WmsCapabilitiesModel&#39;,
+                proxy: {
+                    type: &#39;ajax&#39;,
+                    url: service.get(&#39;url&#39;),
+                    reader: {
+                        type: &#39;gxc_wmscapabilities&#39;,
+                        root: &#39;nestedLayers&#39;
+                    },
+                    extraParams: {
+                        node: null,
+                        request: &#39;GetCapabilities&#39;,
+                        service: &#39;WMS&#39;,
+                        version: service.get(&#39;version&#39;)
+                    }
+                }
+            });
+
+        Ext.apply(this, {
+            store: store,
+            columns: {
+                items: [{
+                    xtype: &#39;treecolumn&#39;,
+                    text: this.txtTitle,
+                    dataIndex: &#39;title&#39;
+                }, {
+                    text: this.txtName,
+                    dataIndex: &#39;name&#39;
+                }],
+                defaults: {
+                    sortable: false,
+                    flex: 1
+                }
+            },
+            tbar: {
+                items: [{
+                    xtype: &#39;button&#39;,
+                    text: this.txtAddLayers,
+                    itemId: &#39;addButton&#39;,
+                    disabled: true
+                }]
+            }
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

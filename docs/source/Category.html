@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
+*/
+<span id='Ext-chart-axis-Category'>/**
+</span> * @class Ext.chart.axis.Category
+ *
+ * A type of axis that displays items in categories. This axis is generally used to
+ * display categorical information like names of items, month names, quarters, etc.
+ * but no quantitative values. For that other type of information `Number`
+ * axis are more suitable.
+ *
+ * As with other axis you can set the position of the axis and its title. For example:
+ *
+ *     @example
+ *     var store = Ext.create(&#39;Ext.data.JsonStore&#39;, {
+ *         fields: [&#39;name&#39;, &#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;, &#39;data4&#39;, &#39;data5&#39;],
+ *         data: [
+ *             {&#39;name&#39;:&#39;metric one&#39;, &#39;data1&#39;:10, &#39;data2&#39;:12, &#39;data3&#39;:14, &#39;data4&#39;:8, &#39;data5&#39;:13},
+ *             {&#39;name&#39;:&#39;metric two&#39;, &#39;data1&#39;:7, &#39;data2&#39;:8, &#39;data3&#39;:16, &#39;data4&#39;:10, &#39;data5&#39;:3},
+ *             {&#39;name&#39;:&#39;metric three&#39;, &#39;data1&#39;:5, &#39;data2&#39;:2, &#39;data3&#39;:14, &#39;data4&#39;:12, &#39;data5&#39;:7},
+ *             {&#39;name&#39;:&#39;metric four&#39;, &#39;data1&#39;:2, &#39;data2&#39;:14, &#39;data3&#39;:6, &#39;data4&#39;:1, &#39;data5&#39;:23},
+ *             {&#39;name&#39;:&#39;metric five&#39;, &#39;data1&#39;:27, &#39;data2&#39;:38, &#39;data3&#39;:36, &#39;data4&#39;:13, &#39;data5&#39;:33}
+ *         ]
+ *     });
+ *
+ *     Ext.create(&#39;Ext.chart.Chart&#39;, {
+ *         renderTo: Ext.getBody(),
+ *         width: 500,
+ *         height: 300,
+ *         store: store,
+ *         axes: [{
+ *             type: &#39;Numeric&#39;,
+ *             position: &#39;left&#39;,
+ *             fields: [&#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;, &#39;data4&#39;, &#39;data5&#39;],
+ *             title: &#39;Sample Values&#39;,
+ *             grid: {
+ *                 odd: {
+ *                     opacity: 1,
+ *                     fill: &#39;#ddd&#39;,
+ *                     stroke: &#39;#bbb&#39;,
+ *                     &#39;stroke-width&#39;: 1
+ *                 }
+ *             },
+ *             minimum: 0,
+ *             adjustMinimumByMajorUnit: 0
+ *         }, {
+ *             type: &#39;Category&#39;,
+ *             position: &#39;bottom&#39;,
+ *             fields: [&#39;name&#39;],
+ *             title: &#39;Sample Metrics&#39;,
+ *             grid: true,
+ *             label: {
+ *                 rotate: {
+ *                     degrees: 315
+ *                 }
+ *             }
+ *         }],
+ *         series: [{
+ *             type: &#39;area&#39;,
+ *             highlight: false,
+ *             axis: &#39;left&#39;,
+ *             xField: &#39;name&#39;,
+ *             yField: [&#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;, &#39;data4&#39;, &#39;data5&#39;],
+ *             style: {
+ *                 opacity: 0.93
+ *             }
+ *         }]
+ *     });
+ *
+ * In this example with set the category axis to the bottom of the surface, bound the axis to
+ * the `name` property and set as title _Month of the Year_.
+ */
+Ext.define(&#39;Ext.chart.axis.Category&#39;, {
+
+    /* Begin Definitions */
+
+    extend: &#39;Ext.chart.axis.Axis&#39;,
+
+    alternateClassName: &#39;Ext.chart.CategoryAxis&#39;,
+
+    alias: &#39;axis.category&#39;,
+
+    /* End Definitions */
+
+<span id='Ext-chart-axis-Category-cfg-categoryNames'>    /**
+</span>     * @cfg {String} categoryNames
+     * A list of category names to display along this axis.
+     */
+    categoryNames: null,
+
+<span id='Ext-chart-axis-Category-cfg-calculateCategoryCount'>    /**
+</span>     * @cfg {Boolean} calculateCategoryCount
+     * Indicates whether or not to calculate the number of categories (ticks and
+     * labels) when there is not enough room to display all labels on the axis.
+     * If set to true, the axis will determine the number of categories to plot.
+     * If not, all categories will be plotted.
+     */
+    calculateCategoryCount: false,
+
+<span id='Ext-chart-axis-Category-method-doConstrain'>    // @private constrains to datapoints between minimum and maximum only
+</span>    doConstrain: function() {
+        var me = this,
+            chart = me.chart,
+            store = chart.getChartStore(),
+            items = store.data.items,
+            series = chart.series.items,
+            seriesLength = series.length,
+            data = [], i
+
+        for (i = 0; i &lt; seriesLength; i++) {
+            if (series[i].type === &#39;bar&#39; &amp;&amp; series[i].stacked) {
+                // Do not constrain stacked bar chart.
+                return;
+            }
+        }
+
+        for (i = me.minimum; i &lt; me.maximum; i++) {
+            data.push(items[i]);
+        }
+        
+        chart.setSubStore(new Ext.data.Store({
+            model: store.model,
+            data: data
+        }));
+    },
+
+<span id='Ext-chart-axis-Category-method-setLabels'>    // @private creates an array of labels to be used when rendering.
+</span>    setLabels: function() {
+        var store = this.chart.getChartStore(),
+            data = store.data.items,
+            d, dLen, record,
+            fields = this.fields,
+            ln = fields.length,
+            labels,
+            name,
+            i;
+
+        labels = this.labels = [];
+        for (d = 0, dLen = data.length; d &lt; dLen; d++) {
+            record = data[d];
+            for (i = 0; i &lt; ln; i++) {
+                name = record.get(fields[i]);
+                //&lt;debug&gt;
+                if (Ext.Array.indexOf(labels, name) &gt; -1) {
+                    Ext.log.warn(&#39;Duplicate category in axis, &#39; + name);
+                }
+                //&lt;/debug&gt;
+                labels.push(name);
+            }
+        }
+    },
+
+<span id='Ext-chart-axis-Category-method-applyData'>    // @private calculates labels positions and marker positions for rendering.
+</span>    applyData: function() {
+        this.callParent();
+        this.setLabels();
+        var count = this.chart.getChartStore().getCount();
+        return {
+            from: 0,
+            to: count - 1,
+            power: 1,
+            step: 1,
+            steps: count - 1
+        };
+    }
+});
+</pre>
+</body>
+</html>

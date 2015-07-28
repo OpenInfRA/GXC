@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-LayerFileDrop'>/**
+</span> * A simple panel that allows to drop feature text files like GML that will be
+ * loaded as layers to the map.
+ */
+Ext.define(&#39;GXC.panel.LayerFileDrop&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    requires: [
+        &#39;GXC.plugin.FileDrop&#39;
+    ],
+
+<span id='GXC-panel-LayerFileDrop-property-inject'>    inject: [
+</span>        &#39;appContext&#39;
+    ],
+
+    alias: &#39;widget.gxc_panel_layerfiledrop&#39;,
+
+<span id='GXC-panel-LayerFileDrop-cfg-plugins'>    plugins: [{
+</span>        ptype: &#39;filedrop&#39;,
+        readType: &#39;Text&#39;
+    }],
+
+<span id='GXC-panel-LayerFileDrop-cfg-cls'>    cls: &#39;gxc-layerfiledrop&#39;,
+</span>
+<span id='GXC-panel-LayerFileDrop-cfg-tpl'>    tpl: &#39;&lt;div&gt;&lt;div&gt;&#39; +
+</span>            &#39;&lt;span&gt;{msg}&lt;/span&gt;&lt;br&gt;&#39; +
+            &#39;&lt;span&gt;&lt;small&gt;{formats}&lt;/small&gt;&lt;/span&gt;&#39; +
+         &#39;&lt;/div&gt;&lt;/div&gt;&#39;,
+
+    statics: {
+<span id='GXC-panel-LayerFileDrop-static-method-isSupported'>        isSupported: function() {
+</span>            return (window.File &amp;&amp; window.FileReader &amp;&amp; window.FileList &amp;&amp; window.Blob);
+        }
+    },
+
+<span id='GXC-panel-LayerFileDrop-property-txtDefaultLayerName'>    txtDefaultLayerName: &#39;unnamed&#39;,
+</span><span id='GXC-panel-LayerFileDrop-property-txtNotSupported'>    txtNotSupported: &#39;File API unsupported.&#39;,
+</span><span id='GXC-panel-LayerFileDrop-property-txtDropFile'>    txtDropFile: &#39;Drop file here.&#39;,
+</span><span id='GXC-panel-LayerFileDrop-property-txtSupportedFormats'>    txtSupportedFormats: &#39;(*.gml, *.kml, *.[geo]json, *.osm)&#39;,
+</span><span id='GXC-panel-LayerFileDrop-property-txtProgress'>    txtProgress: &#39;Loading..&#39;,
+</span><span id='GXC-panel-LayerFileDrop-property-txtParsingFile'>    txtParsingFile: &#39;Parsing File&#39;,
+</span>
+<span id='GXC-panel-LayerFileDrop-property-supportedFormats'>    supportedFormats: [{
+</span>        parser: &#39;GML&#39;,
+        extensions: [&#39;gml&#39;]
+    }, {
+        parser: &#39;KML&#39;,
+        extensions: [&#39;kml&#39;]
+    }, {
+        parser: &#39;GeoJSON&#39;,
+        extensions: [&#39;json&#39;, &#39;geojson&#39;]
+    }, {
+        parser: &#39;OSM&#39;,
+        extensions: [&#39;osm&#39;]
+    }],
+
+<span id='GXC-panel-LayerFileDrop-method-initComponent'>    initComponent: function() {
+</span>        this.data = {
+            msg: this.txtDropFile,
+            formats: this.txtSupportedFormats
+        };
+
+        this.addEvents(&#39;layerloaded&#39;);
+
+        this.on({
+            beforeread: this.onBeforeRead,
+            loadstart: this.onLoadProgress,
+            progress: this.onLoadProgress,
+            loadend: this.onLoadEnd,
+            loadabort: this.onLoadAbort,
+            loaderror: this.onLoadError,
+            scope: this
+        });
+
+        this.callParent();
+    },
+
+<span id='GXC-panel-LayerFileDrop-method-parseFileFormat'>    /**
+</span>     * Parses the file format matching the file extension with
+     * this components supportedFormats.
+     * Parses an appropiate layer name using the file name without
+     * an extensions. Dots are replaced with underscores.
+     * If the extension is not supported, the files property
+     * olFormat is set to false.
+     */
+    parseFileFormat: function(file) {
+        var fileName = file.name || &#39;&#39;,
+            fileNameArr = fileName.split(&#39;.&#39;),
+            extension = fileNameArr.pop().toLowerCase(),
+            formats = this.supportedFormats,
+            length = formats.length,
+            format = false;
+
+        for (var i = 0; i &lt; length; i++) {
+            if (formats[i].extensions.indexOf(extension) &gt; -1) {
+                format = formats[i].parser;
+                break;
+            }
+        }
+
+        return Ext.apply(file, {
+            olFormat: format,
+            olLayerName: fileNameArr.join(&#39;_&#39;) || &#39;unnamed&#39;
+        });
+    },
+
+<span id='GXC-panel-LayerFileDrop-method-parseLayer'>    parseLayer: function(result, file) {
+</span>        var format = file.olFormat,
+            parser, features, layer;
+
+        if (format) {
+            parser = new OpenLayers.Format[format]();
+            features = parser.read(result);
+            layer = new OpenLayers.Layer.Vector(file.olLayerName);
+            layer.addFeatures(features);
+
+            this.appContext.fileLayerLoaded(layer);
+        }
+    },
+
+<span id='GXC-panel-LayerFileDrop-method-onBeforeRead'>    /**
+</span>     * Parses the file format aborting the process of loading a file
+     * if the format is unsupported.
+     */
+    onBeforeRead: function(cmp, file) {
+        this.parseFileFormat(file);
+
+        if (!file.olFormat) {
+            return false;
+        }
+    },
+
+<span id='GXC-panel-LayerFileDrop-method-onLoadProgress'>    onLoadProgress: function(cmp, e) {
+</span>        var progress = Math.ceil((e.loaded / e.total) * 100);
+        this.setLoading({
+            msg: this.txtProgress + &#39; &#39; + progress + &#39;%&#39;
+        });
+    },
+
+<span id='GXC-panel-LayerFileDrop-method-onLoadEnd'>    onLoadEnd: function(cmp, e, file) {
+</span>        this.setLoading({
+            msg: this.txtParsingFile
+        });
+
+        this.parseLayer(e.target.result, file);
+
+        this.setLoading(false);
+    },
+
+<span id='GXC-panel-LayerFileDrop-method-onLoadAbort'>    onLoadAbort: function() {
+</span>        this.setLoading(false);
+    },
+
+<span id='GXC-panel-LayerFileDrop-method-onLoadError'>    onLoadError: function() {
+</span>        this.setLoading(false);
+    }
+});
+</pre>
+</body>
+</html>

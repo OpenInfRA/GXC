@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-PointSymbolizerViewController'>/**
+</span> * A ViewController to the GXC.panel.PointSymbolizer.
+ */
+Ext.define(&#39;GXC.panel.PointSymbolizerViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+<span id='GXC-panel-PointSymbolizerViewController-property-control'>    control: {
+</span>        &#39;markPanel&#39;: true,
+        &#39;markCombo&#39;: {
+            &#39;select&#39;: &#39;onMarkComboSelect&#39;
+        },
+        &#39;urlField&#39;: {
+            &#39;change&#39;: &#39;onUrlFieldChange&#39;
+        },
+        &#39;sizeField&#39;: {
+            &#39;change&#39;: &#39;onSizeFieldChange&#39;
+        },
+        &#39;rotationField&#39;: {
+            &#39;change&#39;: &#39;onRotationFieldChange&#39;
+        },
+        &#39;fillSymbolizer&#39;: {
+            &#39;change&#39;: &#39;onSymbolizerChange&#39;
+        },
+        &#39;strokeSymbolizer&#39;: {
+            &#39;change&#39;: &#39;onSymbolizerChange&#39;
+        },
+        &#39;graphicOpacitySlider&#39;: {
+            &#39;changecomplete&#39;: &#39;onGraphicOpacitySliderChangecomplete&#39;
+        }
+    },
+
+<span id='GXC-panel-PointSymbolizerViewController-method-onMarkComboSelect'>    onMarkComboSelect: function(combo, records) {
+</span>        var view = this.getView(),
+            symbolizer = view.symbolizer,
+            record = records[0],
+            mark = record.get(&#39;mark&#39;),
+            value = record.get(&#39;value&#39;),
+            urlField = this.getUrlField(),
+            urlValue;
+
+        if (!mark) {
+            // non predefined sld symbol
+
+            if (value) {
+                // pre configured external graphic
+                urlField.hide();
+                symbolizer[&#39;externalGraphic&#39;] = value;
+            } else {
+                urlField.show();
+            }
+
+            if (!view.external) {
+                view.external = true;
+                urlValue = urlField.getValue();
+                if (!Ext.isEmpty(urlValue)) {
+                    symbolizer[&#39;externalGraphic&#39;] = urlValue;
+                }
+                delete symbolizer[&#39;graphicName&#39;];
+                this.updateGraphicDisplay();
+            }
+
+        } else {
+
+            if (view.external) {
+                urlField.hide();
+                view.external = false;
+                delete symbolizer[&#39;externalGraphic&#39;];
+                this.updateGraphicDisplay();
+            }
+            symbolizer[&#39;graphicName&#39;] = value;
+        }
+
+        view.fireEvent(&#39;change&#39;, symbolizer);
+    },
+
+<span id='GXC-panel-PointSymbolizerViewController-method-onUrlFieldChange'>    onUrlFieldChange: function(field, value) {
+</span>        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer[&#39;externalGraphic&#39;] = value;
+        view.fireEvent(&#39;change&#39;, symbolizer);
+    },
+
+<span id='GXC-panel-PointSymbolizerViewController-method-onSizeFieldChange'>    onSizeFieldChange: function(field, value) {
+</span>        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer[&#39;pointRadius&#39;] = value / 2;
+        view.fireEvent(&#39;change&#39;, symbolizer);
+    },
+
+<span id='GXC-panel-PointSymbolizerViewController-method-onRotationFieldChange'>    onRotationFieldChange: function(field, value) {
+</span>        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer[&#39;rotation&#39;] = value;
+        view.fireEvent(&#39;change&#39;, symbolizer);
+    },
+
+<span id='GXC-panel-PointSymbolizerViewController-method-onSymbolizerChange'>    onSymbolizerChange: function(symbolizer) {
+</span>        var view = this.getView();
+        view.fireEvent(&#39;change&#39;, view.symbolizer);
+    },
+
+<span id='GXC-panel-PointSymbolizerViewController-method-onGraphicOpacitySliderChangecomplete'>    onGraphicOpacitySliderChangecomplete: function(slider, value) {
+</span>        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer[&#39;graphicOpacity&#39;] = value / 100;
+        view.fireEvent(&#39;change&#39;, symbolizer);
+    },
+
+<span id='GXC-panel-PointSymbolizerViewController-method-updateGraphicDisplay'>    updateGraphicDisplay: function() {
+</span>        var view = this.getView(),
+            markPanel = this.getMarkPanel(),
+            graphicOpacitySlider = this.getGraphicOpacitySlider();
+
+        if(view.external) {
+            markPanel.hide();
+            graphicOpacitySlider.show();
+        } else {
+            graphicOpacitySlider.hide();
+            markPanel.show();
+        }
+    }
+});
+</pre>
+</body>
+</html>

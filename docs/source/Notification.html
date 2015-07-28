@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-service-Notification'>/**
+</span> * A central notification service to brodcast errors and messages via dialogs.
+ */
+Ext.define(&#39;GXC.service.Notification&#39;, {
+
+<span id='GXC-service-Notification-property-inject'>    inject: [
+</span>        &#39;appContext&#39;
+    ],
+
+    config: {
+<span id='GXC-service-Notification-property-successCmpId'>        /**
+</span>         * The components item id that will be consulted to show success notifications.
+         * @type {String}
+         */
+        successCmpId: null,
+
+<span id='GXC-service-Notification-property-errorCmpId'>        /**
+</span>         * The components item id that will be consulted to show error notifications.
+         * @type {String}
+         */
+        errorCmpId: null
+    },
+
+<span id='GXC-service-Notification-method-constructor'>    constructor: function(config) {
+</span>        if (config == null) {
+            config = {};
+        }
+        this.initConfig(config);
+
+        this.appContext.on({
+            &#39;filelayerloaded&#39;: function(layer) {
+                this.success(&#39;Layer loaded&#39;, &#39;File layer &#39; + layer.name + &#39; has been successfully loaded.&#39;);
+            },
+            scope: this
+        });
+
+        return this.callParent(arguments);
+    },
+
+<span id='GXC-service-Notification-method-success'>    /**
+</span>     * Delegates the configured notification component to show a success message.
+     * @param  {String} title
+     * @param  {String} message
+     */
+    success: function(title, message) {
+        var cmp = this.getNotifier(this.successCmpId);
+        cmp.showSuccess(title, message);
+    },
+
+<span id='GXC-service-Notification-method-error'>    /**
+</span>     * Delegates the configured notifications component to show an error.
+     * @param  {String} title   Title of the notification.
+     * @param  {String} message
+     */
+    error: function(title, message) {
+        Ext.Msg.alert(title, message);
+        // var cmp = this.getNotifier(this.errorCmpId);
+        // cmp.showError(title, message);
+    },
+
+<span id='GXC-service-Notification-method-getNotifier'>    getNotifier: function(itemId) {
+</span>        return Ext.ComponentQuery.query(&#39;[itemId=&#39; + itemId + &#39;]&#39;)[0];
+    }
+});
+</pre>
+</body>
+</html>

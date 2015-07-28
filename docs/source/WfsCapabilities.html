@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+/*
+ * @include OpenLayers/Format/WFSCapabilities.js
+ * @include OpenLayers/Protocol/WFS.js
+ * @include OpenLayers/Strategy/Fixed.js
+ * @include OpenLayers/Layer/Vector.js
+ * @requires GeoExt/Version.js
+ */
+
+<span id='GeoExt-data-reader-WfsCapabilities'>/**
+</span> * Data reader class to create {GeoExt.data.WfsCapabilitiesLayerModel[]}
+ * from a WFS GetCapabilities response.
+ *
+ * @class GeoExt.data.reader.WfsCapabilities
+ */
+Ext.define(&#39;GeoExt.data.reader.WfsCapabilities&#39;, {
+    alternateClassName: [
+        &#39;GeoExt.data.reader.WFSCapabilities&#39;,
+        &#39;GeoExt.data.WFSCapabilitiesReader&#39;
+    ],
+    extend: &#39;Ext.data.reader.Json&#39;,
+    alias: &#39;reader.gx_wfscapabilities&#39;,
+    requires: [
+        &#39;GeoExt.Version&#39;
+    ],
+<span id='GeoExt-data-reader-WfsCapabilities-method-constructor'>    /**
+</span>     * Creates new Reader.
+     *
+     * @param {Object} [config] Config object.
+     */
+    constructor: function(config) {
+        if (!this.model) {
+            this.setModel(&#39;GeoExt.data.WfsCapabilitiesLayerModel&#39;);
+        }
+        this.callParent([config]);
+        if (!this.format) {
+            this.format = new OpenLayers.Format.WFSCapabilities();
+        }
+    },
+
+    config: {
+<span id='GeoExt-data-reader-WfsCapabilities-cfg-layerOptions'>        /**
+</span>         *
+         */
+        layerOptions: null,
+
+<span id='GeoExt-data-reader-WfsCapabilities-cfg-protocolOptions'>        /**
+</span>         *
+         */
+        protocolOptions: null
+    },
+
+<span id='GeoExt-data-reader-WfsCapabilities-method-getResponseData'>    /**
+</span>     * Gets the records.
+     *
+     * @param {Object} request The XHR object which contains the parsed XML
+     *     document.
+     * @return {Object} A data block which is used by an Ext.data.Store
+     *     as a cache of Ext.data.Model objects.
+     */
+    getResponseData: function(request) {
+        var data = request.responseXML;
+        if(!data || !data.documentElement) {
+            data = request.responseText;
+        }
+        return this.readRecords(data);
+    },
+
+<span id='GeoExt-data-reader-WfsCapabilities-method-readRecords'>    /**
+</span>     * Create a data block containing Ext.data.Records from an XML document.
+     *
+     * @param {DOMElement/String/Object} data A document element or XHR
+     *     response string. As an alternative to fetching capabilities data
+     *     from a remote source, an object representing the capabilities can
+     *     be provided given that the structure mirrors that returned from the
+     *     capabilities parser.
+     * @return  {Object} A data block which is used by an Ext.data.Store
+     *     as a cache of Ext.data.Model objects.
+     * @private
+     */
+    readRecords: function(data) {
+        if (data instanceof Ext.data.ResultSet) {
+            // we get into the readRecords method twice,
+            // called by Ext.data.reader.Reader#read:
+            // check if we already did our work in a previous run
+            return data;
+        }
+
+        if(typeof data === &quot;string&quot; || data.nodeType) {
+            data = this.format.read(data);
+        }
+
+        var featureTypes = data.featureTypeList.featureTypes;
+        var fields = this.getFields();
+
+        var featureType, metadata, field, v, parts, layer;
+        var layerOptions, protocolOptions;
+
+        var wfs11version = 1.1,
+            url,
+            opMeta;
+        if (parseFloat(data.version) &gt;= wfs11version) {
+            // WFS 1.1.0 needs special treatment
+            opMeta = data.operationsMetadata;
+            url = opMeta &amp;&amp; opMeta.GetFeature.dcp.http.post[0].url;
+        } else {
+            url = data.capability.request.getfeature.href.post;
+        }
+
+        var protocolDefaults = {
+            url: url
+        };
+
+        var records = [];
+
+        for(var i=0, lenI=featureTypes.length; i&lt;lenI; i++) {
+            featureType = featureTypes[i];
+            if(featureType.name) {
+                metadata = {};
+
+                for(var j=0, lenJ=fields.length; j&lt;lenJ; j++) {
+                    field = fields[j];
+                    v = featureType[field.name];
+                    metadata[field.name] = v;
+                }
+
+                metadata[&#39;name&#39;] = featureType.name;
+                metadata[&#39;featureNS&#39;] = featureType.featureNS;
+                metadata[&#39;operationsMetadata&#39;] = opMeta;
+
+                protocolOptions = {
+                    version: data.version,
+                    // srsName: featureType.srs,
+                    featureType: featureType.name,
+                    featureNS: featureType.featureNS
+                };
+                if(this.protocolOptions) {
+                    Ext.apply(protocolOptions, this.protocolOptions,
+                        protocolDefaults);
+                } else {
+                    Ext.apply(protocolOptions, {}, protocolDefaults);
+                }
+
+                layerOptions = {
+                    metadata: metadata,
+                    protocol: new OpenLayers.Protocol.WFS(protocolOptions),
+                    strategies: [new OpenLayers.Strategy.Fixed()]
+                    // projection: featureType.srs
+                };
+                var metaLayerOptions = this.getLayerOptions();
+                if (metaLayerOptions) {
+                    Ext.apply(layerOptions, Ext.isFunction(metaLayerOptions) ?
+                        metaLayerOptions() : metaLayerOptions);
+                }
+
+                layer = new OpenLayers.Layer.Vector(
+                    featureType.title || featureType.name,
+                    layerOptions
+                );
+
+                records.push(layer);
+            }
+        }
+        return this.callParent([records]);
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-Print'>/**
+</span> * A print form that can be used to send print requests to GeoServer Print
+ * endpoints.
+ *
+ * @class
+ */
+Ext.define(&#39;GXC.panel.Print&#39;, {
+    extend: &#39;Ext.form.Panel&#39;,
+    requires: [
+        &#39;Ext.layout.container.Form&#39;,
+        &#39;Ext.layout.container.Column&#39;,
+        &#39;GeoExt.data.MapfishPrintProvider&#39;,
+        &#39;GeoExt.panel.PrintMap&#39;,
+        &#39;GeoExt.plugins.PrintExtent&#39;,
+        &#39;GeoExt.plugins.PrintProviderField&#39;,
+        &#39;GeoExt.plugins.PrintPageField&#39;
+    ],
+
+<span id='GXC-panel-Print-property-inject'>    inject: [
+</span>        &#39;mapService&#39;
+    ],
+
+    alias: &#39;widget.gxc_panel_print&#39;,
+
+<span id='GXC-panel-Print-property-map'>    /**
+</span>     * The GeoExt Map this print dialog is interacting with.
+     * @type {GeoExt.panel.Map}
+     */
+    map: null,
+
+<span id='GXC-panel-Print-property-capabilities'>    /**
+</span>     * The capabilities Object as returned by GeoServer/MapFish Print services.
+     * May be used to construct the print provider without actually contacting
+     * the service.
+     * @type {Object}
+     */
+    capabilities: null,
+
+<span id='GXC-panel-Print-property-printProvider'>    /**
+</span>     * The provider that is used to read printing capabilities and send printing
+     * requests.
+     * @type {GeoExt.data.MapfishPrintProvider}
+     */
+    printProvider: null,
+
+<span id='GXC-panel-Print-property-printPage'>    /**
+</span>     * The provider that is used to set page specific options.
+     * @type {GeoExt.data.PrintPage}
+     */
+    printPage: null,
+
+<span id='GXC-panel-Print-property-pageLayer'>    /**
+</span>     * A vector layer that is used to represent the prints extent live on the map.
+     * @type {OpenLayers.Layer.Vector}
+     */
+    pageLayer: null,
+
+<span id='GXC-panel-Print-property-control'>    /**
+</span>     * The OpenLayers Transform control that is used to interact with the print
+     * extent on the map.
+     * @type {OpenLayers.Control.TransformFeature}
+     */
+    control: null,
+
+<span id='GXC-panel-Print-property-txtPrint'>    /**
+</span>     * Text label of the print button.
+     * @type {String}
+     */
+    txtPrint: &#39;PDF...&#39;,
+
+<span id='GXC-panel-Print-property-txtDefaultMapTitle'>    /**
+</span>     * Default text that will be used as the prints map title.
+     * @type {String}
+     */
+    txtDefaultMapTitle: &#39;Map&#39;,
+
+<span id='GXC-panel-Print-property-txtDefaultComment'>    /**
+</span>     * Default text that will be used as the prints comment.
+     * @type {String}
+     */
+    txtDefaultComment: &#39;Add note..&#39;,
+
+<span id='GXC-panel-Print-property-txtDefaultCopyright'>    /**
+</span>     * Default copyright notice.
+     * @type {String}
+     */
+    txtDefaultCopyright: &#39;OpenInfRA ©2015&#39;,
+
+<span id='GXC-panel-Print-property-txtMapTitle'>    /**
+</span>     * Text label of title field.
+     * @type {String}
+     */
+    txtMapTitle: &#39;Title&#39;,
+
+<span id='GXC-panel-Print-property-txtComment'>    /**
+</span>     * Text label of comment field.
+     * @type {String}
+     */
+    txtComment: &#39;Note&#39;,
+
+<span id='GXC-panel-Print-property-txtLayout'>    /**
+</span>     * Text label of Layout field.
+     * @type {String}
+     */
+    txtLayout: &#39;Layout&#39;,
+
+<span id='GXC-panel-Print-property-txtOutputFormat'>    /**
+</span>     * Text label of output format field.
+     * @type {String}
+     */
+    txtOutputFormat: &#39;Format&#39;,
+
+<span id='GXC-panel-Print-property-txtScale'>    /**
+</span>     * Text label of Scale field.
+     * @type {String}
+     */
+    txtScale: &#39;Scale&#39;,
+
+<span id='GXC-panel-Print-property-txtRotation'>    /**
+</span>     * Text label of Rotation field.
+     * @type {String}
+     */
+    txtRotation: &#39;Rotation&#39;,
+
+<span id='GXC-panel-Print-property-txtNorthArrow'>    /**
+</span>     * Text label to north arrow checkbox field.
+     * @type {String}
+     */
+    txtNorthArrow: &#39;North arrow&#39;,
+
+<span id='GXC-panel-Print-property-txtScaleBar'>    /**
+</span>     * Text label to scale bar checkbox field.
+     * @type {String}
+     */
+    txtScaleBar: &#39;Scale bar&#39;,
+
+<span id='GXC-panel-Print-property-txtPrintMask'>    /**
+</span>     * Message to the load mask of the panel.
+     * @type {String}
+     */
+    txtPrintMask: &#39;Retrieving PDF document&#39;,
+
+<span id='GXC-panel-Print-property-layout'>    /**
+</span>     * Default layout.
+     *
+     * @inheritDoc
+     */
+    layout: &#39;form&#39;,
+
+<span id='GXC-panel-Print-cfg-bodyPadding'>    bodyPadding: &#39;10px&#39;,
+</span>
+<span id='GXC-panel-Print-method-initComponent'>    /**
+</span>     * @inheritDoc
+     */
+    initComponent: function() {
+        var me = this,
+            items;
+
+        this.map = this.mapService.getMap();
+        this.createPageLayer();
+        this.createPrintProvider();
+        this.createPrintPage();
+        this.createControl();
+
+        this.printPage.fit(this.map, {mode: &quot;screen&quot;});
+        this.pageLayer.addFeatures(this.printPage.feature);
+        this.map.addLayer(this.pageLayer);
+        this.map.addControl(this.control);
+        this.control.activate();
+
+        if (this.printPage &amp;&amp; this.map.getCenter()) {
+            this.updateBox();
+        }
+
+        items = [{
+            xtype: &#39;textfield&#39;,
+            name: &#39;mapTitle&#39;,
+            fieldLabel: this.txtMapTitle,
+            plugins: Ext.create(&#39;GeoExt.plugins.PrintPageField&#39;,{
+                printPage: this.printPage
+            })
+        }, {
+            xtype : &quot;textarea&quot;,
+            fieldLabel : this.txtComment,
+            name: &#39;comment&#39;,
+            emptyText : this.txtEmptyComment,
+            plugins : Ext.create(&#39;GeoExt.plugins.PrintPageField&#39;, {
+                printPage: this.printPage
+            })
+        }, {
+            xtype : &#39;combo&#39;,
+            store : this.printProvider.layouts,
+            name: &#39;template&#39;,
+            displayField : &#39;name&#39;,
+            fieldLabel : this.txtLayout,
+            typeAhead : true,
+            queryMode : &#39;local&#39;,
+            forceSelection: true,
+            triggerAction : &#39;all&#39;,
+            selectOnFocus: true,
+            plugins : Ext.create(&#39;GeoExt.plugins.PrintProviderField&#39;, {
+                printProvider : this.printProvider
+            })
+        }, {
+            xtype : &#39;combo&#39;,
+            store : this.printProvider.outputFormats,
+            name: &#39;outputFormat&#39;,
+            displayField : &#39;name&#39;,
+            fieldLabel : this.txtOutputFormat,
+            typeAhead : true,
+            queryMode : &#39;local&#39;,
+            forceSelection : true,
+            triggerAction : &#39;all&#39;,
+            selectOnFocus : true,
+            plugins : Ext.create(&#39;GeoExt.plugins.PrintProviderField&#39;, {
+                printProvider : this.printProvider
+            })
+        }, {
+            xtype : &quot;combo&quot;,
+            store : this.printProvider.dpis,
+            displayField : &quot;name&quot;,
+            fieldLabel : &quot;resolution&quot;,
+            displayTpl : Ext.create(&#39;Ext.XTemplate&#39;, &#39;&lt;tpl for=&quot;.&quot;&gt;{name} dpi&lt;/tpl&gt;&#39;),
+            typeAhead : true,
+            queryMode : &#39;local&#39;,
+            forceSelection: true,
+            triggerAction : &#39;all&#39;,
+            selectOnFocus: true,
+            plugins : Ext.create(&#39;GeoExt.plugins.PrintProviderField&#39;, {
+                printProvider : this.printProvider
+            })
+        }, {
+            xtype: &#39;combo&#39;,
+            store: this.printProvider.scales,
+            name: &#39;scale&#39;,
+            displayField: &#39;name&#39;,
+            fieldLabel: this.txtScale,
+            typeAhead: true,
+            queryMode: &#39;local&#39;,
+            forceSelection: true,
+            triggerAction: &#39;all&#39;,
+            selectOnFocus: true,
+            plugins: Ext.create(&#39;GeoExt.plugins.PrintPageField&#39;,{
+                printPage: this.printPage
+            })
+        }, {
+            xtype: &#39;numberfield&#39;,
+            name: &#39;rotation&#39;,
+            fieldLabel: this.txtRotation,
+            plugins: Ext.create(&#39;GeoExt.plugins.PrintPageField&#39;,{
+                printPage: this.printPage
+            })
+        }, {
+            xtype : &#39;checkbox&#39;,
+            fieldLabel : this.txtNorthArrow,
+            name: &#39;northArrow&#39;,
+            value: true,
+            plugins : Ext.create(&#39;GeoExt.plugins.PrintPageField&#39;, {
+                printPage: this.printPage
+            })
+        }, {
+            xtype : &#39;checkbox&#39;,
+            fieldLabel : this.txtScaleBar,
+            name : &#39;scalebar&#39;,
+            value: true,
+            plugins : Ext.create(&#39;GeoExt.plugins.PrintPageField&#39;, {
+                printPage: this.printPage
+            })
+        }];
+
+        Ext.apply(this, {
+            items: items,
+            bbar: [{
+                xtype: &#39;button&#39;,
+                text: this.txtPrint,
+                handler: function() {
+                    var overviews = me.map.getControlsByClass(&#39;OpenLayers.Control.OverviewMap&#39;),
+                        legends = Ext.ComponentQuery.query(&#39;gx_legendpanel&#39;),
+                        options = {};
+
+                    if (overviews.length) {
+                        options.overview = overviews[0];
+                    }
+
+                    if (legends.length) {
+                        options.legend = legends[0];
+                    }
+
+                    me.onBeforePrint();
+                    me.printProvider.print(me.map, me.printPage, options);
+                }
+            }]
+        });
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-panel-Print-method-createControl'>    /**
+</span>     * Method is derived from GeoExt.plugins.PrintExtent.
+     *
+     * @inheritdoc GeoExt.plugins.PrintExtent#createControl
+     */
+    createControl: function() {
+        this.control = new OpenLayers.Control.TransformFeature(this.pageLayer, {
+            preserveAspectRatio: true,
+            renderIntent: &#39;transform&#39;,
+            rotationHandleSymbolizer: &#39;rotate&#39;,
+            eventListeners: {
+                &quot;beforetransform&quot;: this.beforeTransform,
+                &quot;transformcomplete&quot;: this.updateBox,
+                scope: this
+            }
+        });
+    },
+
+<span id='GXC-panel-Print-method-beforeTransform'>    /**
+</span>     * Called before transforming the feature to syncronize the transform
+     * feature with the pages print properties.
+     * @param  {OpenLayers.Event} e
+     * @return false to cancel the transformation
+     *
+     * @private
+     */
+    beforeTransform: function(e) {
+        this._updating = true;
+        var page = this.printPage;
+        if(e.rotation) {
+            if(this.printProvider.layout.get(&quot;rotation&quot;)) {
+                page.setRotation(-e.object.rotation);
+            } else {
+                e.object.setFeature(page.feature);
+            }
+        } else if(e.center) {
+            page.setCenter(OpenLayers.LonLat.fromString(
+                e.center.toShortString()
+            ));
+        } else {
+            page.fit(e.object.box, {mode: &quot;closest&quot;});
+            var minScale = this.printProvider.scales.getAt(0);
+            var maxScale = this.printProvider.scales.getAt(
+                this.printProvider.scales.getCount() - 1);
+            var boxBounds = e.object.box.geometry.getBounds();
+            var pageBounds = page.feature.geometry.getBounds();
+            var tooLarge = page.scale === minScale &amp;&amp;
+                boxBounds.containsBounds(pageBounds);
+            var tooSmall = page.scale === maxScale &amp;&amp;
+                pageBounds.containsBounds(boxBounds);
+            if(tooLarge === true || tooSmall === true) {
+                this.updateBox();
+            }
+        }
+        delete this._updating;
+        return false;
+    },
+
+<span id='GXC-panel-Print-method-updateBox'>    /**
+</span>     * Updates the transformation box after setting a new scale or layout, or to
+     * fit the box to the extent feature after a transform.
+     *
+     * @private
+     */
+    updateBox: function() {
+        var page = this.printPage;
+        if (this.control.active) {
+            this.control.setFeature(page.feature, {rotation: -page.rotation});
+        }
+    },
+
+<span id='GXC-panel-Print-method-createPageLayer'>    /**
+</span>     * Creates a vector layer that will be added to the map, allowing interactive
+     * configuration of the print viewport.
+     *
+     * @private
+     */
+    createPageLayer: function() {
+        this.pageLayer = new OpenLayers.Layer.Vector(&#39;_printExtent&#39;, {
+            displayInLayerSwitcher: false,
+            styleMap: new OpenLayers.StyleMap({
+                // a nice style for the transformation box
+                &#39;transform&#39;: new OpenLayers.Style({
+                    display: &#39;${getDisplay}&#39;,
+                    cursor: &#39;${role}&#39;,
+                    pointRadius: 5,
+                    fillColor: &#39;white&#39;,
+                    fillOpacity: 1,
+                    strokeColor: &#39;black&#39;
+                }, {
+                    context: {
+                        getDisplay: function(feature) {
+                            // hide the resize handle at the south-east corner
+                            return feature.attributes.role === &#39;se-resize&#39; ? &#39;none&#39; : &#39;&#39;;
+                        }
+                    }
+                }),
+                &#39;rotate&#39;: new OpenLayers.Style({
+                    display: &#39;${getDisplay}&#39;,
+                    pointRadius: 10,
+                    fillColor: &#39;#ddd&#39;,
+                    fillOpacity: 1,
+                    strokeColor: &#39;black&#39;
+                }, {
+                    context: {
+                        getDisplay: function(feature) {
+                            // only display the rotate handle at the south-east corner
+                            return feature.attributes.role === &#39;se-rotate&#39; ? &#39;&#39; : &#39;none&#39;;
+                        }
+                    }
+                })
+            })
+        });
+    },
+
+<span id='GXC-panel-Print-method-createPrintProvider'>    /**
+</span>     * Helper method to init the printProvider.
+     *
+     * @private
+     */
+    createPrintProvider: function() {
+        if (!this.printProvider &amp;&amp; this.capabilities) {
+            this.printProvider = Ext.create(&#39;GeoExt.data.MapfishPrintProvider&#39;, {
+                capabilities: this.capabilities
+            });
+        }
+
+        if (!this.printProvider) {
+            Ext.Error.raise(&#39;No print provider available.&#39;);
+        }
+
+        this.printProvider.on(&#39;layoutchange&#39;, function() {
+            this.updateBox();
+        }, this);
+
+        this.printProvider.on({
+            print: this.onPrintProviderPrint,
+            printexception: this.onPrintProviderPrintexception,
+            scope: this
+        });
+    },
+
+<span id='GXC-panel-Print-method-createPrintPage'>    /**
+</span>     * Helper method to create the print page.
+     *
+     * @private
+     */
+    createPrintPage: function() {
+        this.printPage = Ext.create(&#39;GeoExt.data.PrintPage&#39;, {
+            printProvider: this.printProvider
+        });
+    },
+
+<span id='GXC-panel-Print-method-onBeforePrint'>    /**
+</span>     * Called to mask the panel effectivly keeping the user from calling the
+     * print method more than once.
+     * @return {[type]} [description]
+     */
+    onBeforePrint: function() {
+        var el = this.getEl();
+
+        if (el) {
+            el.mask(this.txtPrintMask);
+        }
+    },
+
+<span id='GXC-panel-Print-method-onAfterPrint'>    /**
+</span>     * Unmasks the panel after a successfull print.
+     * @return {[type]} [description]
+     */
+    onAfterPrint: function() {
+        var el = this.getEl();
+
+        if (el) {
+            el.unmask();
+        }
+    },
+
+<span id='GXC-panel-Print-method-onPrintProviderPrint'>    /**
+</span>     * Called if the print has been successful.
+     *
+     * @private
+     */
+    onPrintProviderPrint: function() {
+        this.onAfterPrint();
+    },
+
+<span id='GXC-panel-Print-method-onPrintProviderPrintexception'>    onPrintProviderPrintexception: function(printProvider, response) {
+</span>        Ext.Msg.alert(&#39;Print error&#39;, response.responseText || response.statusText);
+        this.onAfterPrint();
+    },
+
+<span id='GXC-panel-Print-method-destroy'>    /**
+</span>     * @inheritDoc
+     */
+    destroy: function() {
+        this.map.removeControl(this.control);
+        this.map.removeLayer(this.pageLayer);
+        this.map = null;
+
+        this.control.destroy();
+        this.pageLayer.destroy();
+
+        this.control = null;
+        this.pageLayer = null;
+
+
+        this.controller = null;
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

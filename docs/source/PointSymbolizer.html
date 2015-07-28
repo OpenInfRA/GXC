@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-PointSymbolizer'>/**
+</span> * A form to configure point symbolizers.
+ */
+Ext.define(&#39;GXC.panel.PointSymbolizer&#39;, {
+    extend: &#39;Ext.form.Panel&#39;,
+    requires: [
+        &#39;GXC.form.StrokeSymbolizer&#39;,
+        &#39;GXC.form.FillSymbolizer&#39;,
+        &#39;GXC.panel.PointSymbolizerViewController&#39;
+    ],
+
+<span id='GXC-panel-PointSymbolizer-property-controller'>    controller: &#39;GXC.panel.PointSymbolizerViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_panel_pointsymbolizer&#39;,
+
+<span id='GXC-panel-PointSymbolizer-property-symbolizer'>    /**
+</span>     *  A symbolizer object that will be used to fill in form values.
+     *  This object will be modified when values change.
+     */
+    symbolizer: null,
+
+<span id='GXC-panel-PointSymbolizer-property-graphicCircleText'>    graphicCircleText: &quot;circle&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-graphicSquareText'>    graphicSquareText: &quot;square&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-graphicTriangleText'>    graphicTriangleText: &quot;triangle&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-graphicStarText'>    graphicStarText: &quot;star&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-graphicCrossText'>    graphicCrossText: &quot;cross&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-graphicXText'>    graphicXText: &quot;x&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-graphicExternalText'>    graphicExternalText: &quot;external&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-urlText'>    urlText: &quot;URL&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-opacityText'>    opacityText: &quot;opacity&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-symbolText'>    symbolText: &quot;Symbol&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-sizeText'>    sizeText: &quot;Size&quot;,
+</span><span id='GXC-panel-PointSymbolizer-property-rotationText'>    rotationText: &quot;Rotation&quot;,
+</span>
+<span id='GXC-panel-PointSymbolizer-property-pointGraphics'>    /**
+</span>     *  A list of objects to be used as the root of the data for a
+     *  JsonStore.  These will become records used in the selection of
+     *  a point graphic.  If an object in the list has no &quot;value&quot; property,
+     *  the user will be presented with an input to provide their own URL
+     *  for an external graphic.  By default, names of well-known marks are
+     *  provided.  In addition, the default list will produce a record with
+     *  display of &quot;external&quot; that create an input for an external graphic
+     *  URL.
+     *
+     * Fields:
+     *
+     *  * display - ``String`` The name to be displayed to the user.
+     *  * preview - ``String`` URL to a graphic for preview.
+     *  * value - ``String`` Value to be sent to the server.
+     *  * mark - ``Boolean`` The value is a well-known name for a mark.  If
+     *      ``false``, the value will be assumed to be a url for an external graphic.
+     */
+    pointGraphics: null,
+
+<span id='GXC-panel-PointSymbolizer-property-external'>    /**
+</span>     *  ``Boolean``
+     *  Currently using an external graphic.
+     *
+     * @private
+     */
+    external: null,
+
+<span id='GXC-panel-PointSymbolizer-method-initComponent'>    initComponent: function() {
+</span>
+        if(!this.symbolizer) {
+            this.symbolizer = {};
+        }
+
+        if (!this.pointGraphics) {
+            this.pointGraphics = [
+                {display: this.graphicCircleText, value: &quot;circle&quot;, mark: true},
+                {display: this.graphicSquareText, value: &quot;square&quot;, mark: true},
+                {display: this.graphicTriangleText, value: &quot;triangle&quot;, mark: true},
+                {display: this.graphicStarText, value: &quot;star&quot;, mark: true},
+                {display: this.graphicCrossText, value: &quot;cross&quot;, mark: true},
+                {display: this.graphicXText, value: &quot;x&quot;, mark: true},
+                {display: this.graphicExternalText}
+            ];
+        }
+
+        this.external = !!this.symbolizer[&quot;externalGraphic&quot;];
+
+        this.items = [{
+            xtype: &quot;combo&quot;,
+            name: &quot;mark&quot;,
+            itemId: &#39;markCombo&#39;,
+            fieldLabel: this.symbolText,
+            store: Ext.create(&#39;Ext.data.JsonStore&#39;, {
+                proxy: &#39;memory&#39;,
+                data: this.pointGraphics,
+                fields: [&quot;value&quot;, &quot;display&quot;, &quot;preview&quot;, {name: &quot;mark&quot;, type: &quot;boolean&quot;}]
+            }),
+            value: this.external ? 0 : this.symbolizer[&quot;graphicName&quot;],
+            displayField: &quot;display&quot;,
+            valueField: &quot;value&quot;,
+            mode: &quot;local&quot;,
+            allowBlank: false,
+            triggerAction: &quot;all&quot;,
+            editable: false
+        }, {
+            itemId: &#39;urlField&#39;,
+            xtype: &#39;textfield&#39;,
+            name: &quot;url&quot;,
+            fieldLabel: this.urlText,
+            value: this.symbolizer[&quot;externalGraphic&quot;],
+            hidden: !this.external
+        }, {
+            xtype: &quot;textfield&quot;,
+            name: &quot;size&quot;,
+            itemId: &#39;sizeField&#39;,
+            fieldLabel: this.sizeText,
+            value: this.symbolizer[&quot;pointRadius&quot;] &amp;&amp;
+                        this.symbolizer[&quot;pointRadius&quot;] * 2
+        }, {
+            xtype: &quot;textfield&quot;,
+            name: &quot;rotation&quot;,
+            itemId: &#39;rotationField&#39;,
+            fieldLabel: this.rotationText,
+            value: this.symbolizer[&quot;rotation&quot;]
+        }, {
+            xtype: &#39;panel&#39;,
+            itemId: &#39;markPanel&#39;,
+            border: false,
+            hidden: this.external,
+            preventHeader: true,
+            hideCollapseTool: true,
+            items: [{
+                xtype: &quot;gxc_form_fillsymbolizer&quot;,
+                itemId: &#39;fillSymbolizer&#39;,
+                symbolizer: this.symbolizer
+            }, {
+                xtype: &quot;gxc_form_strokesymbolizer&quot;,
+                itemId: &#39;strokeSymbolizer&#39;,
+                symbolizer: this.symbolizer
+            }]
+        }, {
+            itemId: &#39;graphicOpacitySlider&#39;,
+            hidden: !this.external,
+            xtype: &quot;slider&quot;,
+            name: &quot;opacity&quot;,
+            width: 250,
+            fieldLabel: this.opacityText,
+            value: (this.symbolizer[&quot;graphicOpacity&quot;] == null) ?
+                    100 : this.symbolizer[&quot;graphicOpacity&quot;] * 100,
+            isFormField: true
+        }];
+
+        this.addEvents(
+<span id='GXC-panel-PointSymbolizer-property-change'>            /**
+</span>             * Event: change
+             * Fires before any field blurs if the field value has changed.
+             *
+             * Listener arguments:
+             * symbolizer - {Object} A symbolizer with stroke related properties
+             *     updated.
+             */
+            &quot;change&quot;
+        );
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-StyleEditorViewController'>/**
+</span> * ViewController to the GXC.panel.StyleEditor class.
+ */
+Ext.define(&#39;GXC.panel.StyleEditorViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+    requires: [
+        &#39;Ext.data.JsonStore&#39;,
+        &#39;Ext.form.FieldSet&#39;,
+        &#39;GeoExt.container.WmsLegend&#39;
+    ],
+
+<span id='GXC-panel-StyleEditorViewController-property-control'>    control: {
+</span>        &#39;stylesPanel&#39;: {
+            &#39;styleselected&#39;: &#39;onStylesPanelStyleselected&#39;
+        },
+        &#39;legendPanel&#39;: {
+            live: true,
+            listeners: {
+                &#39;styleupdated&#39;: &#39;onLegendPanelStyleupdated&#39;
+            }
+        }
+    },
+
+<span id='GXC-panel-StyleEditorViewController-method-onStylesPanelStyleselected'>    onStylesPanelStyleselected: function(panel, styleRecord) {
+</span>        var view = this.getView(),
+            layerRecord = view.layerRecord,
+            legend = this.getLegendPanel();
+
+        if (legend) {
+            legend.hide().destroy();
+        }
+
+        this.mergeLayerParams(styleRecord);
+
+        if (styleRecord.get(&#39;userStyle&#39;)) {
+            view.add({
+                xtype: &#39;gxc_panel_rules&#39;,
+                itemId: &#39;legendPanel&#39;,
+                layerRecord: layerRecord,
+                layerStyle: styleRecord
+            });
+        } else {
+            view.add([{
+                xtype: &#39;panel&#39;,
+                bodyPadding: &#39;10px&#39;,
+                maxHeight: 250,
+                items: [{
+                    xtype: &#39;fieldset&#39;,
+                    itemId: &#39;legendPanel&#39;,
+                    border: true,
+                    title: view.txtLegendFieldsetTitle,
+                    autoScroll: true,
+                    padding: &#39;10px&#39;,
+                    items: [{
+                        xtype: &#39;gx_wmslegend&#39;,
+                        showTitle: false,
+                        layerRecord: layerRecord
+                    }]
+                }]
+            }]);
+        }
+    },
+
+<span id='GXC-panel-StyleEditorViewController-method-onLegendPanelStyleupdated'>    onLegendPanelStyleupdated: function(panel, styleRecord) {
+</span>        this.mergeLayerParams(styleRecord);
+    },
+
+<span id='GXC-panel-StyleEditorViewController-method-mergeLayerParams'>    /**
+</span>     * Merges settings into layers params to reload layer.
+     * @param  {[type]} styleRecord [description]
+     * @return {[type]}             [description]
+     */
+    mergeLayerParams: function(styleRecord) {
+        var view = this.getView(),
+            layerRecord = view.layerRecord,
+            layer = layerRecord.getLayer();
+
+        if (layer.CLASS_NAME === &#39;OpenLayers.Layer.WMS&#39;) {
+            if (styleRecord.get(&#39;edited&#39;)) {
+                layerRecord.getLayer().mergeNewParams({
+                    SLD_BODY: this.createSld(styleRecord)
+                });
+            } else {
+                delete layerRecord.getLayer().params.SLD_BODY;
+                layerRecord.getLayer().mergeNewParams({
+                    STYLES: styleRecord.get(&#39;name&#39;)
+                });
+            }
+        } else if (layer.CLASS_NAME === &#39;OpenLayers.Layer.Vector&#39;) {
+            layer.styleMap.styles[&#39;default&#39;] = styleRecord.get(&#39;userStyle&#39;);
+            layer.redraw();
+        }
+    },
+
+<span id='GXC-panel-StyleEditorViewController-method-createSld'>    /**
+</span>     * @param {Object} styleRecord
+     * @returns {String} The current SLD for the NamedLayer.
+     */
+    createSld: function(styleRecord, options) {
+        var view = this.getView(),
+            layerRecord = view.layerRecord,
+            layer = layerRecord.getLayer(),
+            layerName = layer.metadata[&#39;name&#39;],
+            sld = {
+                version: &#39;1.0.0&#39;,
+                namedLayers: {}
+            };
+
+
+        sld.namedLayers[layerName] = {
+            name: layerName,
+            userStyles: [styleRecord.get(&#39;userStyle&#39;)]
+        };
+
+        return new OpenLayers.Format.SLD({
+            multipleSymbolizers: true,
+            profile: &#39;GeoServer&#39;
+        }).write(sld);
+    }
+});
+</pre>
+</body>
+</html>

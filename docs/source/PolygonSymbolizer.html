@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-PolygonSymbolizer'>/**
+</span> * A form to configure polygon symbolizers.
+ */
+Ext.define(&#39;GXC.panel.PolygonSymbolizer&#39;, {
+    extend: &#39;Ext.form.Panel&#39;,
+    requires: [
+        &#39;GXC.form.FillSymbolizer&#39;,
+        &#39;GXC.form.StrokeSymbolizer&#39;
+    ],
+
+    alias: &#39;widget.gxc_panel_polygonsymbolizer&#39;,
+
+<span id='GXC-panel-PolygonSymbolizer-property-symbolizer'>    /**
+</span>     *  A symbolizer object that will be used to fill in form values.
+     *  This object will be modified when values change.  Clone first if
+     *  you do not want your symbolizer modified.
+     */
+    symbolizer: null,
+
+<span id='GXC-panel-PolygonSymbolizer-method-initComponent'>    initComponent: function() {
+</span>
+        this.items = [{
+            xtype: &#39;gxc_form_fillsymbolizer&#39;,
+            symbolizer: this.symbolizer,
+            listeners: {
+                change: function(symbolizer) {
+                    this.fireEvent(&quot;change&quot;, this.symbolizer);
+                },
+                scope: this
+            }
+        }, {
+            xtype: &#39;gxc_form_strokesymbolizer&#39;,
+            symbolizer: this.symbolizer,
+            listeners: {
+                change: function(symbolizer) {
+                    this.fireEvent(&quot;change&quot;, this.symbolizer);
+                },
+                scope: this
+            }
+        }];
+
+        this.addEvents(
+<span id='GXC-panel-PolygonSymbolizer-property-change'>            /**
+</span>             * Event: change
+             * Fires before any field blurs if the field value has changed.
+             *
+             * Listener arguments:
+             * symbolizer - {Object} A symbolizer with stroke related properties
+             *     updated.
+             */
+            &quot;change&quot;
+        );
+
+        this.callParent(arguments);
+
+    }
+});
+</pre>
+</body>
+</html>

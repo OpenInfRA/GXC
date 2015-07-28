@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-StyleEditor'>/**
+</span> * Create a dialog for selecting and layer styles. If the WMS supports
+ * GetStyles, styles can also be edited. The dialog does not provide any
+ * means of writing modified styles back to the server. To save styles,
+ * configure the dialog with a :class:`gxp.plugins.StyleWriter` plugin
+ * and call the ``saveStyles`` method.
+ */
+Ext.define(&#39;GXC.panel.StyleEditor&#39;, {
+    extend: &#39;Ext.form.Panel&#39;,
+    requires: [
+        &#39;GXC.panel.Styles&#39;,
+        &#39;GXC.panel.Rules&#39;,
+        &#39;GXC.panel.StyleEditorViewController&#39;
+    ],
+
+<span id='GXC-panel-StyleEditor-property-controller'>    controller: &#39;GXC.panel.StyleEditorViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_panel_styleeditor&#39;,
+
+<span id='GXC-panel-StyleEditor-property-layerRecord'>    /**
+</span>     * The layer to edit/select styles for.
+     * @type {GeoExt.data.LayerRecord}
+     *
+     * @private
+     */
+    layerRecord: null,
+
+<span id='GXC-panel-StyleEditor-property-layerDescription'>    /**
+</span>     * Array entry of a DescribeLayer response as read by
+     * ``OpenLayers.Format.WMSDescribeLayer``.
+     *
+     * @private
+     */
+    layerDescription: null,
+
+<span id='GXC-panel-StyleEditor-property-symbolType'>    /**
+</span>     * ``Point`` or ``Line`` or ``Polygon`` - the primary symbol type for the
+     * layer. This is the symbolizer type of the first symbolizer of the
+     * first rule of the current layer style. Only available if the WMS
+     * supports GetStyles.
+     *
+     * @private
+     */
+    symbolType: null,
+
+<span id='GXC-panel-StyleEditor-property-stylesStore'>    /**
+</span>     * A store representing the styles returned from
+     * GetCapabilities and GetStyles. It has &quot;name&quot;, &quot;title&quot;, &quot;abstract&quot;,
+     * &quot;legend&quot; and &quot;userStyle&quot; fields. If the WMS supports GetStyles, the
+     * &quot;legend&quot; field will not be available. If it does not, the &quot;userStyle&quot;
+     * field will not be available.
+     *
+     * @type {Ext.data.Store}
+     */
+    stylesStore: null,
+
+<span id='GXC-panel-StyleEditor-property-selectedStyle'>    /**
+</span>     * The currently selected style from the
+     * ``stylesStore``.
+     *
+     * @type {Ext.data.Record}
+     */
+    selectedStyle: null,
+
+<span id='GXC-panel-StyleEditor-property-selectedRule'>    /**
+</span>     * The currently selected rule, or null if none
+     * selected.
+     *
+     * @type {OpenLayers.Rule}
+     */
+    selectedRule: null,
+
+<span id='GXC-panel-StyleEditor-property-modified'>    /**
+</span>     * Will be true if styles were modified. Initial state is
+     * false.
+     *
+     * @type {Boolean}
+     * @private
+     */
+    modified: false,
+
+<span id='GXC-panel-StyleEditor-cfg-defaults'>    defaults: {
+</span>        border: false
+    },
+
+<span id='GXC-panel-StyleEditor-property-txtLegendFieldsetTitle'>    /**
+</span>     * i18m
+     * @type {String}
+     */
+    txtLegendFieldsetTitle: &#39;Legend&#39;,
+
+<span id='GXC-panel-StyleEditor-property-dialogCls'>    dialogCls: &#39;Ext.window.Window&#39;,
+</span>
+<span id='GXC-panel-StyleEditor-method-initComponent'>    initComponent: function() {
+</span>        this.addEvents(
+<span id='GXC-panel-StyleEditor-property-ready'>            /**
+</span>             * Fires when this component is ready for user interaction.
+             */
+            &quot;ready&quot;,
+
+<span id='GXC-panel-StyleEditor-property-modified'>            /**
+</span>             * Fires on every style modification.
+             */
+            &quot;modified&quot;,
+
+<span id='GXC-panel-StyleEditor-property-styleselected'>            /**
+</span>             * Fires whenever an existing style is selected from this dialog&#39;s
+             * Style combo box.
+             */
+            &quot;styleselected&quot;
+        );
+
+        Ext.apply(this, {
+            items: [{
+                itemId: &#39;stylesPanel&#39;,
+                xtype: &#39;gxc_panel_styles&#39;,
+                layerRecord: this.layerRecord
+            }]
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

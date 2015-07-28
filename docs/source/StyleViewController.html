@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-StyleViewController'>/**
+</span> * @class
+ */
+Ext.define(&#39;GXC.form.StyleViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+<span id='GXC-form-StyleViewController-property-control'>    control: {
+</span>        // some layers may not provide any styles
+        // so the styleGrid may not be rendered
+        &#39;styleGrid&#39;: {
+            live: true,
+            listeners: {
+                itemdblclick: &#39;onStyleGridItemDblClick&#39;,
+                itemmouseenter: &#39;onStyleGridItemMouseEnter&#39;,
+                itemmouseleave: &#39;onStyleGridItemMouseLeave&#39;
+            }
+        },
+        &#39;sldBodyTextArea&#39;: {
+            dragover: &#39;onSldBodyTextAreaDragOver&#39;,
+            dragend: &#39;onSldBodyTextAreaDragEnd&#39;,
+            drop: &#39;onSldBodyTextAreaDrop&#39;
+        },
+        &#39;applySldBodyButton&#39;: {
+            click: &#39;onApplySldBodyButtonClick&#39;
+        },
+        &#39;resetSldBodyButton&#39;: {
+            click: &#39;onResetSldBodyButtonClick&#39;
+        },
+        &#39;saveAsFileSldBodyButton&#39;: {
+            live: true,
+            listeners: {
+                click: &#39;onSaveAsFileSldBodyButton&#39;
+            }
+        }
+    },
+
+<span id='GXC-form-StyleViewController-method-onStyleGridItemDblClick'>    onStyleGridItemDblClick: function(grid, record) {
+</span>        var view = this.getView();
+
+        view.setLayerSldBody(null);
+        view.setLayerStyles(record.get(&#39;name&#39;));
+    },
+
+<span id='GXC-form-StyleViewController-method-onStyleGridItemMouseEnter'>    onStyleGridItemMouseEnter: function(grid, record) {
+</span>        var layer = this.getView().getLayer();
+
+        delete layer.params.SLD_BODY;
+        layer.mergeNewParams({
+            STYLES: record.get(&#39;name&#39;)
+        });
+    },
+
+<span id='GXC-form-StyleViewController-method-onStyleGridItemMouseLeave'>    onStyleGridItemMouseLeave: function() {
+</span>        var view = this.getView(),
+            sldBody = view.getLayerSldBody(),
+            options = {
+                STYLES: view.getLayerStyles()
+            };
+
+        if (sldBody) {
+            options.SLD_BODY = sldBody;
+        }
+
+        view.getLayer().mergeNewParams(options)
+    },
+
+<span id='GXC-form-StyleViewController-method-onSldBodyTextAreaDragover'>    onSldBodyTextAreaDragover: function() {
+</span>
+    },
+
+<span id='GXC-form-StyleViewController-method-onSldBodyTextAreaDragend'>    onSldBodyTextAreaDragend: function() {
+</span>
+    },
+
+<span id='GXC-form-StyleViewController-method-onSldBodyTextAreaDrop'>    onSldBodyTextAreaDrop: function() {
+</span>
+    },
+
+<span id='GXC-form-StyleViewController-method-onApplySldBodyButtonClick'>    onApplySldBodyButtonClick: function() {
+</span>        var view = this.getView(),
+            layer = this.getView().getLayer(),
+            style = this.getSldBodyTextArea().getValue();
+
+        view.setLayerSldBody(style);
+
+        this.mergeStyleParams();
+    },
+
+<span id='GXC-form-StyleViewController-method-onResetSldBodyButtonClick'>    onResetSldBodyButtonClick: function() {
+</span>        var view = this.getView(),
+            layer = view.getLayer();
+
+        view.setLayerStyles(null);
+        view.setLayerSldBody(null);
+
+        this.mergeStyleParams();
+    },
+
+<span id='GXC-form-StyleViewController-method-onSaveAsFileSldBodyButton'>    onSaveAsFileSldBodyButton: function() {
+</span>        var value = this.getSldBodyTextArea().getValue(),
+            blob = new Blob([value], {type: &quot;text/xml;charset=utf-8&quot;});
+        saveAs(blob, &quot;Custom SLD.xml&quot;);
+    },
+
+<span id='GXC-form-StyleViewController-method-onSldBodyTextAreaDragOver'>    onSldBodyTextAreaDragOver: function(e) {
+</span>        console.log(&#39;dragOver&#39;);
+        // e.stopPropagation(); // for some browsers stop redirecting
+        // e.preventDefault();
+        return false;
+    },
+
+<span id='GXC-form-StyleViewController-method-onSldBodyTextAreaDragEnd'>    onSldBodyTextAreaDragEnd: function(e) {
+</span>        console.log(&#39;dragEnd&#39;);
+        // e.stopPropagation(); // for some browsers stop redirecting
+        // e.preventDefault();
+        return false;
+    },
+
+<span id='GXC-form-StyleViewController-method-onSldBodyTextAreaDrop'>    onSldBodyTextAreaDrop: function() {
+</span>        console.log(&#39;drop&#39;);
+        return false;
+    },
+
+<span id='GXC-form-StyleViewController-method-readText'>    readText: function(e) {
+</span>        e.stopPropagation(); // for some browsers stop redirecting
+        e.preventDefault();
+
+        var file,
+            fileData,
+            fileReader,
+            files = e.dataTransfer.files;
+
+        if (!files) {
+            return;
+        }
+
+        //not append
+        if(append.checked == false)
+            dropZone.value = &#39;&#39;;
+
+        for(var i=0;i&lt;files.length;i++)
+        {
+            file = files[i];
+
+            //new instance for each file
+            fileReader = new FileReader();
+            fileReader.textArea = dropZone;
+
+            fileData = function (event) {
+                this.textArea.value += this.result
+            };
+
+            fileReader.addEventListener(&#39;loadend&#39;,fileData);
+            fileReader.readAsText(file);
+        }
+    },
+
+<span id='GXC-form-StyleViewController-method-mergeStyleParams'>    mergeStyleParams: function() {
+</span>        var view = this.getView(),
+            layer = view.getLayer(),
+            styles = view.getLayerStyles(),
+            sldBody = view.getLayerSldBody();
+            params = {
+                STYLES: styles
+            };
+
+        if (sldBody) {
+            params.SLD_BODY = sldBody;
+        } else {
+            delete layer.params.SLD_BODY;
+        }
+
+        layer.mergeNewParams(params);
+    }
+});
+</pre>
+</body>
+</html>

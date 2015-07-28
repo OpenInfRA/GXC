@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-StrokeSymbolizer'>/**
+</span> * Form for configuring a symbolizer stroke.
+ */
+Ext.define(&#39;GXC.form.StrokeSymbolizer&#39;, {
+    extend: &#39;Ext.form.FieldSet&#39;,
+    requires: [
+        &#39;Ext.slider.Single&#39;,
+        &#39;GXC.form.ColorField&#39;,
+        &#39;GXC.form.StrokeSymbolizerViewController&#39;
+    ],
+
+<span id='GXC-form-StrokeSymbolizer-property-controller'>    controller: &#39;GXC.form.StrokeSymbolizerViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_form_strokesymbolizer&#39;,
+
+<span id='GXC-form-StrokeSymbolizer-property-solidStrokeName'>    /* i18n */
+</span>    solidStrokeName: &quot;solid&quot;,
+<span id='GXC-form-StrokeSymbolizer-property-dashStrokeName'>    dashStrokeName: &quot;dash&quot;,
+</span><span id='GXC-form-StrokeSymbolizer-property-dotStrokeName'>    dotStrokeName: &quot;dot&quot;,
+</span><span id='GXC-form-StrokeSymbolizer-property-titleText'>    titleText: &quot;Stroke&quot;,
+</span><span id='GXC-form-StrokeSymbolizer-property-styleText'>    styleText: &quot;Style&quot;,
+</span><span id='GXC-form-StrokeSymbolizer-property-colorText'>    colorText: &quot;Color&quot;,
+</span><span id='GXC-form-StrokeSymbolizer-property-widthText'>    widthText: &quot;Width&quot;,
+</span><span id='GXC-form-StrokeSymbolizer-property-opacityText'>    opacityText: &quot;Opacity&quot;,
+</span>    /* ~i18n */
+
+<span id='GXC-form-StrokeSymbolizer-property-symbolizer'>    /**
+</span>     *  A symbolizer object that will be used to fill in form values.
+     *  This object will be modified when values change.  Clone first if
+     *  you do not want your symbolizer modified.
+     *
+     * @type {Object}
+     */
+    symbolizer: null,
+
+<span id='GXC-form-StrokeSymbolizer-property-checkboxToggle'>    /**
+</span>     * Set to false if the &quot;Fill&quot; fieldset should not be
+     * toggleable. Default is true.
+     *
+     * @type {Boolean}
+     */
+    checkboxToggle: true,
+
+<span id='GXC-form-StrokeSymbolizer-property-defaultColor'>    /**
+</span>     * Default background color for the Color field. This
+     * color will be displayed when no strokeColor value for the symbolizer
+     * is available. Defaults to the ``strokeColor`` property of
+     * ``OpenLayers.Renderer.defaultSymbolizer``.
+     *
+     * @type {Boolean}
+     */
+    defaultColor: null,
+
+<span id='GXC-form-StrokeSymbolizer-property-dashStyles'>    /**
+</span>     * A list of [value, name] pairs for stroke dash styles.
+     * The first item in each list is the value and the second is the
+     * display name.  Default is [[&quot;solid&quot;, &quot;solid&quot;], [&quot;2 4&quot;, &quot;dash&quot;],
+     * [&quot;1 4&quot;, &quot;dot&quot;]].
+     */
+    dashStyles: null,
+
+<span id='GXC-form-StrokeSymbolizer-cfg-defaults'>    defaults: {
+</span>        anchor: &#39;100%&#39;
+    },
+
+<span id='GXC-form-StrokeSymbolizer-method-initComponent'>    initComponent: function() {
+</span>        var opacity = (&quot;strokeOpacity&quot; in this.symbolizer) ?
+                this.symbolizer.strokeOpacity :
+                OpenLayers.Renderer.defaultSymbolizer.strokeOpacity,
+            dashArray = this.getDashArray(this.symbolizer.strokeDashstyle) ||
+                OpenLayers.Renderer.defaultSymbolizer.strokeDashstyle;
+
+        this.dashStyles = this.dashStyles || [
+            [&quot;solid&quot;, this.solidStrokeName],
+            [&quot;4 4&quot;, this.dashStrokeName],
+            [&quot;2 4&quot;, this.dotStrokeName]
+        ];
+
+        if(!this.symbolizer) {
+            this.symbolizer = {};
+        }
+
+        Ext.apply(this, {
+            xtype: &quot;fieldset&quot;,
+            title: this.titleText,
+            checkboxToggle: this.checkboxToggle,
+            collapsed: this.checkboxToggle === true &amp;&amp;
+                this.symbolizer.stroke === false,
+            hideMode: &quot;offsets&quot;,
+            items: [{
+                xtype: &quot;combo&quot;,
+                name: &quot;style&quot;,
+                itemId: &#39;styleCombo&#39;,
+                fieldLabel: this.styleText,
+                store: new Ext.data.ArrayStore({
+                    data: this.dashStyles,
+                    fields: [&quot;value&quot;, &quot;display&quot;]
+                }),
+                displayField: &quot;display&quot;,
+                valueField: &quot;value&quot;,
+                value: dashArray,
+                mode: &quot;local&quot;,
+                allowBlank: true,
+                triggerAction: &quot;all&quot;,
+                editable: false
+            }, {
+                xtype: &#39;gxc_form_colorfield&#39;,
+                name: &quot;color&quot;,
+                itemId: &#39;colorField&#39;,
+                allowBlank: true,
+                fieldLabel: this.colorText,
+                emptyText: OpenLayers.Renderer.defaultSymbolizer.strokeColor,
+                value: this.symbolizer.strokeColor,
+                defaultBackground: this.defaultColor ||
+                    OpenLayers.Renderer.defaultSymbolizer.strokeColor
+            }, {
+                xtype: &quot;numberfield&quot;,
+                name: &quot;width&quot;,
+                itemId: &#39;widthField&#39;,
+                fieldLabel: this.widthText,
+                allowNegative: false,
+                emptyText: OpenLayers.Renderer.defaultSymbolizer.strokeWidth,
+                value: this.symbolizer.strokeWidth
+            }, {
+                xtype: &quot;slider&quot;,
+                name: &quot;opacity&quot;,
+                itemId: &#39;opacitySlider&#39;,
+                fieldLabel: this.opacityText,
+                increment: 5,
+                minValue: 0,
+                maxValue: 100,
+                value: opacity * 100,
+                isFormField: true
+            }]
+        });
+
+        this.addEvents(
+<span id='GXC-form-StrokeSymbolizer-property-change'>            /**
+</span>             * Event: change
+             * Fires before any field blurs if the field value has changed.
+             *
+             * Listener arguments:
+             * symbolizer - {Object} A symbolizer with stroke related properties
+             *     updated.
+             */
+            &quot;change&quot;
+        );
+
+        this.callParent(arguments);
+
+    },
+
+<span id='GXC-form-StrokeSymbolizer-method-getDashArray'>    getDashArray: function(style) {
+</span>        var array;
+        if (style) {
+            var parts = style.split(/\s+/);
+            var ratio = parts[0] / parts[1];
+            if (!isNaN(ratio)) {
+                array = ratio &gt;= 1 ? &quot;4 4&quot; : &quot;2 4&quot;;
+            }
+        }
+        return array;
+    }
+});
+</pre>
+</body>
+</html>

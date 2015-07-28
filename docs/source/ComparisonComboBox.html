@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-ComparisonComboBox'>/**
+</span> * A combo box for selecting comparison operators available in OGC
+ * filters.
+ */
+Ext.define(&#39;GXC.form.ComparisonComboBox&#39;, {
+    extend: &#39;Ext.form.field.ComboBox&#39;,
+
+    alias: &#39;widget.gxc_form_comparisoncombobox&#39;,
+
+<span id='GXC-form-ComparisonComboBox-property-allowedTypes'>    allowedTypes: [
+</span>        [OpenLayers.Filter.Comparison.EQUAL_TO, &quot;=&quot;],
+        [OpenLayers.Filter.Comparison.NOT_EQUAL_TO, &quot;&lt;&gt;&quot;],
+        [OpenLayers.Filter.Comparison.LESS_THAN, &quot;&lt;&quot;],
+        [OpenLayers.Filter.Comparison.GREATER_THAN, &quot;&gt;&quot;],
+        [OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO, &quot;&lt;=&quot;],
+        [OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO, &quot;&gt;=&quot;],
+        [OpenLayers.Filter.Comparison.LIKE, &quot;like&quot;],
+        [OpenLayers.Filter.Comparison.BETWEEN, &quot;between&quot;]
+    ],
+
+<span id='GXC-form-ComparisonComboBox-cfg-allowBlank'>    allowBlank: false,
+</span>
+<span id='GXC-form-ComparisonComboBox-cfg-queryMode'>    queryMode: &quot;local&quot;,
+</span>
+<span id='GXC-form-ComparisonComboBox-cfg-typeAhead'>    typeAhead: true,
+</span>
+<span id='GXC-form-ComparisonComboBox-cfg-forceSelection'>    forceSelection: true,
+</span>
+<span id='GXC-form-ComparisonComboBox-cfg-triggerAction'>    triggerAction: &quot;all&quot;,
+</span>
+<span id='GXC-form-ComparisonComboBox-cfg-editable'>    editable: true,
+</span>
+<span id='GXC-form-ComparisonComboBox-cfg-displayField'>    displayField: &quot;name&quot;,
+</span>
+<span id='GXC-form-ComparisonComboBox-cfg-valueField'>    valueField: &quot;value&quot;,
+</span>
+<span id='GXC-form-ComparisonComboBox-method-initComponent'>    initComponent: function() {
+</span>        var defConfig = {
+            store: new Ext.data.SimpleStore({
+                data: this.allowedTypes,
+                fields: [&quot;value&quot;, &quot;name&quot;]
+            }),
+            value: (this.value === undefined) ? this.allowedTypes[0][0] : this.value,
+            listeners: {
+                // workaround for select event not being fired when tab is hit
+                // after field was autocompleted with forceSelection
+                &quot;blur&quot;: function() {
+                    var index = this.store.findExact(&quot;value&quot;, this.getValue());
+                    if (index != -1) {
+                        this.fireEvent(&quot;select&quot;, this, this.store.getAt(index));
+                    } else if (this.startValue != null) {
+                        this.setValue(this.startValue);
+                    }
+                }
+            }
+        };
+        Ext.applyIf(this, defConfig);
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

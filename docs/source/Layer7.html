@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-service-Layer'>/**
+</span> * Service methods related to the map.
+ */
+Ext.define(&#39;GXC.service.Layer&#39;, {
+    requires: [
+        &#39;Ext.grid.Panel&#39;,
+        &#39;GeoExt.data.AttributeStore&#39;,
+        &#39;GeoExt.data.reader.WmsDescribeLayer&#39;,
+        &#39;GeoExt.data.WmsDescribeLayerStore&#39;,
+        &#39;GXC.data.WfsCapabilitiesStore&#39;,
+        &#39;GXC.data.WmsCapabilitiesStore&#39;,
+        &#39;GXC.panel.Edit&#39;
+    ],
+
+<span id='GXC-service-Layer-property-inject'>    inject: [
+</span>        &#39;appConfig&#39;,
+        &#39;notificationService&#39;,
+        &#39;appContext&#39;,
+        &#39;owsCapabilitiesService&#39;,
+        &#39;layerSourceStore&#39;,
+        &#39;layerStore&#39;,
+        &#39;mapService&#39;
+    ],
+
+<span id='GXC-service-Layer-property-txtLayerOutOfExtentTitle'>    txtLayerOutOfExtentTitle: &#39;Layer out of map extent&#39;,
+</span><span id='GXC-service-Layer-property-txtLayerOutOfExtent'>    txtLayerOutOfExtent: &#39;The layer is out of the maps (restricted) extent.\n&#39; +
+</span>        &#39;Do you like to add it anyway?&#39;,
+
+<span id='GXC-service-Layer-method-constructor'>    constructor: function(config) {
+</span>        if (config === null) {
+            config = {};
+        }
+
+        this.initConfig(config);
+
+        this.appContext.on({
+            &#39;initialdataloaded&#39;: this.onInitialDataLoaded,
+            &#39;addlayer&#39;: this.onAddLayer,
+            &#39;filelayerloaded&#39;: this.addLayer,
+            scope: this
+        });
+
+        return this.callParent(arguments);
+    },
+
+<span id='GXC-service-Layer-method-loadInitialData'>    /**
+</span>     * Loads the initial set of data namely layers that should be available
+     * at startup.
+     *
+     * Works in sequence first filling the LayerSourcesStore and then
+     * instantiating the layers by parsing OpenLayers.Layer via GetCapabilities-request.
+     *
+     * @returns {Q.deferred.promise|*}
+     */
+    loadInitialData: function() {
+        return this.loadSourceStore()
+            .then(this.initSources.bind(this))
+            .then(this.addLayers.bind(this));
+    },
+
+<span id='GXC-service-Layer-method-loadSourceStore'>    /**
+</span>     * Loads the configured &#39;layerSourceStore&#39; returning a promise.
+     *
+     * @returns {Deft.promise.Deferred.promise|*}
+     */
+    loadSourceStore: function() {
+        var deferred = Q.defer();
+
+        this.layerSourceStore.load({
+            callback: function(records, operation, success) {
+                if (success) {
+                    deferred.resolve(records);
+                } else {
+                    deferred.reject(&#39;Error loading initial layer sources&#39;);
+                }
+            }
+        });
+
+        return deferred.promise;
+    },
+
+<span id='GXC-service-Layer-method-initSources'>    initSources: function(sources) {
+</span>        return Ext.Array.map(sources, this.initSource, this);
+    },
+
+<span id='GXC-service-Layer-method-initSource'>    /**
+</span>     * Adds a GeoExt.data.LayerModel to the injected LayersStore.
+     * TODO: Make sure layers from same origin are derived from only one capabilities request.
+     * @param source
+     * @returns {*}
+     */
+    initSource: function(source) {
+        var service = this.owsCapabilitiesService,
+            name = source.get(&#39;layer&#39;),
+            url = source.get(&#39;url&#39;),
+            type = source.get(&#39;type&#39;),
+            version = source.get(&#39;version&#39;);
+
+        return service.loadLayer(name, url, type, version)
+            .then(function(olLayer) {
+                olLayer.setVisibility(source.get(&#39;visibility&#39;));
+                olLayer.setOpacity(source.get(&#39;opacity&#39;));
+                return olLayer;
+            });
+    },
+
+<span id='GXC-service-Layer-method-addLayers'>    /**
+</span>     * Waits until all capabilities requests are settled before adding layers
+     * to make sure layers are added in correct order.
+     * @param {[Q.Promise]} promises
+     */
+    addLayers: function(promises) {
+        var me = this;
+        return Q.allSettled(promises)
+            .then(function(inspections) {
+                var length = inspections.length, i, errors = &#39;&#39;;
+                for (i = 0; i &lt; length; i++) {
+                    if (inspections[i].state === &#39;fulfilled&#39;) {
+                        me.addLayer(inspections[i].value);
+                    } else {
+                        errors += inspections[i].reason + &#39;&lt;br&gt;&#39;;
+                    }
+                }
+                if (errors !== &#39;&#39;) {
+                    me.notificationService.error(&#39;Error loading layers&#39;, errors);
+                }
+            });
+    },
+
+<span id='GXC-service-Layer-method-addLayer'>    /**
+</span>     * Add an OpenLayers Layer to the injected Layer Store.
+     * @param {OpenLayers.Layer} layer
+     * @return {Array[Ext.data.Model]} models added to the layerstore
+     */
+    addLayer: function(layer) {
+        if (layer.CLASS_NAME === &#39;OpenLayers.Layer.Vector&#39;) {
+            if (layer.features.length) {
+                this.determineGeometryType(layer);
+            } else {
+                layer.events.register(&#39;beforefeatureadded&#39;, this,
+                    this.onLayerBeforeFeatureAdded);
+            }
+        }
+
+        this.setDefaultLayerProperties(layer);
+
+        return this.layerStore.add(layer);
+    },
+
+<span id='GXC-service-Layer-method-onLayerBeforeFeatureAdded'>    onLayerBeforeFeatureAdded: function(e) {
+</span>        var layer = e.object;
+        if (this.determineGeometryType(layer)) {
+            layer.events.unregister(&#39;beforefeatureadded&#39;, this,
+                this.onLayerBeforeFeatureAdded);
+        }
+    },
+
+<span id='GXC-service-Layer-method-determineGeometryType'>    /**
+</span>     * Since WFS does not describe the geometry type in a transparent way
+     * we need to fall back on this to set the appropiate style map. Returns true
+     * if successful.
+     * @param  {OpenLayers.Layer} layer
+     * @return {Boolean}
+     */
+    determineGeometryType: function(layer) {
+        var feature = layer.features[0],
+            geometryType,
+            styleMap = new OpenLayers.StyleMap(),
+            defaultStyle = styleMap.styles[&#39;default&#39;],
+            types = [&#39;Point&#39;, &#39;Line&#39;, &#39;Polygon&#39;],
+            symbolizerType;
+
+        if (!feature) {
+            return false;
+        }
+
+        // we save the geometryType as metadata for styling
+        // no layer restrictions on the type though as it&#39;s not clear
+        // wether it breaks wfs interactions later on
+        // TODO: clean this up
+        layer.metadata.geometryType = geometryType = feature.geometry.CLASS_NAME;
+
+        // geometry types like multilinestring need to be mapped to symbolizers
+        for (var i = 0; i &lt; types.length; i++) {
+            if (geometryType.indexOf(types[i]) !== -1) {
+                symbolizerType = types[i];
+            }
+        }
+
+        // to have predicatable default feature styles editing we remove
+        // the inherited default style
+        defaultStyle.defaultStyle = { extendDefault: false };
+
+        // a simple default rule is added
+        defaultStyle.rules.push(new OpenLayers.Rule({
+            name: &#39; &#39;,
+            symbolizer: new OpenLayers.Symbolizer[symbolizerType]({
+                fillColor: this.randomHexColor(),
+                fillOpacity: 0.75,
+                labelAlign: &quot;cm&quot;,
+                pointRadius: 2,
+                strokeColor: this.randomHexColor(),
+                strokeOpacity: 1,
+                strokeWidth: 2
+            })
+        }));
+
+        // we set the layers style map to the newly created style map
+        layer.styleMap = styleMap;
+
+        return true;
+    },
+
+<span id='GXC-service-Layer-method-randomHexColor'>    randomHexColor: function() {
+</span>        return &#39;#&#39; + (Math.random() * 0xFFFFFF &lt;&lt; 0).toString(16);
+    },
+
+<span id='GXC-service-Layer-method-setDefaultLayerProperties'>    /**
+</span>     * Sets default OpenLayers properties that are used througout GXC.
+     * @param {OpenLayers.Layer} layer
+     */
+    setDefaultLayerProperties: function(layer) {
+        var map = this.mapService.getMap();
+
+        // calculate maxExtent of layer in map projection from metadata
+        if (layer.metadata &amp;&amp; Ext.isArray(layer.metadata.llbbox)) {
+            layer.maxExtent = OpenLayers.Bounds.fromArray(layer.metadata.llbbox)
+                    .transform(&#39;EPSG:4326&#39;, map.getProjectionObject());
+        }
+
+        // always request single tiles with WMS to support sup-scales
+        if (layer.CLASS_NAME === &#39;OpenLayers.Layer.WMS&#39;) {
+            layer.singleTile = true;
+        }
+
+        if (layer.CLASS_NAME === &#39;OpenLayers.Layer.Vector&#39; &amp;&amp; layer.protocol) {
+            layer.projection = new OpenLayers.Projection(map.getProjection());
+            layer.protocol.srsName = map.getProjection();
+        }
+
+        // never wrapDateLine
+        layer.wrapDateLine = false;
+
+        return layer;
+    },
+
+<span id='GXC-service-Layer-method-raiseLayer'>    /**
+</span>     * Raises the layer one step.
+     */
+    raiseLayer: function(layer) {
+        this.moveLayer(layer, 1);
+    },
+
+<span id='GXC-service-Layer-method-lowerLayer'>    /**
+</span>     * Lowers the layer one step.
+     */
+    lowerLayer: function(layer) {
+        this.moveLayer(layer, -1);
+    },
+
+<span id='GXC-service-Layer-method-moveLayer'>    /**
+</span>     * Allows vertical movement of the layer.
+     */
+    moveLayer: function(layer, diff) {
+        var map = this.mapService.getMap(),
+            idx = map.getLayerIndex(layer),
+            userLayers, userLayersIdx, i;
+
+        // guard clause to check if layer is pseudo base layer
+        if (idx &lt;= 0) {
+            return;
+        }
+
+        // only layers that can be seen by the user should be moved
+        userLayers = map.getLayersBy(&#39;displayInLayerSwitcher&#39;, true);
+        userLayersIdx = Ext.Array.map(userLayers, function(l) {
+            return map.getLayerIndex(l);
+        });
+        i = Ext.Array.indexOf(userLayersIdx, idx);
+
+        // raise layer above next higher user layer index
+        if ((i &gt; -1) &amp;&amp; (userLayersIdx[i + diff])) {
+            map.setLayerIndex(layer, userLayersIdx[i + diff]);
+        }
+    },
+
+<span id='GXC-service-Layer-method-removeLayer'>    removeLayer: function(layer) {
+</span>        var map = this.mapService.getMap(),
+            idx;
+        if (layer) {
+            map = layer.map;
+            idx = map.getLayerIndex(layer);
+            if (idx &gt; 0) {
+                map.removeLayer(layer);
+            }
+        }
+    },
+
+<span id='GXC-service-Layer-method-zoomToLayerExtent'>    /**
+</span>     * Zooms to the extent of the OpenLayers layer.
+     * Extent is extracted via Capabilities of the OWS Layer.
+     *
+     * @returns {undefined}
+     */
+    zoomToLayerExtent: function(layer) {
+        var extent = this.getLayerExtent(layer);
+        if (extent) {
+            this.appContext.zoomToExtent(extent);
+        }
+    },
+
+<span id='GXC-service-Layer-method-getLayerExtent'>    /**
+</span>     * Returns the extent of the provided layer.
+     */
+    getLayerExtent: function(layer) {
+        var extent;
+
+        if (layer instanceof OpenLayers.Layer.Vector) {
+            extent = layer.getDataExtent();
+            // any other layer should provide bounds from the
+            // capabilities request
+        } else if (layer instanceof OpenLayers.Layer) {
+            extent = this.getRasterLayerExtent(layer);
+        }
+
+        return extent;
+    },
+
+<span id='GXC-service-Layer-method-getRasterLayerExtent'>    getRasterLayerExtent: function(layer) {
+</span>        var metadata = layer.metadata, bounds;
+
+        if (layer.maxExtent) {
+            return layer.getMaxExtent();
+        }
+        // most common case is bbox provided as LatLon Bounds
+        if (metadata.hasOwnProperty(&#39;llbbox&#39;)) {
+            return OpenLayers.Bounds.fromArray(metadata.llbbox);
+            // other instances bbox is provided as projected bbox
+        } else if (metadata.hasOwnProperty(&#39;bbox&#39;)) {
+            // bounds are given as EPSG-keyed arrays
+            bounds = metadata.bbox;
+            // test if bounds are given in map projection
+            if (bounds.hasOwnProperty(&#39;EPSG:4326&#39;)) {
+                return OpenLayers.Bounds.fromArray(bounds[&#39;EPSG:4326&#39;].bbox);
+            }
+        }
+    },
+
+<span id='GXC-service-Layer-method-editLayer'>    editLayer: function(layer) {
+</span>        var me = this,
+            protocol;
+
+        // WMS layer may be edited with linked WFS services
+        if (layer.CLASS_NAME === &#39;OpenLayers.Layer.WMS&#39;) {
+            this.describeWmsLayer(layer)
+            .then(this.findFeatureType.bind(this))
+            .then(this.getFeatureTypeAttributes.bind(this))
+            .then(function(attributes) {
+                var panel = Ext.create(&#39;GXC.panel.Edit&#39;, {
+                    height: 300,
+                    width: 400,
+                    sourceLayer: layer,
+                    featureType: attributes.featureType,
+                    attributeStore: attributes.attributeStore
+                });
+            })
+            .fail(function(error) {
+              console.log(error);
+                me.notificationService.error(&#39;Error&#39;, error);
+            }).done();
+
+        // WFS layer may be edited directly
+        // TODO: Fix this to work with other WFS versions.
+        } else if (layer.CLASS_NAME === &#39;OpenLayers.Layer.Vector&#39; &amp;&amp;
+            layer.protocol &amp;&amp;
+            layer.protocol.CLASS_NAME.startsWith(&#39;OpenLayers.Protocol.WFS&#39;)) {
+            protocol = layer.protocol;
+            this.getFeatureTypeAttributes({
+                owsURL: protocol.url,
+                typeName: protocol.featureType
+            })
+            .then(function(attributes) {
+                Ext.create(&#39;GXC.panel.Edit&#39;, {
+                    height: 300,
+                    width: 400,
+                    sourceLayer: layer,
+                    featureType: attributes.featureType,
+                    attributeStore: attributes.attributeStore
+                });
+            })
+            .fail(function(error) {
+                console.log(error);
+                me.notificationService.error(error);
+            }).done();
+        } else {
+            Ext.MessageBox.alert(&#39;Error&#39;, &#39;Editing this type of layer is not yet supported&#39;);
+        }
+    },
+
+<span id='GXC-service-Layer-method-describeWmsLayer'>    describeWmsLayer: function(layer) {
+</span>        var deferred = Q.defer(),
+            version = layer.params[&#39;VERSION&#39;],
+            store;
+
+        if (parseFloat(version) &gt; 1.1) {
+            //TODO don&#39;t force 1.1.1, fall back instead
+            version = &#39;1.1.1&#39;;
+        }
+
+        store = Ext.create(&#39;GeoExt.data.WmsDescribeLayerStore&#39;, {
+            url: layer.url,
+            proxy: {
+                type: &#39;ajax&#39;,
+                extraParams: {
+                    &#39;SERVICE&#39;: &#39;WMS&#39;,
+                    &#39;VERSION&#39;: version,
+                    &#39;REQUEST&#39;: &#39;DescribeLayer&#39;,
+                    &#39;LAYERS&#39;: [layer.params[&#39;LAYERS&#39;]].join(&#39;,&#39;)
+                },
+                reader: {
+                    type: &#39;gx_wmsdescribelayer&#39;
+                }
+            }
+        });
+
+        store.load({
+            callback: function(records, operation, success) {
+                if (success) {
+                    deferred.resolve(store);
+                } else {
+                    deferred.reject(&#39;Error loading initial layer sources&#39;);
+                }
+            }
+        });
+
+        return deferred.promise;
+    },
+
+<span id='GXC-service-Layer-method-findFeatureType'>    findFeatureType: function(describeWmsLayerStore) {
+</span>        var index = describeWmsLayerStore.find(&#39;owsType&#39;, &#39;WFS&#39;);
+
+        if (index === -1) {
+            throw Error(&#39;layer does not support editing.&#39;);
+        }
+
+        return describeWmsLayerStore.getAt(index).getData();
+    },
+
+<span id='GXC-service-Layer-method-getFeatureTypeAttributes'>    getFeatureTypeAttributes: function(featureType) {
+</span>        var deferred = Q.defer(),
+            url = featureType.owsURL,
+            store;
+
+        url += url.slice(-1) === &#39;?&#39; ? &#39;&#39; : &#39;?&#39;;
+        url += &#39;service=wfs&amp;version=1.0.0&amp;request=DescribeFeatureType&#39; +
+                &#39;&amp;typeName=&#39; + featureType.typeName;
+
+        store = Ext.create(&#39;GeoExt.data.AttributeStore&#39;, {
+            url: url
+        });
+
+        store.load({
+            callback: function(records, operation, success) {
+                if (success) {
+                    deferred.resolve({
+                        featureType: featureType,
+                        attributeStore: store
+                    });
+                } else {
+                    deferred.reject(&#39;Error loading featureType attributes&#39;);
+                }
+            }
+        });
+
+        return deferred.promise;
+    },
+
+<span id='GXC-service-Layer-method-onAddLayer'>    onAddLayer: function(layer) {
+</span>        var map = this.mapService.getMap(),
+            mapExtent = map.getMaxExtent({ restricted: true }),
+            layerExtent;
+
+        this.setDefaultLayerProperties(layer);
+
+        layerExtent = this.getLayerExtent(layer);
+        if (layerExtent &amp;&amp; !layerExtent.intersectsBounds(mapExtent)) {
+            Ext.Msg.show({
+                 title: this.txtLayerOutOfExtentTitle,
+                 msg: this.txtLayerOutOfExtent,
+                 buttons: Ext.Msg.YESNO,
+                 icon: Ext.Msg.QUESTION,
+                 fn: function(btn) {
+                    if (btn === &#39;yes&#39;) {
+                        this.addLayer(layer);
+                    }
+                },
+                scope: this
+            });
+        } else {
+            this.addLayer(layer);
+        }
+    },
+
+<span id='GXC-service-Layer-method-onInitialDataLoaded'>    onInitialDataLoaded: function() {
+</span>        var index = this.layerSourceStore.findBy(function(rec) {
+                return (rec.get(&#39;select&#39;) ? true : false);
+            }),
+            record = (index !== -1 ? this.layerSourceStore.getAt(index) : false),
+            select,
+            map = this.mapService.getMap();
+
+        if (record) {
+            select = record.get(&#39;select&#39;);
+
+            Ext.Ajax.request({
+                url: this.appConfig.get(&#39;geoserver&#39;).host + &#39;/ows?&#39;,
+                params: {
+                    &quot;OUTPUTFORMAT&quot;: &quot;application/json&quot;,
+                    &quot;SERVICE&quot;: &quot;WFS&quot;,
+                    &quot;VERSION&quot;: &quot;1.3.0&quot;,
+                    &quot;REQUEST&quot;: &quot;GETFEATURE&quot;,
+                    &quot;TYPENAMES&quot;: record.get(&#39;layer&#39;),
+                    &quot;SRSNAME&quot;: map.getProjection(),
+                    &quot;FEATUREID&quot;: select.featureId
+                },
+                method: &quot;GET&quot;,
+                disableCaching: false,
+                success: function(response) {
+                    var result = new OpenLayers.Format.GeoJSON().read(
+                        response.responseXML &amp;&amp; response.responseXML.documentElement ?
+                            response.responseXML : response.responseText),
+                        layer, featureItems = [];
+
+                    if (result &amp;&amp; result.length) {
+                        layer = new OpenLayers.Layer.Vector(&#39;initialSelect&#39;, {
+                            displayInLayerSwitcher: false,
+                            projection: map.getProjection()
+                        });
+                        map.addLayer(layer);
+                        layer.addFeatures(result);
+
+                        // center map on selected feature
+                        map.zoomToExtent(layer.getDataExtent());
+
+                        Ext.each(result, function(feature) {
+                            var sourceConfig = {};
+
+                            Ext.Object.each(feature.attributes, function(key) {
+                                sourceConfig[key] = {
+                                    editor: Ext.create(&#39;Ext.form.DisplayField&#39;)
+                                };
+                            });
+
+                            featureItems.push({
+                                xtype: &#39;propertygrid&#39;,
+                                title: feature.fid,
+                                source: feature.attributes,
+                                sourceConfig: sourceConfig
+                            });
+                        });
+
+                        if (featureItems.length &gt; 0) {
+                            Ext.create(&#39;GeoExt.window.Popup&#39;, {
+                                title: &#39;Properties&#39;,
+                                width: 300,
+                                height: 250,
+                                layout: &#39;accordion&#39;,
+                                items: featureItems,
+                                location: result[0],
+                                listeners: {
+                                    close: function() {
+                                        map.removeLayer(layer);
+                                        layer.destroy();
+                                    }
+                                }
+                            }).show();
+                        }
+                    }
+                },
+                scope: this
+            });
+        }
+    }
+});
+</pre>
+</body>
+</html>

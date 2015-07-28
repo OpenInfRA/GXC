@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+/*
+ * @requires GeoExt/Version.js
+ */
+
+<span id='GeoExt-data-OwsStore'>/**
+</span> * Small Base class to make creating stores for remote OWS information sources
+ * easier.
+ *
+ * NOTE: This is a BASE CLASS and is not designed for direct use in an
+ * application. Instead, one should extend from this class in any situation in
+ * which a you need a {@link Ext.data.proxy.Server} (ex: &#39;ajax&#39;, &#39;jsonp&#39;, etc)
+ * and a reader which requires an {@link OpenLayers.Format} to parse the data.
+ *
+ * @class GeoExt.data.OwsStore
+ */
+Ext.define(&#39;GeoExt.data.OwsStore&#39;, {
+    extend: &#39;Ext.data.Store&#39;,
+    requires: [
+        &#39;GeoExt.Version&#39;
+    ],
+    alternateClassName: [&#39;GeoExt.data.OWSStore&#39;],
+
+    config: {
+<span id='GeoExt-data-OwsStore-cfg-url'>        /**
+</span>         * The URL from which to retrieve the OWS document.
+         *
+         * @cfg {String}
+         */
+        url : null,
+
+<span id='GeoExt-data-OwsStore-cfg-format'>        /**
+</span>         * A parser for transforming the XHR response into an array of objects
+         * representing attributes.
+         *
+         * @cfg {OpenLayers.Format}
+         */
+        format : null,
+
+<span id='GeoExt-data-OwsStore-cfg-baseParams'>        /**
+</span>         * Any baseParams to use on this store.
+         *
+         * @cfg {Object}
+         */
+        baseParams: null
+    },
+
+<span id='GeoExt-data-OwsStore-method-constructor'>    /**
+</span>     * @private
+     */
+    constructor: function(config) {
+        // At this point, we have to copy the complex objects from the config
+        // into the prototype. This is because Ext.data.Store&#39;s constructor
+        // creates deep copies of these objects.
+        if (config.format) {
+            this.format = config.format;
+            delete config.format;
+        }
+
+        this.callParent([config]);
+
+        if(config.url) {
+            this.setUrl(config.url);
+        }
+        if(this.format) {
+            this.setFormat(this.format);
+        }
+        var proxy = this.getProxy();
+        if (proxy) {
+            proxy.startParam = false;
+            proxy.limitParam = false;
+            proxy.pageParam = false;
+        }
+        if (config.baseParams) {
+            this.setBaseParams(config.baseParams);
+        }
+    },
+
+<span id='GeoExt-data-OwsStore-method-applyBaseParams'>    /**
+</span>     * @private
+     */
+    applyBaseParams: function(newParams) {
+        if (newParams &amp;&amp; Ext.isObject(newParams)) {
+            var proxy = this.getProxy();
+            if(proxy) {
+                if (proxy.setExtraParams) {
+                    // ExtJS 5 needs the setter
+                    proxy.setExtraParams(newParams);
+                } else {
+                    proxy.extraParams = newParams;
+                }
+            }
+        }
+    },
+
+<span id='GeoExt-data-OwsStore-method-applyUrl'>    /**
+</span>     * @private
+     */
+    applyUrl: function(newValue) {
+        if(newValue &amp;&amp; Ext.isString(newValue)) {
+            var proxy = this.getProxy();
+            if(proxy) {
+                if (proxy.setUrl){
+                    // ExtJS 5 needs the setter
+                    proxy.setUrl(newValue);
+                } else {
+                    proxy.url = newValue;
+                }
+            }
+        }
+    },
+
+<span id='GeoExt-data-OwsStore-method-applyFormat'>    /**
+</span>     * @private
+     */
+    applyFormat: function(newFormat) {
+        var proxy = this.getProxy();
+        var reader = (proxy) ? proxy.getReader() : null;
+        if(reader) {
+            if (reader.setFormat) {
+                // ExtJS 5 needs the setter
+                reader.setFormat(newFormat);
+            } else {
+                reader.format = newFormat;
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

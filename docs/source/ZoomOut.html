@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-ZoomOut'>/**
+</span> * A simple Zoom-Out button that can be added to toolbars.
+ * Triggers the zoom event of the map.
+ */
+Ext.define(&#39;GXC.button.ZoomOut&#39;, {
+    extend: &#39;GXC.button.OlButton&#39;,
+
+    alias: &#39;widget.gxc_button_zoomout&#39;,
+
+<span id='GXC-button-ZoomOut-property-inject'>    inject: [
+</span>        &#39;mapService&#39;
+    ],
+
+<span id='GXC-button-ZoomOut-cfg-iconCls'>    iconCls: &#39;gxc-icon-zoom-out&#39;,
+</span>
+<span id='GXC-button-ZoomOut-cfg-tooltip'>    tooltip: &#39;Zoom out&#39;,
+</span>
+<span id='GXC-button-ZoomOut-method-initComponent'>    /**
+</span>     * @inheritdoc
+     */
+    initComponent: function(config) {
+        config = config || {};
+
+        this.map = this.mapService.getMap();
+        this.control = new OpenLayers.Control.ZoomOut();
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

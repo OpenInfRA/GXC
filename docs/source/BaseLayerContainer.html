@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+/*
+ * @include GeoExt/tree/LayerContainer.js
+ */
+
+<span id='GeoExt-tree-BaseLayerContainer'>/**
+</span> * A layer node plugin that will collect all base layers of an OpenLayers
+ * map. Only layers that have `displayInLayerSwitcher` set to `true` will
+ * be included. The childrens&#39; iconCls defaults to &quot;gx-tree-baselayer-icon&quot;
+ * and the node&#39; text defaults to &quot;Base Layer&quot;.
+ *
+ * Children will be rendered with a radio button instead of a checkbox,
+ * showing the user that only one base layer can be active at a time.
+ *
+ * When you use the tree in an application, make sure to include the proper
+ * stylesheet depending on the Ext theme that you use: `tree-classic.css`,
+ * `tree-access.css`, &#39;tree-gray.css` or `tree-neptune.css`.
+ *
+ * To use this node plugin in a tree node config, configure a node like this:
+ *
+ *     {
+ *         plugins: &quot;gx_baselayercontainer&quot;,
+ *         text: &quot;My base layers&quot;
+ *     }
+ *
+ * @class GeoExt.tree.BaseLayerContainer
+ */
+Ext.define(&#39;GeoExt.tree.BaseLayerContainer&#39;, {
+    extend: &#39;GeoExt.tree.LayerContainer&#39;,
+    alias: &#39;plugin.gx_baselayercontainer&#39;,
+
+<span id='GeoExt-tree-BaseLayerContainer-property-defaultText'>    /**
+</span>     * The default text for the target node.
+     *
+     * @private
+     */
+    defaultText: &#39;Base Layers&#39;,
+
+<span id='GeoExt-tree-BaseLayerContainer-method-init'>    /**
+</span>     * @private
+     */
+    init: function(target) {
+        var me = this,
+            loader = me.loader;
+
+        me.loader = Ext.applyIf(loader || {}, {
+            baseAttrs: Ext.applyIf((loader &amp;&amp; loader.baseAttrs) || {}, {
+                iconCls: &#39;gx-tree-baselayer-icon&#39;,
+                checkedGroup: &#39;baselayer&#39;
+            }),
+            filter: function(record) {
+                var layer = record.getLayer();
+                return layer.displayInLayerSwitcher === true &amp;&amp;
+                    layer.isBaseLayer === true;
+            }
+        });
+        me.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

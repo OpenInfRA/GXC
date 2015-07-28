@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-OwsCapabilities'>/**
+</span> * A base class for OWS capabilities.
+ */
+Ext.define(&#39;GXC.panel.OwsCapabilities&#39;, {
+    extend: &#39;Ext.grid.Panel&#39;,
+    requires: [
+        &#39;Ext.grid.plugin.RowExpander&#39;,
+        &#39;GXC.button.Button&#39;,
+        &#39;GXC.panel.OwsCapabilitiesViewController&#39;
+    ],
+
+<span id='GXC-panel-OwsCapabilities-property-controller'>    controller: &#39;GXC.panel.OwsCapabilitiesViewController&#39;,
+</span>
+    mixins: [
+        &#39;GXC.plugin.SelectionMixin&#39;
+    ],
+
+    alias: &#39;widget.gxc_panel_owscapabilities&#39;,
+
+<span id='GXC-panel-OwsCapabilities-property-txtAdd'>    txtAdd: &#39;Add..&#39;,
+</span><span id='GXC-panel-OwsCapabilities-property-txtAddLayers'>    txtAddLayers: &#39;Add&#39;,
+</span><span id='GXC-panel-OwsCapabilities-property-txtTitle'>    txtTitle: &#39;Title&#39;,
+</span><span id='GXC-panel-OwsCapabilities-property-txtName'>    txtName: &#39;Name&#39;,
+</span><span id='GXC-panel-OwsCapabilities-property-txtAbstract'>    txtAbstract: &#39;&#39;,
+</span>
+<span id='GXC-panel-OwsCapabilities-property-service'>    service: null,
+</span>
+<span id='GXC-panel-OwsCapabilities-property-selModel'>    selModel: {
+</span>        mode: &#39;MULTI&#39;
+    },
+
+<span id='GXC-panel-OwsCapabilities-method-initComponent'>    initComponent: function() {
+</span>        var service = this.service;
+
+        Ext.apply(this, {
+            store: Ext.create(this.store, {
+                url: service.get(&#39;url&#39;)
+            }),
+            columns: {
+                items: [{
+                    header: this.txtTitle,
+                    dataIndex: &#39;title&#39;,
+                    flex: 1
+                }, {
+                    header: this.txtName,
+                    dataIndex: &#39;name&#39;,
+                    flex: 1
+                }],
+                defaults: {
+                    sortable: true
+                }
+            },
+            tbar: {
+                items: [{
+                    xtype: &#39;button&#39;,
+                    text: this.txtAddLayers,
+                    itemId: &#39;addButton&#39;,
+                    disabled: true
+                }]
+            }
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-toolbar-NotificationBar'>/**
+</span> * @class
+ */
+Ext.define(&#39;GXC.toolbar.NotificationBar&#39;, {
+    extend: &#39;Ext.toolbar.Toolbar&#39;,
+    alias: &#39;widget.gxc_toolbar_notificationbar&#39;,
+    requires: [
+        &#39;Ext.toolbar.*&#39;
+    ],
+
+<span id='GXC-toolbar-NotificationBar-cfg-cls'>    cls: &#39;gxc-notification-bar&#39;,
+</span>
+<span id='GXC-toolbar-NotificationBar-cfg-tpl'>    tpl: null,
+</span>
+<span id='GXC-toolbar-NotificationBar-method-initComponent'>    initComponent : function() {
+</span>        this.tpl = Ext.Template(&#39;&lt;b&gt;{0}&lt;/b&gt;&lt;br&gt;{1}&#39;);
+
+        this.items = [
+            {
+                itemId: &#39;msg&#39;,
+                xtype: &#39;tbtext&#39;,
+                text: &#39;&#39;
+            },
+            &#39;-&gt;&#39;,
+            {
+                text: &#39;X&#39;,
+                scope: this,
+                handler: this.hideBar
+            }
+        ]
+
+        this.callParent(arguments);
+        this.msgItem = this.child(&#39;#msg&#39;);
+    },
+
+<span id='GXC-toolbar-NotificationBar-method-showSuccess'>    showSuccess : function(title, msg) {
+</span>        this.getEl().setOpacity(0.25, false);
+        this.addClass(this.cls + &#39;-success&#39;);
+        this.showBar(this.tpl.applyTemplate([title, msg]));
+    },
+
+<span id='GXC-toolbar-NotificationBar-method-showError'>    showError : function(title, msg) {
+</span>        this.getEl().setOpacity(0.25, false);
+        this.addClass(this.cls + &#39;-error&#39;);
+        this.showBar(this.tpl.applyTemplate([title, msg]));
+    },
+
+<span id='GXC-toolbar-NotificationBar-method-showBar'>    showBar : function(msg) {
+</span>        this.msgItem.update(msg);
+        this.show();
+        this.getEl().fadeIn({opacity: 1, duration: 1000});
+        this.ownerCt.forceComponentLayout();
+    },
+
+<span id='GXC-toolbar-NotificationBar-method-hideBar'>    hideBar : function () {
+</span>        if (!this.isHidden()) {
+            this.hide();
+            this.ownerCt.forceComponentLayout();
+            this.removeCls(this.cls + &#39;-success&#39;);
+            this.removeCls(this.cls + &#39;-error&#39;);
+            this.msgItem.update(&#39;&#39;);
+        }
+    },
+
+<span id='GXC-toolbar-NotificationBar-method-afterRender'>    // Add custom processing to the onRender phase.
+</span>    afterRender: function() {
+        this.callParent(arguments);
+        this.hide();
+    }
+});
+</pre>
+</body>
+</html>

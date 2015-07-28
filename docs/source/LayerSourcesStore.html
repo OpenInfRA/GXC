@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-data-LayerSourceStore'>/**
+</span> * Basic store that is ought to load layer sources on startup.
+ * Right now it only loads static information from a provided file rather
+ * dynamic content.
+ *
+ * @class
+ */
+Ext.define(&#39;GXC.data.LayerSourceStore&#39;, {
+    extend: &#39;Ext.data.Store&#39;,
+
+<span id='GXC-data-LayerSourceStore-property-inject'>    inject: [
+</span>        &#39;appConfig&#39;
+    ],
+
+<span id='GXC-data-LayerSourceStore-cfg-model'>    model: &#39;GXC.model.LayerSource&#39;,
+</span>
+<span id='GXC-data-LayerSourceStore-cfg-proxy'>    proxy: {
+</span>        type: &#39;memory&#39;,
+        reader: &#39;json&#39;
+    },
+
+<span id='GXC-data-LayerSourceStore-method-constructor'>    constructor: function(config) {
+</span>        this.initConfig(config || {});
+
+        var sources = this.appConfig.get(&#39;layers&#39;, []);
+
+        // read initial layers from app config if not provided via store config.
+        Ext.applyIf(this, {
+            data: sources.reverse()
+        });
+
+        return this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
+*/
+// This override adds diagnostics to the Ext.layout.Context class.
+
+<span id='Ext-diag-layout-Context'>/**
+</span> */
+Ext.define(&#39;Ext.diag.layout.Context&#39;, {
+    override: &#39;Ext.layout.Context&#39;,
+
+    requires: [
+        &#39;Ext.perf.Monitor&#39;
+    ],
+
+<span id='Ext-layout-Context-property-logOn'>    logOn: {
+</span>        //boxParent: true,
+        //calculate: true,
+        //cancelComponent: true,
+        //cancelLayout: true,
+        //doInvalidate: true,
+        //flush: true,
+        //flushInvalidate: true,
+        //invalidate: true,
+        //initItem: true,
+        //layoutDone: true,
+        //queueLayout: true,
+        //resetLayout: true,
+        //runCycle: true,
+        //setProp: true,
+        0:0
+    },
+
+    //profileLayoutsByType: true,
+
+<span id='Ext-diag-layout-Context-method-cancelComponent'>    //reportOnSuccess: true,
+</span>
+    cancelComponent: function (comp) {
+        if (this.logOn.cancelComponent) {
+            Ext.log(&#39;cancelCmp: &#39;, comp.id);
+        }
+        this.callParent(arguments);
+    },
+
+<span id='Ext-diag-layout-Context-method-cancelLayout'>    cancelLayout: function (layout) {
+</span>        if (this.logOn.cancelLayout) {
+            Ext.log(&#39;cancelLayout: &#39;, this.getLayoutName(layout));
+        }
+        this.callParent(arguments);
+    },
+
+<span id='Ext-diag-layout-Context-method-callLayout'>    callLayout: function (layout, methodName) {
+</span>        var accum = this.accumByType[layout.type],
+            frame = accum &amp;&amp; accum.enter();
+
+        this.callParent(arguments);
+
+        if (accum) {
+            frame.leave();
+        }
+    },
+
+<span id='Ext-layout-Context-method-checkRemainingLayouts'>    checkRemainingLayouts: function () {
+</span>        var me       = this,
+            expected = 0,
+            key, layout;
+
+        for (key in me.layouts) {
+            layout = me.layouts[key];
+
+            if (me.layouts.hasOwnProperty(key) &amp;&amp; layout.running) {
+                ++expected;
+            }
+        }
+
+        if (me.remainingLayouts != expected) {
+            Ext.Error.raise({
+                msg: &#39;Bookkeeping error me.remainingLayouts&#39;
+            });
+        }
+    },
+
+<span id='Ext-diag-layout-Context-method-flush'>    flush: function () {
+</span>        if (this.logOn.flush) {
+            var items = this.flushQueue;
+            Ext.log(&#39;--- Flush &#39;, items &amp;&amp; items.getCount());
+        }
+
+        return this.callParent(arguments);
+    },
+
+<span id='Ext-diag-layout-Context-method-flushInvalidates'>    flushInvalidates: function () {
+</span>        if (this.logOn.flushInvalidate) {
+            Ext.log(&#39;&gt;&gt; flushInvalidates&#39;);
+        }
+
+        var ret = this.callParent(arguments);
+
+        if (this.logOn.flushInvalidate) {
+            Ext.log(&#39;&lt;&lt; flushInvalidates&#39;);
+        }
+
+        return ret;
+    },
+
+<span id='Ext-diag-layout-Context-method-getCmp'>    getCmp: function (target) {
+</span>        var ret = this.callParent(arguments);
+        if (!ret.wrapsComponent) {
+            Ext.Error.raise({
+                msg: target.id + &#39; is not a component&#39;
+            });
+        }
+        return ret;
+    },
+
+<span id='Ext-diag-layout-Context-method-getEl'>    getEl: function (parent, target) {
+</span>        var ret = this.callParent(arguments);
+        if (ret &amp;&amp; ret.wrapsComponent) {
+            Ext.Error.raise({
+                msg: parent.id + &#39;/&#39; + target.id + &#39; is a component (expected element)&#39;
+            });
+        }
+        return ret;
+    },
+
+<span id='Ext-layout-Context-method-getLayoutName'>    getLayoutName: function (layout) {
+</span>        return layout.owner.id + &#39;&lt;&#39; + layout.type + &#39;&gt;&#39;;
+    },
+
+<span id='Ext-diag-layout-Context-method-layoutDone'>    layoutDone: function (layout) {
+</span>        var me = this,
+            name = me.getLayoutName(layout);
+
+        if (me.logOn.layoutDone) {
+            Ext.log(&#39;layoutDone: &#39;, name, &#39; ( &#39;, me.remainingLayouts, &#39; running)&#39;);
+        }
+
+        if (!layout.running) {
+            Ext.Error.raise({
+                msg: name + &#39; is already done&#39;
+            });
+        }
+        if (!me.remainingLayouts) {
+            Ext.Error.raise({
+                msg: name + &#39; finished but no layouts are running&#39;
+            });
+        }
+
+        me.callParent(arguments);
+    },
+
+<span id='Ext-layout-Context-method-layoutTreeHasFailures'>    layoutTreeHasFailures: function (layout, reported) {
+</span>        var me = this;
+
+        function hasFailure (lo) {
+            var failure = !lo.done,
+                key, childLayout;
+
+            if (lo.done) {
+                for (key in me.layouts) {
+                    if (me.layouts.hasOwnProperty(key)) {
+                        childLayout = me.layouts[key];
+
+                        if (childLayout.owner.ownerLayout === lo) {
+                            if (hasFailure(childLayout)) {
+                                failure = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return failure;
+        }
+
+        if (hasFailure(layout)) {
+            return true;
+        }
+
+        function markReported (lo) {
+            var key, childLayout;
+
+            reported[lo.id] = 1;
+
+            for (key in me.layouts) {
+                if (me.layouts.hasOwnProperty(key)) {
+                    childLayout = me.layouts[key];
+
+                    if (childLayout.owner.ownerLayout === lo) {
+                        markReported(childLayout);
+                    }
+                }
+            }
+        }
+
+        markReported(layout);
+        return false;
+    },
+
+<span id='Ext-diag-layout-Context-method-queueLayout'>    queueLayout: function (layout) {
+</span>        if (layout.done || layout.blockCount || layout.pending) {
+            Ext.Error.raise({
+                msg: this.getLayoutName(layout) + &#39; should not be queued for layout&#39;
+            });
+        }
+        if (this.logOn.queueLayout) {
+            Ext.log(&#39;Queue &#39;, this.getLayoutName(layout));
+        }
+        return this.callParent(arguments);
+    },
+
+<span id='Ext-layout-Context-method-reportLayoutResult'>    reportLayoutResult: function (layout, reported) {
+</span>        var me           = this,
+            owner        = layout.owner,
+            ownerContext = me.getCmp(owner),
+            blockedBy    = [],
+            triggeredBy  = [],
+            key, value, i, length, childLayout,
+            item, setBy, info;
+
+        reported[layout.id] = 1;
+
+        for (key in layout.blockedBy) {
+            if (layout.blockedBy.hasOwnProperty(key)) {
+                blockedBy.push(layout.blockedBy[key]);
+            }
+        }
+        blockedBy.sort();
+
+        for (key in me.triggersByLayoutId[layout.id]) {
+            if (me.triggersByLayoutId[layout.id].hasOwnProperty(key)) {
+                value = me.triggersByLayoutId[layout.id][key];
+                triggeredBy.push({ name: key, info: value });
+            }
+        }
+        triggeredBy.sort(function (a, b) {
+            return a.name &lt; b.name ? -1 : (b.name &lt; a.name ? 1 : 0);
+        });
+
+        Ext.log({indent: 1}, (layout.done ? &#39;++&#39; : &#39;--&#39;), me.getLayoutName(layout),
+            (ownerContext.isBoxParent ? &#39; [isBoxParent]&#39; : &#39;&#39;),
+            (ownerContext.boxChildren ? &#39; - boxChildren: &#39; + ownerContext.state.boxesMeasured + &#39;/&#39; + ownerContext.boxChildren.length : &#39;&#39;),
+            ownerContext.boxParent ? (&#39; - boxParent: &#39; + ownerContext.boxParent.id) : &#39;&#39;,
+            &#39; - size: &#39;, ownerContext.widthModel.name, &#39;/&#39;, ownerContext.heightModel.name);
+
+        if (!layout.done || me.reportOnSuccess) {
+            if (blockedBy.length) {
+                ++Ext.log.indent;
+                Ext.log({indent: 1}, &#39;blockedBy:  count=&#39;,layout.blockCount);
+
+                length = blockedBy.length;
+                for (i = 0; i &lt; length; i++) {
+                    Ext.log(blockedBy[i]);
+                }
+
+                Ext.log.indent -= 2;
+            }
+            if (triggeredBy.length) {
+                ++Ext.log.indent;
+                Ext.log({indent: 1}, &#39;triggeredBy: count=&#39;+layout.triggerCount);
+
+                length = triggeredBy.length;
+                for (i = 0; i &lt; length; i++) {
+                    info = value.info || value;
+                    item  = info.item;
+                    setBy = (item.setBy &amp;&amp; item.setBy[info.name]) || &#39;?&#39;;
+
+                    value = triggeredBy[i];
+
+                    Ext.log(
+                        value.name,
+                        &#39; (&#39;,
+                        item.props[info.name],
+                        &#39;) dirty: &#39;,
+                        (item.dirty ? !!item.dirty[info.name] : false),
+                        &#39;, setBy: &#39;,
+                        setBy
+                    );
+                }
+
+                Ext.log.indent -= 2;
+            }
+        }
+
+        for (key in me.layouts) {
+            if (me.layouts.hasOwnProperty(key)) {
+                childLayout = me.layouts[key];
+
+                if (!childLayout.done &amp;&amp; childLayout.owner.ownerLayout === layout) {
+                    me.reportLayoutResult(childLayout, reported);
+                }
+            }
+        }
+
+        for (key in me.layouts) {
+            if (me.layouts.hasOwnProperty(key)) {
+                childLayout = me.layouts[key];
+
+                if (childLayout.done &amp;&amp; childLayout.owner.ownerLayout === layout) {
+                    me.reportLayoutResult(childLayout, reported);
+                }
+            }
+        }
+
+        --Ext.log.indent;
+    },
+
+<span id='Ext-diag-layout-Context-method-resetLayout'>    resetLayout: function (layout) {
+</span>        var me = this,
+            type = layout.type,
+            name = me.getLayoutName(layout),
+            accum = me.accumByType[type],
+            frame;
+
+        if (me.logOn.resetLayout) {
+            Ext.log(&#39;resetLayout: &#39;, name, &#39; ( &#39;, me.remainingLayouts, &#39; running)&#39;);
+        }
+
+        if (!me.state) { // if (first time ... before run)
+            if (!accum &amp;&amp; me.profileLayoutsByType) {
+                me.accumByType[type] = accum = Ext.Perf.get(&#39;layout_&#39; + layout.type);
+            }
+            me.numByType[type] = (me.numByType[type] || 0) + 1;
+        }
+
+        frame = accum &amp;&amp; accum.enter();
+        me.callParent(arguments);
+        if (accum) {
+            frame.leave();
+        }
+
+        me.checkRemainingLayouts();
+    },
+
+<span id='Ext-layout-Context-method-round'>    round: function (t) {
+</span>        return Math.round(t * 1000) / 1000;
+    },
+
+<span id='Ext-diag-layout-Context-method-run'>    run: function () {
+</span>        var me = this,
+            ret, time, key, value, i, layout,
+            boxParent, children, n,
+            reported, unreported,
+            calcs, total,
+            calcsLength, calc;
+
+        me.accumByType = {};
+        me.calcsByType = {};
+        me.numByType = {};
+        me.timesByType = {};
+        me.triggersByLayoutId = {};
+
+        Ext.log.indentSize = 3;
+        Ext.log(&#39;==================== LAYOUT ====================&#39;);
+
+        time = Ext.perf.getTimestamp();
+        ret = me.callParent(arguments);
+        time = Ext.perf.getTimestamp() - time;
+
+        if (me.logOn.boxParent &amp;&amp; me.boxParents) {
+            for (key in me.boxParents) {
+                if (me.boxParents.hasOwnProperty(key)) {
+                    boxParent = me.boxParents[key];
+                    children  = boxParent.boxChildren;
+                    n         = children.length;
+
+                    Ext.log(&#39;boxParent: &#39;, boxParent.id);
+                    for (i = 0; i &lt; n; ++i) {
+                        Ext.log(&#39; --&gt; &#39;, children[i].id);
+                    }
+                }
+            }
+        }
+
+        if (ret) {
+            Ext.log(&#39;----------------- SUCCESS -----------------&#39;);
+        } else {
+            Ext.log(
+                {level: &#39;error&#39; },
+                &#39;----------------- FAILURE -----------------&#39;
+            );
+        }
+
+        for (key in me.layouts) {
+            if (me.layouts.hasOwnProperty(key)) {
+                layout = me.layouts[key];
+
+                if (layout.running) {
+                    Ext.log.error(&#39;Layout left running: &#39;, me.getLayoutName(layout));
+                }
+                if (layout.ownerContext) {
+                    Ext.log.error(&#39;Layout left connected: &#39;, me.getLayoutName(layout));
+                }
+            }
+        }
+
+        if (!ret || me.reportOnSuccess) {
+            reported = {};
+            unreported = 0;
+
+            for (key in me.layouts) {
+                if (me.layouts.hasOwnProperty(key)) {
+                    layout = me.layouts[key];
+
+                    if (me.items[layout.owner.el.id].isTopLevel) {
+                        if (me.reportOnSuccess || me.layoutTreeHasFailures(layout, reported)) {
+                            me.reportLayoutResult(layout, reported);
+                        }
+                    }
+                }
+            }
+
+            // Just in case we missed any layouts...
+            for (key in me.layouts) {
+                if (me.layouts.hasOwnProperty(key)) {
+                    layout = me.layouts[key];
+
+                    if (!reported[layout.id]) {
+                        if (!unreported) {
+                            Ext.log(&#39;----- Unreported!! -----&#39;);
+                        }
+                        ++unreported;
+                        me.reportLayoutResult(layout, reported);
+                    }
+                }
+            }
+        }
+
+        Ext.log(&#39;Cycles: &#39;, me.cycleCount, &#39;, Flushes: &#39;, me.flushCount,
+            &#39;, Calculates: &#39;, me.calcCount, &#39; in &#39;, me.round(time), &#39; msec&#39;);
+
+        Ext.log(&#39;Calculates by type:&#39;);
+        /*Ext.Object.each(me.numByType, function (type, total) {
+            Ext.log(type, &#39;: &#39;, total, &#39; in &#39;, me.calcsByType[type], &#39; tries (&#39;,
+                Math.round(me.calcsByType[type] / total * 10) / 10, &#39;x) at &#39;,
+                me.round(me.timesByType[type]), &#39; msec (avg &#39;,
+                me.round(me.timesByType[type] / me.calcsByType[type]), &#39; msec)&#39;);
+        });*/
+        calcs = [];
+        for (key in me.numByType) {
+            if (me.numByType.hasOwnProperty(key)) {
+                total = me.numByType[key];
+
+                calcs.push({
+                        type       : key,
+                        total      : total,
+                        calcs      : me.calcsByType[key],
+                        multiple   : Math.round(me.calcsByType[key] / total * 10) / 10,
+                        calcTime   : me.round(me.timesByType[key]),
+                        avgCalcTime: me.round(me.timesByType[key] / me.calcsByType[key])
+                    });
+            }
+        }
+
+
+        calcs.sort(function (a,b) {
+            return b.calcTime - a.calcTime;
+        });
+
+        calcsLength = calcs.length;
+        for (i=0; i&lt;calcsLength; i++) {
+            calc = calcs[i];
+
+            Ext.log(
+                calc.type,
+                &#39;: &#39;,
+                calc.total,
+                &#39; in &#39;,
+                calc.calcs,
+                &#39; tries (&#39;,
+                calc.multiple,
+                &#39;x) at &#39;,
+                calc.calcTime,
+                &#39; msec (avg &#39;,
+                calc.avgCalcTime,
+                &#39; msec)&#39;
+            );
+        }
+
+        return ret;
+    },
+
+<span id='Ext-diag-layout-Context-method-runCycle'>    runCycle: function () {
+</span>        if (this.logOn.runCycle) {
+            Ext.log(&#39;&gt;&gt;&gt; Cycle &#39;, this.cycleCount, &#39; (queue length: &#39;, this.layoutQueue.length, &#39;)&#39;);
+        }
+
+        return this.callParent(arguments);
+    },
+
+<span id='Ext-diag-layout-Context-method-runLayout'>    runLayout: function (layout) {
+</span>        var me = this,
+            type = layout.type,
+            accum = me.accumByType[type],
+            frame, ret, time;
+
+        if (me.logOn.calculate) {
+            Ext.log(&#39;-- calculate &#39;, this.getLayoutName(layout));
+        }
+
+        frame = accum &amp;&amp; accum.enter();
+
+        time = Ext.perf.getTimestamp();
+        ret = me.callParent(arguments);
+        time = Ext.perf.getTimestamp() - time;
+        if (accum) {
+            frame.leave();
+        }
+
+        me.calcsByType[type] = (me.calcsByType[type] || 0) + 1;
+        me.timesByType[type] = (me.timesByType[type] || 0) + time;
+
+        /*  add a / to the front of this line to enable layout completion logging
+        if (layout.done) {
+            var ownerContext = me.getCmp(layout.owner),
+                props = ownerContext.props;
+
+            if (layout.isComponentLayout) {
+                Ext.log(&#39;complete &#39;, layout.owner.id, &#39;:&#39;, type, &#39; w=&#39;,props.width, &#39; h=&#39;, props.height);
+            } else {
+                Ext.log(&#39;complete &#39;, layout.owner.id, &#39;:&#39;, type, &#39; cw=&#39;,props.contentWidth, &#39; ch=&#39;, props.contentHeight);
+            }
+        }**/
+
+        return ret;
+    }
+});
+</pre>
+</body>
+</html>

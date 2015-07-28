@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-Layer'>/**
+</span> * A tree panel that allows interaction with layers of the map view.
+ */
+Ext.define(&#39;GXC.panel.Layer&#39;, {
+    extend: &#39;GeoExt.tree.Panel&#39;,
+    requires: [
+        &#39;Ext.tree.plugin.TreeViewDragDrop&#39;,
+        &#39;Ext.grid.column.Action&#39;,
+        // see: http://www.sencha.com/forum/showthread.php?262124-Missed-(-)-dependency-reference-to-a-Ext.util.Point-in-Ext.EventObjectImpl
+        &#39;Ext.util.Point&#39;,
+        &#39;GXC.panel.LayerViewController&#39;
+    ],
+
+<span id='GXC-panel-Layer-property-inject'>    inject: [
+</span>        &#39;layerTreeStore&#39;
+    ],
+
+<span id='GXC-panel-Layer-property-controller'>    controller: &#39;GXC.panel.LayerViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_panel_layer&#39;,
+
+<span id='GXC-panel-Layer-cfg-viewType'>    viewType: &#39;gx_treeview&#39;,
+</span>
+<span id='GXC-panel-Layer-cfg-cls'>    cls: &#39;gxc-layer-tree&#39;,
+</span>
+<span id='GXC-panel-Layer-cfg-rootVisible'>    // configuration
+</span>    rootVisible: false,
+<span id='GXC-panel-Layer-cfg-useArrows'>    useArrows: true,
+</span><span id='GXC-panel-Layer-cfg-enableColumnHide'>    enableColumnHide: false,
+</span><span id='GXC-panel-Layer-cfg-enableColumnMove'>    enableColumnMove: false,
+</span><span id='GXC-panel-Layer-cfg-sortableColumns'>    sortableColumns: false,
+</span><span id='GXC-panel-Layer-cfg-hideHeaders'>    hideHeaders: true,
+</span>
+<span id='GXC-panel-Layer-cfg-viewConfig'>    viewConfig: {
+</span>        plugins: [{
+            ptype: &#39;treeviewdragdrop&#39;
+        }]
+    },
+
+<span id='GXC-panel-Layer-method-initComponent'>    initComponent: function() {
+</span>        var me = this;
+
+        this.addEvents(
+<span id='GXC-panel-Layer-event-getfeatureinfo'>            /**
+</span>             * Fired when a getfeatureinfo control is requested for a layer.
+             * @event
+             */
+            &#39;getfeatureinfo&#39;,
+
+<span id='GXC-panel-Layer-event-deletelayer'>            /**
+</span>             * Fired when a layer is to be deleted from the tree.
+             * @event
+             */
+            &#39;deletelayer&#39;
+        );
+
+        this.store = this.layerTreeStore;
+
+        if (!me.columns) {
+            if (me.initialConfig.hideHeaders === undefined) {
+                me.hideHeaders = true;
+            }
+            me.addCls(Ext.baseCSSPrefix + &#39;autowidth-table&#39;);
+            me.columns = [{
+                xtype    : &#39;gx_treecolumn&#39;,
+                text     : &#39;Name&#39;,
+                // width    : Ext.isIE6 ? null : 10000,
+                flex: 1,
+                dataIndex: me.displayField
+            }, {
+                itemId: &#39;actionColumn&#39;,
+                xtype:&#39;actioncolumn&#39;,
+                dataIndex: &#39;layer&#39;,
+                width: 50,
+                items: [{
+                    iconCls: &#39;gxc-icon-info&#39;,
+                    tooltip: &#39;Supports GetFeatureInfo&#39;,
+                    getClass: function(v, meta, rec) {
+                        var layer = rec.get(&#39;layer&#39;);
+
+                        if (layer &amp;&amp; layer.metadata &amp;&amp;
+                            layer.metadata.queryable) {
+                            return &#39;gxc-icon-info&#39;;
+                        } else {
+                            return &#39;x-hide-display&#39;;
+                        }
+                    }
+                }]
+            }];
+        }
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

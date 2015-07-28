@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-model-Service'>/**
+</span> * Simple {@link Ext.data.Model} that represents a OWS Service like WMS/WFS.
+ * It is used to present a list of Services to the user to choose from to
+ * ultimatly select a layer to add to a map.
+ */
+Ext.define(&#39;GXC.model.Service&#39;, {
+    extend: &#39;Ext.data.Model&#39;,
+    requires: [
+        &#39;Ext.data.SequentialIdGenerator&#39;
+    ],
+
+<span id='GXC-model-Service-cfg-idgen'>    idgen: &#39;sequential&#39;,
+</span>
+<span id='GXC-model-Service-property-fields'>    fields: [{
+</span>        name: &#39;type&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;title&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;version&#39;,
+        type: &#39;string&#39;,
+        // WMS version 1.1.1 and WFS version 1.0.0 are prefered due to
+        // best support with the underlaying frameworks.
+        convert: function(v, record) {
+            var version = v;
+            if (!version) {
+                if (record.get(&#39;type&#39;) === &#39;WMS&#39;) {
+                    version = &#39;1.1.1&#39;;
+                } else {
+                    version = &#39;1.0.0&#39;;
+                }
+            }
+            return version;
+        }
+    }, {
+        name: &#39;url&#39;,
+        type: &#39;string&#39;,
+        convert: function(v, record) {
+            var urlObj, args, version;
+
+            urlObj = OpenLayers.Util.createUrlObject(v);
+            args = urlObj.args;
+            v = urlObj.protocol + &#39;//&#39; + urlObj.host;
+
+            if (urlObj.port !== &#39;80&#39;) {
+                v += &#39;:&#39; + urlObj.port;
+            }
+
+            v += urlObj.pathname;
+
+            Ext.Object.each(args, function(key, value) {
+                if (key.toLowerCase() === &#39;version&#39;) {
+                    version = value;
+                    delete args[key];
+                    return false;
+                }
+            });
+
+            v += &#39;?&#39; + OpenLayers.Util.getParameterString(args);
+
+            // set version from url if defined
+            if (version) {
+                record.data.version = version;
+            }
+
+            return v;
+        }
+    }]
+});
+</pre>
+</body>
+</html>

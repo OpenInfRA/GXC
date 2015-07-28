@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-model-LayerSource'>/**
+</span> * Simple model representing layers that are loaded on application startup.
+ * Model holds minimum required information to construct an
+ * {@link GXC.model.LayerModel} on startup.
+ */
+Ext.define(&#39;GXC.model.LayerSource&#39;, {
+    extend: &#39;Ext.data.Model&#39;,
+
+<span id='GXC-model-LayerSource-cfg-idProperty'>    // TODO: this may not work if layer names are equal
+</span>    idProperty: {
+        name: &#39;id&#39;,
+        type: &#39;string&#39;,
+        convert: function(v, record) {
+            return record.get(&#39;type&#39;) + record.get(&#39;url&#39;) + record.get(&#39;layer&#39;);
+        }
+    },
+
+<span id='GXC-model-LayerSource-property-fields'>    fields: [{
+</span>        name: &#39;url&#39;,
+        type: &#39;string&#39;,
+        convert: function(v) {
+            var urlParts = v.split(&#39;?&#39;),
+                url = urlParts[0] + &#39;?&#39;,
+                owsParams = [&#39;version&#39;, &#39;request&#39;, &#39;service&#39;, &#39;typename&#39;],
+                params;
+
+            if (urlParts.length &gt; 1) {
+                params = Ext.Object.fromQueryString(urlParts[1]);
+                Ext.Array.each(Ext.Object.getKeys(params), function(key) {
+                    if (Ext.Array.indexOf(owsParams, key.toLowerCase()) !== -1) {
+                        delete params[key];
+                    }
+                    url += Ext.Object.toQueryString(params);
+                });
+            }
+
+        return url;
+        }
+    }, {
+        name: &#39;type&#39;,
+        type: &#39;string&#39;,
+        defaultValue: &#39;WMS&#39;
+    }, {
+        name: &#39;version&#39;,
+        type: &#39;string&#39;,
+        defaultValue: &#39;1.0.0&#39;
+    }, {
+        name: &#39;layer&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;opacity&#39;,
+        type: &#39;number&#39;,
+        defaultValue: 1.0
+    }, {
+        name: &#39;visibility&#39;,
+        type: &#39;boolean&#39;,
+        defaultValue: true
+    }, {
+        name: &#39;isBaseLayer&#39;,
+        type: &#39;boolean&#39;,
+        defaultValue: false
+    }, {
+        // if of a feature that will be selected on startup
+        name: &#39;select&#39;
+    }, {
+        name: &#39;displayInOverview&#39;,
+        type: &#39;boolean&#39;,
+        defaultValue: false
+    }]
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-Viewport'>/**
+</span> * @class GXC.Viewport
+ *
+ * The main application viewport, which displays the whole application rendered
+ * to a provided target dom node. The viewport is *not* extended from the
+ * Ext.Viewport but is actually a plan Ext.panel.Panel which allows to render
+ * the application in a child div container of a website.
+ *
+ *
+ */
+Ext.define(&#39;GXC.Viewport&#39;, {
+    extend: &#39;Ext.panel.Panel&#39;,
+    requires: [
+        &#39;Ext.layout.container.Border&#39;,
+        &#39;Ext.tab.Panel&#39;,
+        &#39;GXC.component.*&#39;,
+        &#39;GXC.button.*&#39;,
+        &#39;GXC.form.*&#39;,
+        &#39;GXC.toolbar.*&#39;,
+        &#39;GXC.panel.*&#39;
+    ],
+
+    alias: &#39;widget.gxc_viewport&#39;,
+
+<span id='GXC-Viewport-property-inject'>    inject: [
+</span>        &#39;appConfig&#39;
+    ],
+
+<span id='GXC-Viewport-cfg-listeners'>    listeners: {
+</span>        beforerender: function() {
+            var that = this,
+                container = this.appConfig.getContainer();
+
+            this.setHeight(container.getHeight());
+            this.doLayout();
+
+            Ext.EventManager.onWindowResize(function() {
+                that.setHeight(container.getHeight());
+                that.doLayout();
+            });
+        }
+    },
+
+<span id='GXC-Viewport-cfg-layout'>    layout: &#39;border&#39;,
+</span>
+<span id='GXC-Viewport-cfg-defaults'>    defaults: {
+</span>        border: 0,
+        hideCollapseTool: true
+    },
+
+<span id='GXC-Viewport-method-initComponent'>    initComponent: function() {
+</span>        var container = this.appConfig.getContainer(),
+            viewport = Ext.DomHelper.append(container, {
+                tag: &#39;div&#39;, cls: &#39;gxc-viewport&#39;
+            });
+
+        Ext.apply(this, {
+            renderTo: viewport,
+            items: this.appConfig.get(&#39;viewportItems&#39;)
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

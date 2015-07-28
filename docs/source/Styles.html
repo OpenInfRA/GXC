@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;GXC.panel.Styles&#39;, {
+    extend: &#39;Ext.form.Panel&#39;,
+    requires: [
+        &#39;GXC.panel.StylesViewController&#39;
+    ],
+
+    controller: &#39;GXC.panel.StylesViewController&#39;,
+
+    alias: &#39;widget.gxc_panel_styles&#39;,
+
+<span id='global-cfg-layerRecord'>    /**
+</span>     * The layer record that the styles are derieved from.
+     * @cfg {GXC.model.Layer}
+     */
+    layerRecord: null,
+
+<span id='global-cfg-stylesStore'>    /**
+</span>     * Store that holds information about the available styles of a layer.
+     * @cfg {GXC.data.StyleStore}
+     */
+    stylesStore: null,
+
+<span id='global-property-addStyleText'>    /** api: config[addStyleText] (i18n) */
+</span>    addStyleText: &#39;Add&#39;,
+<span id='global-property-addStyleTip'>    /** api: config[addStyleTip] (i18n) */
+</span>    addStyleTip: &#39;Add a new style&#39;,
+<span id='global-property-chooseStyleText'>    /** api: config[chooseStyleText] (i18n) */
+</span>    chooseStyleText: &#39;Choose style&#39;,
+<span id='global-property-deleteStyleText'>    /** api: config[addStyleText] (i18n) */
+</span>    deleteStyleText: &#39;Remove&#39;,
+<span id='global-property-deleteStyleTip'>    /** api: config[addStyleTip] (i18n) */
+</span>    deleteStyleTip: &#39;Delete the selected style&#39;,
+<span id='global-property-editStyleText'>    /** api: config[addStyleText] (i18n) */
+</span>    editStyleText: &#39;Edit&#39;,
+<span id='global-property-editStyleTip'>    /** api: config[addStyleTip] (i18n) */
+</span>    editStyleTip: &#39;Edit the selected style&#39;,
+<span id='global-property-duplicateStyleText'>    /** api: config[addStyleText] (i18n) */
+</span>    duplicateStyleText: &#39;Duplicate&#39;,
+<span id='global-property-duplicateStyleTip'>    /** api: config[addStyleTip] (i18n) */
+</span>    duplicateStyleTip: &#39;Duplicate the selected style&#39;,
+    exportStyleText: &#39;Export&#39;,
+    exportStyleTip: &#39;Export the selected style as an SLD file&#39;,
+<span id='global-property-cancelText'>    /** api: config[cancelText] (i18n) */
+</span>    cancelText: &#39;Cancel&#39;,
+<span id='global-property-saveText'>    /** api: config[saveText] (i18n) */
+</span>    saveText: &#39;Save&#39;,
+<span id='global-property-styleWindowTitle'>    /** api: config[stylePropertiesWindowTitle] (i18n) */
+</span>    styleWindowTitle: &#39;User Style: {0}&#39;,
+<span id='global-property-stylesFieldsetTitle'>    /** api: config[stylesFieldsetTitle] (i18n) */
+</span>    stylesFieldsetTitle: &#39;Styles&#39;,
+    errorTitle: &#39;Error saving style&#39;,
+<span id='global-property-errorMsg'>    /** api: config[errorMsg] (i18n) */
+</span>    errorMsg: &#39;There was an error saving the style back to the server.&#39;,
+
+    dialogCls: &#39;Ext.window.Window&#39;,
+
+    bodyPadding: &#39;10px&#39;,
+
+    fieldDefaults: {
+        anchor: &#39;100%&#39;
+    },
+
+    initComponent: function() {
+        var layerRecord = this.layerRecord,
+            layer = layerRecord.getLayer(),
+            styles = layer.metadata.styles || [],
+            value;
+
+        if (layer.params) {
+            value = layer.params.STYLES;
+        }
+
+        value = value ? value : &#39;&#39;;
+
+        this.addEvents(
+<span id='global-property-ready'>            /** api: event[ready]
+</span>             *  Fires when this component is ready for user interaction.
+             */
+            &#39;ready&#39;,
+
+<span id='global-property-modified'>            /** api: event[modified]
+</span>             *  Fires on every style modification.
+             *
+             *  Listener arguments:
+             *
+             *  * :class:`gxp.WMSStylesDialog` this component
+             *  * ``String`` the name of the modified style
+             */
+            &#39;modified&#39;,
+
+<span id='global-property-styleselected'>            /** api: event[styleselected]
+</span>             *  Fires whenever an existing style is selected from this dialog&#39;s
+             *  Style combo box.
+             *
+             *  Listener arguments:
+             *
+             *  * :class:`gxp.WMSStylesDialog` this component
+             *  * ``String`` the name of the selected style
+             */
+            &#39;styleselected&#39;,
+
+<span id='global-property-beforesaved'>            /** api: event[beforesaved]
+</span>             *  Fires before the styles are saved (using a
+             *  :class:`gxp.plugins.StyleWriter` plugin)
+             *
+             *  Listener arguments:
+             *
+             *  * :class:`gxp.WMSStylesDialog` this component
+             *  * ``Object`` options for the ``write`` method of the
+             *    :class:`gxp.plugins.StyleWriter`
+             */
+            &#39;beforesaved&#39;,
+
+<span id='global-property-saved'>            /** api: event[saved]
+</span>             *  Fires when a style was successfully saved. Applications should
+             *  listen for this event and redraw layers with the currently
+             *  selected style.
+             *
+             *  Listener arguments:
+             *
+             *  * :class:`gxp.WMSStylesDialog` this component
+             *  * ``String`` the name of the currently selected style
+             */
+            &#39;saved&#39;
+        );
+
+        this.stylesStore = Ext.create(&#39;GXC.data.StyleStore&#39;, {
+            data: styles
+        });
+
+        Ext.apply(this, {
+            items: [{
+                itemId: &#39;stylesFieldSet&#39;,
+                xtype: &#39;fieldset&#39;,
+                title: this.stylesFieldsetTitle,
+                items: [{
+                    itemId: &#39;stylesCombo&#39;,
+                    xtype: &#39;combo&#39;,
+                    fieldLabel: this.chooseStyleText,
+                    editable: false,
+                    displayField: &#39;title&#39;,
+                    valueField: &#39;name&#39;,
+                    queryMode: &#39;local&#39;,
+                    triggerAction: &#39;all&#39;,
+                    forceSelection: true,
+                    store: this.stylesStore,
+                    value: value
+                }]
+            }, {
+                xtype: &#39;toolbar&#39;,
+                itemId: &#39;stylesToolbar&#39;,
+                items: [{
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;addButton&#39;,
+                    iconCls: &#39;gxc-icon-add&#39;,
+                    text: this.addStyleText,
+                    tooltip: this.addStyleTip
+                }, {
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;deleteButton&#39;,
+                    iconCls: &#39;gxc-icon-remove&#39;,
+                    text: this.deleteStyleText,
+                    tooltip: this.deleteStyleTip
+                }, {
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;editButton&#39;,
+                    iconCls: &#39;gxc-icon-edit&#39;,
+                    text: this.editStyleText,
+                    tooltip: this.editStyleTip
+                }, {
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;duplicateButton&#39;,
+                    iconCls: &#39;gxc-icon-duplicate&#39;,
+                    text: this.duplicateStyleText,
+                    tooltip: this.duplicateStyleTip
+                }, {
+                    xtype: &#39;button&#39;,
+                    itemId: &#39;exportButton&#39;,
+                    text: this.exportStyleText,
+                    tooltip: this.exportStyleTip
+                }]
+            }]
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

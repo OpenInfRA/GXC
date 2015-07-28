@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+/*
+ * @requires GeoExt/data/AttributeModel.js
+ * @requires GeoExt/data/OwsStore.js
+ */
+
+<span id='GeoExt-data-AttributeStore'>/**
+</span> * A store to work with DescribeFeatureType responses. This is a regular
+ * Ext store preconfigured with a {@link GeoExt.data.AttributeModel}.
+ *
+ * Example:
+ *
+ *     Ext.create(&#39;GeoExt.data.AttributeStore&#39;, {
+ *         ignore: {type: &#39;xsd:string&#39;},
+ *         url: &#39;http://host.wfsdescribefeaturetype&#39;
+ *     });
+ *
+ * @class GeoExt.data.AttributeStore
+ */
+Ext.define(&#39;GeoExt.data.AttributeStore&#39;, {
+    extend: &#39;GeoExt.data.OwsStore&#39;,
+<span id='GeoExt-data-AttributeStore-cfg-model'>    model: &#39;GeoExt.data.AttributeModel&#39;,
+</span>
+    config: {
+<span id='GeoExt-data-AttributeStore-cfg-ignore'>        /**
+</span>         * The ignore object passed to the reader.
+         *
+         *     // ... ignore attributes of certain type or with specified name:
+         *     var ignoreObj = {
+         *         type: [
+         *             &#39;gml:GeometryPropertyType&#39;,
+         *             &#39;gml:PointPropertyType&#39;,
+         *             &#39;gml:LineStringPropertyType&#39;,
+         *             &#39;gml:SurfacePropertyType&#39;,
+         *             &#39;gml:MultiPointPropertyType&#39;,
+         *             &#39;gml:MultiLineStringPropertyType&#39;,
+         *             &#39;gml:MultiSurfacePropertyType&#39;
+         *         ],
+         *         name: [
+         *             &#39;id&#39;,
+         *             &#39;another_ignored_attr&#39;
+         *         ]
+         *     };
+         *
+         * @cfg {Object}
+         */
+        ignore: null,
+
+<span id='GeoExt-data-AttributeStore-cfg-feature'>        /**
+</span>         * The OpenLayers.Feature.Vector passed to the reader.
+         *
+         * @cfg {Object}
+         */
+        feature: null
+    },
+
+<span id='GeoExt-data-AttributeStore-method-constructor'>    /**
+</span>     * @private
+     */
+    constructor: function(config) {
+        config = Ext.apply({}, config);
+        // At this point, we have to copy the complex objects from the config
+        // into the prototype. This is because Ext.data.Store&#39;s constructor
+        // creates deep copies of these objects.
+        var data;
+        if (config.feature) {
+            this.feature = config.feature;
+            delete config.feature;
+        }
+        // if we have a feature AND data, then we need to remove the data so
+        // that the reader is not called before it is ready. We load the data in
+        // the store AFTER the store &amp; its dependent objects have been
+        // constructed
+        if (this.feature &amp;&amp; config.data) {
+            data = config.data;
+            delete config.data;
+        }
+
+        this.callParent([config]);
+
+        if (config.ignore) {
+            this.setIgnore(config.ignore);
+        }
+
+        if (this.feature) {
+            this.setFeature(this.feature);
+        }
+
+        if (data) {
+            this.loadRawData(data);
+        }
+    },
+
+<span id='GeoExt-data-AttributeStore-method-applyFeature'>    /**
+</span>     * We&#39;re setting the sample feature for the reader.
+     *
+     * @param {OpenLayers.Feature} feature
+     * @private
+     */
+    applyFeature: function(feature) {
+        var reader = this.getProxy().getReader();
+        if(reader) {
+            reader.setFeature(feature);
+        }
+    },
+
+<span id='GeoExt-data-AttributeStore-method-applyIgnore'>    /**
+</span>     * We&#39;re setting the ignore property in the reader.
+     *
+     * @param {Object} ignore
+     * @private
+     */
+    applyIgnore: function(ignore) {
+        var reader = this.getProxy().getReader();
+        if(reader) {
+            reader.setIgnore(ignore);
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-CodeMirror'>/**
+</span> * A simple CodeMirror Editor to allow XML editing.
+ * Overrides some event handlers of the parent class to forward interaction
+ * to the CodeMirror plugin.
+ */
+Ext.define(&#39;GXC.form.CodeMirror&#39;, {
+    extend: &#39;Ext.form.field.TextArea&#39;,
+
+    alias: &#39;widget.gxc_form_codemirror&#39;,
+
+<span id='GXC-form-CodeMirror-property-editor'>    /**
+</span>     * CodeMirror editor.
+     * @type {CodeMirror}
+     */
+    editor: null,
+
+<span id='GXC-form-CodeMirror-property-editorOptions'>    /**
+</span>     * CodeMirror editor options that will be applied at init.
+     * @type {Object}
+     */
+    editorOptions: null,
+
+<span id='GXC-form-CodeMirror-cfg-emptyText'>    emptyText: &#39;Enter style definition..&#39;,
+</span>
+<span id='GXC-form-CodeMirror-method-onRender'>    onRender: function(textArea, options) {
+</span>        this.callParent(arguments);
+
+        var inputId = this.getInputId(),
+            dom = document.getElementById(inputId);
+
+        if (window.CodeMirror) {
+            this.editor = CodeMirror.fromTextArea(dom, this.editorOptions || {});
+        }
+    },
+
+<span id='GXC-form-CodeMirror-method-onResize'>    onResize: function(width, height) {
+</span>        this.callParent(arguments);
+
+        if (this.editor) {
+            this.editor.setSize(width, height);
+        }
+    },
+
+<span id='GXC-form-CodeMirror-method-focus'>    focus: function() {
+</span>        if (this.editor) {
+            this.editor.focus();
+        } else {
+            this.callParent(arguments);
+        }
+    },
+
+<span id='GXC-form-CodeMirror-method-onFocus'>    onFocus: function() {
+</span>        this.fireEvent(&#39;focus&#39;, this);
+    },
+
+<span id='GXC-form-CodeMirror-method-getValue'>    getValue: function() {
+</span>        if (this.editor) {
+            this.editor.save();
+        }
+        return this.callParent(arguments);
+    },
+
+<span id='GXC-form-CodeMirror-method-setValue'>    setValue: function() {
+</span>        if (this.editor) {
+            this.editor.setValue(value);
+        }
+        return this.callParent(arguments);
+    },
+
+<span id='GXC-form-CodeMirror-method-destroy'>    destroy: function() {
+</span>        if (this.editor) {
+            this.editor.toTextArea();
+        }
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

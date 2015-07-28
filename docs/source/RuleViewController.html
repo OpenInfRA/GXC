@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-RuleViewController'>/**
+</span> * @class
+ */
+Ext.define(&#39;GXC.panel.RuleViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+<span id='GXC-panel-RuleViewController-property-control'>    control: {
+</span>        &#39;view&#39;: {
+            &#39;boxready&#39;: &#39;onViewBoxready&#39;
+        },
+        &#39;nameField&#39;: {
+            &#39;change&#39;: &#39;onNameFieldChange&#39;
+        },
+        &#39;abstractField&#39;: {
+            &#39;change&#39;: &#39;onAbstractFieldChange&#39;
+        },
+        &#39;symbolizerSwatch&#39;: true,
+        &#39;symbolizerPanel&#39;: {
+            &#39;change&#39;: &#39;onSymbolizerPanelChange&#39;
+        },
+        &#39;textSymbolizerFieldSet&#39;: {
+            live: true,
+            listeners: {
+                &#39;collapse&#39;: &#39;onTextSymbolizerFieldSetCollapse&#39;,
+                &#39;expand&#39;: &#39;onTextSymbolizerFieldSetExpand&#39;
+            }
+        },
+        &#39;textSymbolizer&#39;: {
+            live: true,
+            listeners: {
+                &#39;change&#39;: &#39;onTextSymbolizerChange&#39;
+            }
+        },
+        &#39;filterBuilderFieldSet&#39;: {
+            live: true,
+            listeners: {
+                &#39;collapse&#39;: &#39;onFilterBuilderFieldSetCollapse&#39;,
+                &#39;expand&#39;: &#39;onFilterBuilderFieldSetExpand&#39;
+            }
+        },
+        &#39;filterBuilder&#39;: {
+            live: true,
+            listeners: {
+                &#39;change&#39;: &#39;onFilterBuilderChange&#39;
+            }
+        }
+    },
+
+<span id='GXC-panel-RuleViewController-method-onViewBoxready'>    onViewBoxready: function(view) {
+</span>        var symbolizerSwatch = this.getSymbolizerSwatch();
+
+        symbolizerSwatch.setSymbolizers(view.rule.symbolizers || view.rule.symbolizer, {
+            draw: symbolizerSwatch.rendered
+        });
+    },
+
+<span id='GXC-panel-RuleViewController-method-onNameFieldChange'>    onNameFieldChange: function(field, value) {
+</span>        var view = this.getView(),
+            rule = view.rule;
+        rule.title = value;
+        view.fireEvent(&#39;change&#39;, view, rule);
+    },
+
+<span id='GXC-panel-RuleViewController-method-onAbstractFieldChange'>    onAbstractFieldChange: function(field, value) {
+</span>        var view = this.getView(),
+            rule = view.rule;
+
+        rule.description = value;
+        view.fireEvent(&#39;change&#39;, view, rule);
+    },
+
+<span id='GXC-panel-RuleViewController-method-onSymbolizerPanelChange'>    onSymbolizerPanelChange: function(symbolizer) {
+</span>        var view = this.getView(),
+            rule = view.rule,
+            symbolizerSwatch = this.getSymbolizerSwatch();
+
+        symbolizerSwatch.setSymbolizers([symbolizer], {
+            draw: symbolizerSwatch.rendered
+        });
+
+        if (!view.symbolizerExists) {
+            if (rule.symbolizers) {
+                rule.symbolizers.push(symbolizer);
+            } else {
+                rule.symbolizer = symbolizer;
+            }
+            view.symbolizerExists = true;
+        }
+
+        view.fireEvent(&#39;change&#39;, view, rule);
+    },
+
+<span id='GXC-panel-RuleViewController-method-onTextSymbolizerFieldSetCollapse'>    onTextSymbolizerFieldSetCollapse: function() {
+</span>        var view = this.getView(),
+            rule = view.rule;
+
+        OpenLayers.Util.removeItem(rule.symbolizers, view.getTextSymbolizer());
+        view.fireEvent(&#39;change&#39;, view, rule);
+    },
+
+<span id='GXC-panel-RuleViewController-method-onTextSymbolizerFieldSetExpand'>    onTextSymbolizerFieldSetExpand: function() {
+</span>        var view = this.getView();
+
+        view.setTextSymbolizer(this.getTextSymbolizer().symbolizer);
+        view.fireEvent(&#39;change&#39;, view, view.rule);
+    },
+
+<span id='GXC-panel-RuleViewController-method-onTextSymbolizerChange'>    onTextSymbolizerChange: function() {
+</span>        var view = this.getView();
+
+        view.fireEvent(&#39;change&#39;, view, view.rule);
+    },
+
+<span id='GXC-panel-RuleViewController-method-onFilterBuilderFieldSetCollapse'>    onFilterBuilderFieldSetCollapse: function(){
+</span>        var view = this.getView(),
+            rule = view.rule;
+
+        delete rule.filter;
+        view.fireEvent(&#39;change&#39;, view, rule);
+    },
+
+<span id='GXC-panel-RuleViewController-method-onFilterBuilderFieldSetExpand'>    onFilterBuilderFieldSetExpand: function(){
+</span>        var view = this.getView(),
+            rule = view.rule;
+
+        rule.filter = this.getFilterBuilder().getFilter();
+        view.fireEvent(&#39;change&#39;, view, rule);
+    },
+
+<span id='GXC-panel-RuleViewController-method-onFilterBuilderChange'>    onFilterBuilderChange: function(builder) {
+</span>        var view = this.getView(),
+            rule = view.rule,
+            filter = builder.getFilter();
+
+        rule.filter = filter;
+        view.fireEvent(&#39;change&#39;, view, rule);
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;GXC.form.TextSymbolizerViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+    control: {
+        attributesCombo: {
+            &#39;select&#39;: &#39;onAttributesComboSelect&#39;
+        },
+        fontCombo: {
+            &#39;select&#39;: &#39;onFontComboSelect&#39;
+        },
+        fontSizeField: {
+            &#39;change&#39;: &#39;onFontSizeFieldChange&#39;
+        },
+        fontWeightButton: {
+            &#39;toggle&#39;: &#39;onFontWeightButtonToggle&#39;
+        },
+        fontStyleButton: {
+            &#39;toggle&#39;: &#39;onFontStyleButtonToggle&#39;
+        },
+        fontColorSymbolizer: {
+            &#39;change&#39;: &#39;onFontColorSymbolizerChange&#39;
+        },
+        graphicFieldSet: {
+            &#39;collapse&#39;: &#39;onGraphicFieldSetCollapse&#39;
+        },
+        fontGraphicSymbolizer: {
+            &#39;change&#39;: &#39;onFontGraphicSymbolizerChange&#39;
+        },
+        graphicResizeCombo: {
+            &#39;select&#39;: &#39;onGraphicResizeCombo&#39;,
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        graphicMarginField: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        haloFieldSet: {
+            &#39;collapse&#39;: &#39;onHaloFieldSetCollapse&#39;
+        },
+        haloRadiusField: {
+            &#39;change&#39;: &#39;onHaloRadiusFieldChange&#39;
+        },
+        haloColorSymbolizer: {
+            &#39;change&#39;: &#39;onHaloColorSymbolizerChange&#39;
+        },
+        pointLabelAlignCombo: {
+            &#39;select&#39;: &#39;onPointLabelAlignComboSelect&#39;
+        },
+        displamcementXField: {
+            &#39;change&#39;: &#39;onDisplacementXChange&#39;
+        },
+        displamcementYField: {
+            &#39;change&#39;: &#39;onDisplacementYChange&#39;
+        },
+        perpendicularOffsetField: {
+            &#39;change&#39;: &#39;onPerpendicularOffsetFieldChange&#39;
+        },
+        polygonAlignCombo: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        priorityCombo: {
+            &#39;select&#39;: &#39;onPriorityComboSelect&#39;
+        },
+        autoWrapField: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        followLineField: {
+            &#39;change&#39;: &#39;onFollowLineFieldCheck&#39;
+        },
+        maxAngleDeltaField: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        maxDisplacementField: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        repeatField: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        forceLeftToRightField: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        groupField: {
+            &#39;change&#39;: &#39;onGroupFieldChange&#39;
+        },
+        labelAllGroupField: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        conflictResolutionField: {
+            &#39;change&#39;: &#39;onConflictResolutionFieldChange&#39;
+        },
+        spaceAroundField: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        },
+        goodnessOfFitField: {
+            &#39;change&#39;: &#39;onVendorSpecificFieldChange&#39;
+        }
+    },
+
+    onAttributesComboSelect: function(combo, records) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer.label = &quot;${&quot; + records[0].get(&quot;name&quot;) + &quot;}&quot;;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onFontComboSelect: function(combo, records) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer.fontFamily = records[0].get(&quot;field1&quot;);
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onFontSizeFieldChange: function(field, value) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        value = parseFloat(value);
+        if (isNaN(value)) {
+            delete symbolizer.fontSize;
+        } else {
+            symbolizer.fontSize = value;
+        }
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onFontWeightButtonToggle: function(button, pressed) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer.fontWeight = pressed ? &quot;bold&quot; : &quot;normal&quot;;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onFontStyleButtonToggle: function(button, pressed) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer.fontStyle = pressed ? &quot;italic&quot; : &quot;normal&quot;;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onFontColorSymbolizerChange: function(symbolizer) {
+        this.getView().fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onFontGraphicSymbolizerChange: function(symbolizer) {
+        symbolizer.graphic = !!symbolizer.graphicName || !!symbolizer.externalGraphic;
+        this.getView().fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onGraphicFieldSetCollapse: function() {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        delete symbolizer.externalGraphic;
+        delete symbolizer.fillColor;
+        delete symbolizer.fillOpacity;
+        delete symbolizer.graphicName;
+        delete symbolizer.pointRadius;
+        delete symbolizer.rotation;
+        delete symbolizer.strokeColor;
+        delete symbolizer.strokeWidth;
+        delete symbolizer.strokeDashStyle;
+
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onGraphicResizeCombo: function(combo) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer,
+            graphicMarginField = this.getGraphicMarginField();
+
+        if (combo.getValue() === &quot;none&quot;) {
+            graphicMarginField.hide();
+        } else {
+            if (Ext.isEmpty(graphicMarginField.getValue())) {
+                graphicMarginField.setValue(0);
+                symbolizer.vendorOptions[&quot;graphic-margin&quot;] = 0;
+            }
+            graphicMarginField.show();
+        }
+    },
+
+    onHaloFieldSetCollapse: function() {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        delete symbolizer.haloRadius;
+        delete symbolizer.haloColor;
+        delete symbolizer.haloOpacity;
+
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onHaloRadiusFieldChange: function(field, value) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        value = parseFloat(value);
+        if (isNaN(value)) {
+            delete symbolizer.haloRadius;
+        } else {
+            symbolizer.haloRadius = value;
+        }
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onHaloColorSymbolizerChange: function(haloSymbolizer) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer.haloColor = haloSymbolizer.fillColor;
+        symbolizer.haloOpacity = haloSymbolizer.fillOpacity;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onPointLabelAlignComboSelect: function(combo) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer.labelAlign = combo.getValue();
+        delete symbolizer.labelAnchorPointX;
+        delete symbolizer.labelAnchorPointY;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onDisplacementXChange: function(field, value) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer.labelXOffset = value;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onDisplacementYChange: function(field, value) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer.labelYOffset = value;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onPerpendicularOffsetFieldChange: function(field, value) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        if (Ext.isEmpty(value)) {
+            delete symbolizer.labelPerpendicularOffset;
+        } else {
+            symbolizer.labelPerpendicularOffset = value;
+        }
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onPriorityComboSelect: function(combo, records) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer[combo.name] = &quot;${&quot; + records[0].get(&quot;name&quot;) + &quot;}&quot;;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+    onFollowLineFieldCheck: function(cb, checked) {
+        var maxAngleDeltaField = this.getMaxAngleDeltaField();
+
+        if (!checked) {
+            maxAngleDeltaField.hide();
+        } else {
+            maxAngleDeltaField.show();
+        }
+        this.onVendorSpecificFieldChange(cb, checked);
+    },
+
+    onGroupFieldChange: function(cb, value) {
+        var view = this.getView(),
+            labelAllGroupField = this.getLabelAllGroupField();
+
+        if (view.geometryType === &#39;LINE&#39;) {
+            if (value === false) {
+                labelAllGroupField.hide();
+            } else {
+                labelAllGroupField.show();
+            }
+        }
+
+        this.onVendorSpecificFieldChange(cb, value);
+    },
+
+    onConflictResolutionFieldChange: function(cb, checked) {
+        var spaceAroundField = this.getSpaceAroundField();
+
+        if (!checked) {
+            spaceAroundField.hide();
+        } else {
+            spaceAroundField.show();
+        }
+
+        this.onVendorSpecificFieldChange(cb, checked);
+    },
+
+    onVendorSpecificFieldChange: function(field, value) {
+        var view = this.getView(),
+            name = field.getName(),
+            yesno = field.yesno,
+            symbolizer = view.symbolizer;
+
+        // empty VendorOption tags can cause null pointer exceptions in GeoServer
+        if (Ext.isEmpty(value)) {
+            delete symbolizer.vendorOptions[name];
+        } else {
+            if (yesno === true) {
+                symbolizer.vendorOptions[name] = (value == true) ? &#39;yes&#39; : &#39;no&#39;;
+            } else {
+                symbolizer.vendorOptions[name] = value;
+            }
+        }
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    }
+});
+</pre>
+</body>
+</html>

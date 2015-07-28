@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-data-ServiceStore'>/**
+</span> * Simple store to hold service information of available OWS services to choose
+ * from by the user.
+ */
+Ext.define(&#39;GXC.data.ServiceStore&#39;, {
+    extend: &#39;Ext.data.Store&#39;,
+
+<span id='GXC-data-ServiceStore-property-inject'>    inject: [
+</span>        &#39;appConfig&#39;
+    ],
+
+<span id='GXC-data-ServiceStore-property-stateful'>    stateful: true,
+</span>
+<span id='GXC-data-ServiceStore-property-stateId'>    stateId: &#39;gxcServiceStore&#39;,
+</span>
+<span id='GXC-data-ServiceStore-cfg-model'>    model: &#39;GXC.model.Service&#39;,
+</span>
+<span id='GXC-data-ServiceStore-cfg-proxy'>    proxy: {
+</span>        type: &#39;memory&#39;,
+        reader: &#39;json&#39;
+    },
+
+<span id='GXC-data-ServiceStore-method-constructor'>    constructor: function() {
+</span>        var configServices, inlineData;
+
+        this.callParent(arguments);
+
+        configServices = this.appConfig.get(&#39;services&#39;, []);
+        inlineData = configServices;
+
+        this.loadRawData(inlineData, false);
+    },
+
+<span id='GXC-data-ServiceStore-method-onStateChange'>    onStateChange: function() {
+</span>        var data = [];
+
+        this.each(function(record) {
+            data.push(record.getData());
+        }, this);
+
+        Ext.state.Manager.set(this.stateId, data);
+    }
+});
+</pre>
+</body>
+</html>

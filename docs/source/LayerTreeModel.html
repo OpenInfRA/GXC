@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+<span id='GeoExt-data-LayerTreeModel'>/**
+</span> * Model for trees that use GeoExt tree components. It can also hold plain
+ * Ext JS layer nodes.
+ *
+ * This model adds several fields that are specific to tree extensions
+ * provided by GeoExt:
+ *
+ * * **plugins** Object[]: The plugins for this node.
+ * * **layer** OpenLayers.Layer: The layer this node is connected to.
+ * * **container** Ext.AbstractPlugin: The instance of a container plugin.
+ *   Read only.
+ * * **checkedGroup** String: An identifier for a group of mutually exclusive
+ *   layers. If set, the node will render with a radio button instead of a
+ *   checkbox.
+ * * **fixedText** Boolean: Used to determine if a node&#39;s name should change.
+ *   dynamically if the name of the connected layer changes, if any. Read only.
+ * * **component** Ext.Component: The component to be rendered with this node,
+ *   if any.
+ * * **disabled** Boolean: Used to reflect whether the associated layer is
+ *   in range (visible in the current map scale).
+ *
+ * A typical configuration that makes use of some of these extended sttings
+ * could look like this:
+ *
+ *     {
+ *         plugins: [{ptype: &#39;gx_layer&#39;}],
+ *         layer: myLayerRecord.getLayer(),
+ *         checkedGroup: &#39;natural&#39;,
+ *         component: {
+ *             xtype: &quot;gx_wmslegend&quot;,
+ *             layerRecord: myLayerRecord,
+ *             showTitle: false
+ *         }
+ *     }
+ *
+ * The above creates a node with a GeoExt.tree.LayerNode plugin, and connects
+ * it to a layer record that was previously assigned to the myLayerRecord
+ * variable. The node will be rendered with a GeoExt.container.WmsLegend,
+ * configured with the same layer.
+ *
+ * @class GeoExt.data.LayerTreeModel
+ */
+Ext.define(&#39;GeoExt.data.LayerTreeModel&#39;,{
+    alternateClassName: &#39;GeoExt.data.LayerTreeRecord&#39;,
+    extend: &#39;Ext.data.Model&#39;,
+    requires: [
+        &#39;Ext.data.proxy.Memory&#39;,
+        &#39;Ext.data.reader.Json&#39;,
+        &#39;GeoExt.Version&#39;
+    ],
+    alias: &#39;model.gx_layertree&#39;,
+<span id='GeoExt-data-LayerTreeModel-property-fields'>    fields: [
+</span>        {name: &#39;text&#39;, type: &#39;string&#39;},
+        {name: &#39;plugins&#39;},
+        {name: &#39;layer&#39;},
+        {name: &#39;container&#39;},
+        {name: &#39;checkedGroup&#39;, type: &#39;string&#39;},
+        {name: &#39;fixedText&#39;, type: &#39;bool&#39;},
+        {name: &#39;component&#39;},
+        {name: &#39;disabled&#39;, type: &#39;bool&#39;}
+    ],
+<span id='GeoExt-data-LayerTreeModel-cfg-proxy'>    proxy: {
+</span>        type: &quot;memory&quot;
+    },
+
+    // TODO This is also been used in WmsLegend, refactor so this can be reused
+    //      or shared
+<span id='GeoExt-data-LayerTreeModel-property-validIdRe'>    /**
+</span>     * A regular expression to validate whether a given string is a valid id
+     * ready to be used either as `id` or `itemId` property. In Ext 5 we can
+     * use #Ext.validIdRe, in Ext 4 we define our own regular expression.
+     * See #layernameToItemId.
+     *
+     * @private
+     */
+    validIdRe: Ext.validIdRe || (/^[a-z_][a-z0-9\-_]*$/i),
+
+<span id='GeoExt-data-LayerTreeModel-property-illegalItemIdRe'>    /**
+</span>     * A regular expression matching all non allowed characters in possible
+     * itemId. See #layernameToItemId.
+     *
+     * @private
+     */
+    illegalItemIdRe: (/[^\w\-]+/g),
+
+<span id='GeoExt-data-LayerTreeModel-property-itemIdPrefix'>    /**
+</span>     * A string we use as a prefix when we need to construct our own itemIds
+     * out of user supplied layer names. See #layernameToItemId
+     *
+     * @private
+     */
+    itemIdPrefix: &quot;gx_itemId_&quot;,
+
+<span id='GeoExt-data-LayerTreeModel-method-recordnameToItemId'>    /**
+</span>     * Turns a given recordname into a string suitable for usage as an
+     * itemId-property. See {Ext.Component#itemId}:
+     *
+     * &quot;Valid identifiers start with a letter or underscore and are followed
+     * by (optional) additional letters, underscores, digits or hyphens.&quot;
+     *
+     * @param {String} name The recordname to convert.
+     * @return {String} A string that is now ready to be used as itemId.
+     */
+    recordnameToItemId: function(name){
+        var me = this,
+            layername = name ? &quot;&quot; + name : &quot;&quot;,
+            prefix = me.itemIdPrefix,
+            validIdRe = me.validIdRe,
+            illegalItemIdRe = me.illegalItemIdRe,
+            replace = &quot;-&quot;,
+            itemId;
+
+        if (validIdRe.test(layername)) {
+            itemId = layername;
+        } else {
+            itemId = prefix + layername.replace(illegalItemIdRe, replace);
+        }
+        return itemId;
+    },
+
+<span id='GeoExt-data-LayerTreeModel-event-afteredit'>    /**
+</span>     * Fires after the node&#39;s fields were modified.
+     *
+     * @event afteredit
+     * @param {GeoExt.data.LayerTreeModel} this This model instance.
+     * @param {String[]} modifiedFieldNames The names of the fields that were
+     * edited.
+     */
+
+<span id='GeoExt-data-LayerTreeModel-method-constructor'>    /**
+</span>     * @private
+     * Method arguments vary between ExtJS4 and ExtJS5
+     */
+    constructor: function(data) {
+        var me = this;
+
+        me.callParent(arguments);
+
+        window.setTimeout(function() {
+            var plugins = me.get(&#39;plugins&#39;);
+
+            if (plugins) {
+                var plugin, instance;
+                for (var i=0, ii=plugins.length; i&lt;ii; ++i) {
+                    plugin = plugins[i];
+                    me.layerNodePlugin = Ext.PluginMgr.create(Ext.isString(plugin) ? {
+                        ptype: plugin
+                    } : plugin);
+                    me.layerNodePlugin.init(me);
+                }
+            }
+        });
+    },
+
+<span id='GeoExt-data-LayerTreeModel-method-init'>    init: function(){
+</span>        this.id = this.recordnameToItemId(this.id);
+    },
+
+    // TODO this isn&#39;t called anymore find another way for checking if checkchange
+    // In ExtJS5 this is called by the private callJoined-method with the first argument
+    // &#39;afterEdit&#39;. We can not override this method as ExtJS raises warning when overwriting
+    // private methods.
+<span id='GeoExt-data-LayerTreeModel-method-afterEdit'>    /**
+</span>     * Fires the #afteredit event after the node&#39;s fields were modified.
+     *
+     * @private
+     */
+    afterEdit: function(modifiedFieldNames) {
+        var me = this;
+        me.callParent(arguments);
+        me.fireEvent(&#39;afteredit&#39;, me, modifiedFieldNames);
+    }
+});
+</pre>
+</body>
+</html>

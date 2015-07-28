@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-data-OwsTypeStore'>/**
+</span> * Basic store representing possible OWS services in a static data definition.
+ * It&#39;s primary purpose is to be used in dropdowns and so on.
+ */
+Ext.define(&#39;GXC.data.OwsTypeStore&#39;, {
+    extend: &#39;Ext.data.Store&#39;,
+<span id='GXC-data-OwsTypeStore-cfg-fields'>    fields: [&#39;abbr&#39;, &#39;name&#39;],
+</span><span id='GXC-data-OwsTypeStore-property-data'>    data: [
+</span>        { &#39;abbr&#39;: &#39;WMS&#39;, &#39;name&#39;: &#39;Web Mapping Service&#39; },
+        { &#39;abbr&#39;: &#39;WFS&#39;, &#39;name&#39;: &#39;Web Feature Service&#39; }
+    ],
+<span id='GXC-data-OwsTypeStore-property-autoload'>    autoload: true
+</span>});
+</pre>
+</body>
+</html>

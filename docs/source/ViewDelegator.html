@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-ViewDelegator'>/**
+</span> * A simple button control that delegates a lazily initialized component.
+ *
+ *      {
+ *          &quot;xtype&quot;: &quot;gxc_button_viewdelegator&quot;,
+ *          &quot;iconCls&quot;: &quot;gxc-icon-add&quot;,
+ *          &quot;tooltip&quot;: &quot;Add Layer&quot;,
+ *          &quot;toggleGroup&quot;: &quot;exclusiveAction&quot;,
+ *          &quot;dconfig&quot;: {
+ *              &quot;title&quot;: &quot;Add Layer..&quot;,
+ *              &quot;width&quot;: 600,
+ *              &quot;height&quot;: 500,
+ *              &quot;layout&quot;: &#39;fit&#39;,
+ *              &quot;items&quot;: [{
+ *                  &quot;xtype&quot;: &quot;gxc_panel_add&quot;,
+ *                  &quot;title&quot;: &quot;Service&quot;
+ *              }]
+ *          }
+ *     }
+ */
+Ext.define(&#39;GXC.button.ViewDelegator&#39;, {
+    extend: &#39;GXC.button.Button&#39;,
+    requires: [
+        &#39;GXC.button.ViewDelegatorViewController&#39;
+    ],
+
+<span id='GXC-button-ViewDelegator-property-controller'>    controller: &#39;GXC.button.ViewDelegatorViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_button_viewdelegator&#39;,
+
+<span id='GXC-button-ViewDelegator-cfg-dConfig'>    /**
+</span>     * Delegate configuration.
+     *
+     * Will be handed over as the configuration of the dtype to instantiate
+     * the class.
+     *
+     * @cfg {Object}
+     */
+    dConfig: null,
+
+<span id='GXC-button-ViewDelegator-cfg-dShowAt'>    /**
+</span>     * An array that will be applied to the Ext.Component.ShowAt method positioning
+     * the delegate in the viewport.
+     * @cfg {Array}
+     */
+    dShowAt: null,
+
+<span id='GXC-button-ViewDelegator-cfg-dShowBy'>    /**
+</span>     * An array that will be applied to the Ext.Component#showBy method aligning
+     * the delegate to another component.
+     * @cfg {Array}
+     */
+    dShowBy: null,
+
+<span id='GXC-button-ViewDelegator-cfg-dType'>    /**
+</span>     * Delegate type configuration.
+     *
+     * This is the same as a &quot;normal&quot; xtype definition object except it is
+     * used by the ViewDelegator to initialize the component as needed.
+     *
+     * @cfg {Object}
+     */
+    dType: &#39;Ext.window.Window&#39;,
+
+<span id='GXC-button-ViewDelegator-property-iconCls'>    /**
+</span>     * GXC icon class that will be added to the button.
+     * @type {String}
+     *
+     * @inheritDoc
+     */
+    iconCls: &#39;&#39;,
+
+<span id='GXC-button-ViewDelegator-property-enableToggle'>    /**
+</span>     * By default, a ViewDelegate button can be toggled.
+     *
+     * @inheritDoc
+     */
+    enableToggle: true,
+
+<span id='GXC-button-ViewDelegator-cfg-toggleGroup'>    /**
+</span>     * Default toggle group for gxc interactions.
+     * @cfg {String}
+     */
+    toggleGroup: &#39;gxc_interaction&#39;,
+
+<span id='GXC-button-ViewDelegator-method-destroy'>    /**
+</span>     * @inheritDoc
+     */
+    destroy: function() {
+        delete this.dShowAt;
+        delete this.dShowBy;
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

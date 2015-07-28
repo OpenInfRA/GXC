@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-FilterBuilder'>/**
+</span> * Create a panel for assembling a filter.
+ *
+ * TODO: Seperate concerns via ViewController.
+ */
+Ext.define(&#39;GXC.panel.FilterBuilder&#39;, {
+    extend: &#39;Ext.form.Panel&#39;,
+    requires: [
+        &#39;Ext.form.FieldContainer&#39;
+    ],
+
+    alias: &#39;widget.gxc_panel_filterbuilder&#39;,
+
+    statics: {
+<span id='GXC-panel-FilterBuilder-static-property-ANY_OF'>        ANY_OF: 0,
+</span><span id='GXC-panel-FilterBuilder-static-property-ALL_OF'>        ALL_OF: 1,
+</span><span id='GXC-panel-FilterBuilder-static-property-NONE_OF'>        NONE_OF: 2,
+</span><span id='GXC-panel-FilterBuilder-static-property-NOT_ALL_OF'>        NOT_ALL_OF: 3
+</span>    },
+
+<span id='GXC-panel-FilterBuilder-property-builderTypeNames'>    /**
+</span>     *  A list of labels that correspond to builder type constants.
+     *  These will be the option names available in the builder type combo.
+     *  Default is ``[&quot;any&quot;, &quot;all&quot;, &quot;none&quot;, &quot;not all&quot;]``.
+     */
+    builderTypeNames: [&quot;any&quot;, &quot;all&quot;, &quot;none&quot;, &quot;not all&quot;],
+
+<span id='GXC-panel-FilterBuilder-property-allowedBuilderTypes'>    /**
+</span>     *  List of builder type constants.  Default is
+     */
+    allowedBuilderTypes: null,
+
+<span id='GXC-panel-FilterBuilder-property-allowBlank'>    allowBlank: false,
+</span><span id='GXC-panel-FilterBuilder-property-caseInsensitiveMatch'>    caseInsensitiveMatch: false,
+</span>
+<span id='GXC-panel-FilterBuilder-property-preComboText'>    /**
+</span>     * String to display before filter type combo.  Default is ``&quot;Match&quot;``.
+     */
+    preComboText: &quot;Match&quot;,
+
+<span id='GXC-panel-FilterBuilder-property-postComboText'>    /**
+</span>     * String to display after filter type combo.  Default is
+     * ``&quot;of the following:&quot;``.
+     */
+    postComboText: &quot;of the following:&quot;,
+
+<span id='GXC-panel-FilterBuilder-property-cls'>    /**
+</span>     * The CSS class to be added to this panel&#39;s element (defaults to
+     * ``&quot;gxc-filterbuilder&quot;``).
+     */
+    cls: &quot;gxc-filterbuilder&quot;,
+
+<span id='GXC-panel-FilterBuilder-property-builderType'>    /** @private
+</span>     */
+    builderType: null,
+
+<span id='GXC-panel-FilterBuilder-property-childFilterContainer'>    /**
+</span>     * @private
+     */
+    childFilterContainer: null,
+
+<span id='GXC-panel-FilterBuilder-property-customizeFilterOnInit'>    /**
+</span>     * @private
+     */
+    customizeFilterOnInit: true,
+
+<span id='GXC-panel-FilterBuilder-property-addConditionText'>    addConditionText: &quot;add condition&quot;,
+</span><span id='GXC-panel-FilterBuilder-property-addGroupText'>    addGroupText: &quot;add group&quot;,
+</span><span id='GXC-panel-FilterBuilder-property-removeConditionText'>    removeConditionText: &quot;remove condition&quot;,
+</span>
+<span id='GXC-panel-FilterBuilder-property-allowGroups'>    /**
+</span>     *  Allow groups of conditions to be added.  Default is ``true``.
+     *  If ``false``, only individual conditions (non-logical filters) can
+     *  be added.
+     *  @type Boolean
+     */
+    allowGroups: true,
+
+<span id='GXC-panel-FilterBuilder-method-initComponent'>    initComponent: function() {
+</span>        var defConfig = {
+            defaultBuilderType: GXC.panel.FilterBuilder.ANY_OF
+        };
+        Ext.applyIf(this, defConfig);
+
+        if(this.customizeFilterOnInit) {
+            this.filter = this.customizeFilter(this.filter);
+        }
+
+        this.builderType = this.getBuilderType();
+
+        this.items = [{
+            xtype: &quot;container&quot;,
+            layout: &quot;form&quot;,
+            ref: &quot;form&quot;,
+            fieldDefaults: {
+                anchor: &quot;100%&quot;
+            },
+            hideLabels: true,
+            items: [{
+                xtype: &quot;fieldcontainer&quot;,
+                style: &quot;padding-left: 2px&quot;,
+                items: [{
+                    xtype: &quot;label&quot;,
+                    style: &quot;padding-top: 0.3em&quot;,
+                    text: this.preComboText
+                }, this.createBuilderTypeCombo(), {
+                    xtype: &quot;label&quot;,
+                    style: &quot;padding-top: 0.3em&quot;,
+                    text: this.postComboText
+                }]
+            }, this.createChildFiltersPanel(), {
+                xtype: &quot;toolbar&quot;,
+                items: this.createToolBar()
+            }]
+
+        }];
+
+        this.addEvents(
+<span id='GXC-panel-FilterBuilder-property-change'>            /**
+</span>             * Event: change
+             * Fires when the filter changes.
+             *
+             * Listener arguments:
+             * builder - {GXC.panel.FilterBuilder} This filter builder.  Call
+             * ``getFilter`` to get the updated filter.
+             */
+            &quot;change&quot;
+        );
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-panel-FilterBuilder-method-createToolBar'>    /**
+</span>     * @private
+     */
+    createToolBar: function() {
+        var bar = [{
+            text: this.addConditionText,
+            iconCls: &quot;add&quot;,
+            handler: function() {
+                this.addCondition();
+            },
+            scope: this
+        }];
+        if(this.allowGroups) {
+            bar.push({
+                text: this.addGroupText,
+                iconCls: &quot;add&quot;,
+                handler: function() {
+                    this.addCondition(true);
+                },
+                scope: this
+            });
+        }
+        return bar;
+    },
+
+<span id='GXC-panel-FilterBuilder-method-getFilter'>    /**
+</span>     *  Returns a filter that fits the model in the Filter Encoding
+     *  specification.  Use this method instead of directly accessing
+     *  the ``filter`` property.  Return will be ``false`` if any child
+     *  filter does not have a type, property, or value.
+     *
+     *  @returns {OpenLayers.Filter}
+     */
+    getFilter: function() {
+        var filter;
+        if(this.filter) {
+            filter = this.filter.clone();
+            if(filter instanceof OpenLayers.Filter.Logical) {
+                filter = this.cleanFilter(filter);
+            }
+        }
+        return filter;
+    },
+
+<span id='GXC-panel-FilterBuilder-method-cleanFilter'>    /**
+</span>     * Ensures that binary logical filters have more than one child.
+     * TODO: Clean this up.
+     *
+     * @param {OpenLayers.Filter.Logical}
+     * @returns {OpenLayers.Filter} An equivalent filter to the input, where
+     *      all binary logical filters have more than one child filter.  Returns
+     *      false if a filter doesn&#39;t have non-null type, property, or value.
+     */
+    cleanFilter: function(filter) {
+        if(filter instanceof OpenLayers.Filter.Logical) {
+            if(filter.type !== OpenLayers.Filter.Logical.NOT &amp;&amp;
+               filter.filters.length === 1) {
+                filter = this.cleanFilter(filter.filters[0]);
+            } else {
+                var child;
+                for(var i=0, len=filter.filters.length; i&lt;len; ++i) {
+                    child = filter.filters[i];
+                    if(child instanceof OpenLayers.Filter.Logical) {
+                        child = this.cleanFilter(child);
+                        if(child) {
+                            filter.filters[i] = child;
+                        } else {
+                            filter = child;
+                            break;
+                        }
+                    } else if(
+                        !child ||
+                        child.type === null ||
+                        child.property === null ||
+                        child[filter.type === OpenLayers.Filter.Comparison.BETWEEN
+                            ? &quot;lowerBoundary&quot; : &quot;value&quot;] === null
+                    ) {
+                        filter = false;
+                        break;
+                    }
+                }
+            }
+        } else {
+            if (!filter ||
+                filter.type === null ||
+                filter.property === null ||
+                filter[filter.type === OpenLayers.Filter.Comparison.BETWEEN
+                    ? &quot;lowerBoundary&quot; : &quot;value&quot;] === null
+            ) {
+                filter = false;
+            }
+        }
+        return filter;
+    },
+
+<span id='GXC-panel-FilterBuilder-method-customizeFilter'>    /**
+</span>     * Create a filter that fits the model for this filter builder.  This filter
+     * will not necessarily meet the Filter Encoding specification.  In
+     * particular, filters representing binary logical operators may not
+     * have two child filters.  Use the &lt;getFilter&gt; method to return a
+     * filter that meets the encoding spec.
+     *
+     * @param {OpenLayers.Filter} filter This filter will not
+     *      be modified.  Register for events to receive an updated filter, or
+     *      call ``getFilter``.
+     * @returns {OpenLayers.Filter} A filter that fits the model used by
+     *      this builder.
+     */
+    customizeFilter: function(filter) {
+        if(!filter) {
+            filter = this.wrapFilter(this.createDefaultFilter());
+        } else {
+            filter = this.cleanFilter(filter);
+            var child, i, len;
+            switch(filter.type) {
+                case OpenLayers.Filter.Logical.AND:
+                case OpenLayers.Filter.Logical.OR:
+                    if(!filter.filters || filter.filters.length === 0) {
+                        // give the filter children if it has none
+                        filter.filters = [this.createDefaultFilter()];
+                    } else {
+                        for(i=0, len=filter.filters.length; i&lt;len; ++i) {
+                            child = filter.filters[i];
+                            if(child instanceof OpenLayers.Filter.Logical) {
+                                filter.filters[i] = this.customizeFilter(child);
+                            }
+                        }
+                    }
+                    // wrap in a logical OR
+                    filter = new OpenLayers.Filter.Logical({
+                        type: OpenLayers.Filter.Logical.OR,
+                        filters: [filter]
+                    });
+                    break;
+                case OpenLayers.Filter.Logical.NOT:
+                    if(!filter.filters || filter.filters.length === 0) {
+                        filter.filters = [
+                            new OpenLayers.Filter.Logical({
+                                type: OpenLayers.Filter.Logical.OR,
+                                filters: [this.createDefaultFilter()]
+                            })
+                        ];
+                    } else {
+                        // NOT filters should have one child only
+                        child = filter.filters[0];
+                        if(child instanceof OpenLayers.Filter.Logical) {
+                            if(child.type !== OpenLayers.Filter.Logical.NOT) {
+                                // check children of AND and OR
+                                var grandchild;
+                                for(i=0, len=child.filters.length; i&lt;len; ++i) {
+                                    grandchild = child.filters[i];
+                                    if(grandchild instanceof OpenLayers.Filter.Logical) {
+                                        child.filters[i] = this.customizeFilter(grandchild);
+                                    }
+                                }
+                            } else {
+                                // silly double negative
+                                if(child.filters &amp;&amp; child.filters.length &gt; 0) {
+                                    filter = this.customizeFilter(child.filters[0]);
+                                } else {
+                                    filter = this.wrapFilter(this.createDefaultFilter());
+                                }
+                            }
+                        } else {
+                            // non-logical child of NOT should be wrapped
+                            var type;
+                            if(this.defaultBuilderType === this.statics().NOT_ALL_OF) {
+                                type = OpenLayers.Filter.Logical.AND;
+                            } else {
+                                type = OpenLayers.Filter.Logical.OR;
+                            }
+                            filter.filters = [
+                                new OpenLayers.Filter.Logical({
+                                    type: type,
+                                    filters: [child]
+                                })
+                            ];
+                        }
+                    }
+                    break;
+                default:
+                    // non-logical filters get wrapped
+                    filter = this.wrapFilter(filter);
+                    break;
+            }
+        }
+        return filter;
+    },
+
+<span id='GXC-panel-FilterBuilder-method-createDefaultFilter'>    createDefaultFilter: function() {
+</span>        return new OpenLayers.Filter.Comparison({
+                            matchCase: !this.caseInsensitiveMatch});
+    },
+
+<span id='GXC-panel-FilterBuilder-method-wrapFilter'>    /**
+</span>     *  Given a non-logical filter, this creates parent filters depending on
+     *  the ``defaultBuilderType``.
+     *
+     * @param {OpenLayers.Filter} filter non-logical filter
+     * @returns {OpenLayers.Filter} A wrapped version of the input filter.
+     */
+    wrapFilter: function(filter) {
+        var type;
+        if(this.defaultBuilderType === this.statics().ALL_OF) {
+            type = OpenLayers.Filter.Logical.AND;
+        } else {
+            type = OpenLayers.Filter.Logical.OR;
+        }
+        return new OpenLayers.Filter.Logical({
+            type: OpenLayers.Filter.Logical.OR,
+            filters: [
+                new OpenLayers.Filter.Logical({
+                    type: type, filters: [filter]
+                })
+            ]
+        });
+    },
+
+<span id='GXC-panel-FilterBuilder-method-addCondition'>    /**
+</span>     *  Add a new condition or group of conditions to the builder.  This
+     *  modifies the filter and adds a panel representing the new condition
+     *  or group of conditions.
+     */
+    addCondition: function(group) {
+        var filter, type;
+        if(group) {
+            type = &quot;gxc_panel_filterbuilder&quot;;
+            filter = this.wrapFilter(this.createDefaultFilter());
+        } else {
+            type = &quot;gxc_form_filterfield&quot;;
+            filter = this.createDefaultFilter();
+        }
+        var newChild = this.newRow({
+            xtype: type,
+            filter: filter,
+            columnWidth: 1,
+            attributes: this.attributes,
+            allowBlank: group ? undefined : this.allowBlank,
+            customizeFilterOnInit: group &amp;&amp; false,
+            caseInsensitiveMatch: this.caseInsensitiveMatch,
+            listeners: {
+                change: function() {
+                    this.fireEvent(&quot;change&quot;, this);
+                },
+                scope: this
+            }
+        });
+        this.childFilterContainer.add(newChild);
+        this.filter.filters[0].filters.push(filter);
+        this.childFilterContainer.doLayout();
+    },
+
+<span id='GXC-panel-FilterBuilder-method-removeCondition'>    /**
+</span>     *  Remove a condition or group of conditions from the builder.  This
+     *  modifies the filter and removes the panel representing the condition
+     *  or group of conditions.
+     *
+     * @private
+     */
+    removeCondition: function(item, filter) {
+        var parent = this.filter.filters[0].filters;
+        if(parent.length &gt; 0) {
+            Ext.Array.remove(parent, filter);
+            this.childFilterContainer.remove(item, true);
+        }
+        if(parent.length === 0) {
+            this.addCondition();
+        }
+        this.fireEvent(&quot;change&quot;, this);
+    },
+
+<span id='GXC-panel-FilterBuilder-method-createBuilderTypeCombo'>    createBuilderTypeCombo: function() {
+</span>        var statics = this.statics(),
+            types = this.allowedBuilderTypes || [
+            statics.ANY_OF,
+            statics.ALL_OF,
+            statics.NONE_OF
+        ];
+        var numTypes = types.length;
+        var data = new Array(numTypes);
+        var type;
+        for(var i=0; i&lt;numTypes; ++i) {
+            type = types[i];
+            data[i] = [type, this.builderTypeNames[type]];
+        }
+        return {
+            xtype: &quot;combo&quot;,
+            store: new Ext.data.SimpleStore({
+                data: data,
+                fields: [&quot;value&quot;, &quot;name&quot;]
+            }),
+            value: this.builderType,
+            ref: &quot;../../builderTypeCombo&quot;,
+            displayField: &quot;name&quot;,
+            valueField: &quot;value&quot;,
+            triggerAction: &quot;all&quot;,
+            mode: &quot;local&quot;,
+            listeners: {
+                select: function(combo, records) {
+                    this.changeBuilderType(records[0].get(&quot;value&quot;));
+                    this.fireEvent(&quot;change&quot;, this);
+                },
+                scope: this
+            },
+            width: 60 // TODO: move to css
+        };
+    },
+
+<span id='GXC-panel-FilterBuilder-method-changeBuilderType'>    /**
+</span>     *  Alter the filter types when the filter type combo changes.
+     *
+     * @param {Integer} Filter type constant.
+     *
+     * @private
+     */
+    changeBuilderType: function(type) {
+        if(type !== this.builderType) {
+            this.builderType = type;
+            var child = this.filter.filters[0],
+                statics = this.statics();
+            switch(type) {
+                case statics.ANY_OF:
+                    this.filter.type = OpenLayers.Filter.Logical.OR;
+                    child.type = OpenLayers.Filter.Logical.OR;
+                    break;
+                case statics.ALL_OF:
+                    this.filter.type = OpenLayers.Filter.Logical.OR;
+                    child.type = OpenLayers.Filter.Logical.AND;
+                    break;
+                case statics.NONE_OF:
+                    this.filter.type = OpenLayers.Filter.Logical.NOT;
+                    child.type = OpenLayers.Filter.Logical.OR;
+                    break;
+                case statics.NOT_ALL_OF:
+                    this.filter.type = OpenLayers.Filter.Logical.NOT;
+                    child.type = OpenLayers.Filter.Logical.AND;
+                    break;
+            }
+        }
+    },
+
+<span id='GXC-panel-FilterBuilder-method-createChildFiltersPanel'>    /**
+</span>     *  Create the panel that holds all conditions and condition groups.  Since
+     *  this is called after this filter has been customized, we always
+     *  have a logical filter with one child filter - that child is also
+     *  a logical filter.
+     *
+     * @Ext.Container
+     */
+    createChildFiltersPanel: function() {
+        this.childFilterContainer = new Ext.Container();
+        var grandchildren = this.filter.filters[0].filters;
+        var grandchild;
+        for(var i=0, len=grandchildren.length; i&lt;len; ++i) {
+            grandchild = grandchildren[i];
+            var fieldCfg = {
+                xtype: &quot;gxc_form_filterfield&quot;,
+                allowBlank: this.allowBlank,
+                columnWidth: 1,
+                filter: grandchild,
+                attributes: this.attributes,
+                listeners: {
+                    change: function() {
+                        this.fireEvent(&quot;change&quot;, this);
+                    },
+                    scope: this
+                }
+            };
+            var containerCfg = Ext.applyIf(
+                grandchild instanceof OpenLayers.Filter.Logical ?
+                    {
+                        xtype: &quot;gxp_filterbuilder&quot;
+                    } : {
+                        xtype: &quot;container&quot;,
+                        layout: &quot;form&quot;,
+                        hideLabels: true,
+                        items: fieldCfg
+                    }, fieldCfg);
+
+            this.childFilterContainer.add(this.newRow(containerCfg));
+        }
+        return this.childFilterContainer;
+    },
+
+<span id='GXC-panel-FilterBuilder-method-newRow'>    /**
+</span>     *  Generate a &quot;row&quot; for the child filters panel.  This couples another
+     *  filter panel or filter builder with a component that allows for
+     *  condition removal.
+     *
+     * @returns {Ext.Container} A container that serves as a row in a child
+     *  filters panel.
+     */
+    newRow: function(filterContainer) {
+        var ct = new Ext.Container({
+            layout: &quot;column&quot;,
+            items: [{
+                xtype: &quot;container&quot;,
+                width: 28,
+                height: 26,
+                style: &quot;padding-left: 2px&quot;,
+                items: {
+                    xtype: &quot;button&quot;,
+                    text: &quot;-&quot;,
+                    tooltip: this.removeConditionText,
+                    handler: function(btn){
+                        this.removeCondition(ct, filterContainer.filter);
+                    },
+                    scope: this
+                }
+            }, filterContainer]
+        });
+        return ct;
+    },
+
+<span id='GXC-panel-FilterBuilder-method-getBuilderType'>    /**
+</span>     * Determine the builder type based on this filter.
+     *
+     * @returns {Integer} builder type constant.
+     */
+    getBuilderType: function() {
+        var type = this.defaultBuilderType;
+        if(this.filter) {
+            var child = this.filter.filters[0]
+                statics = this.statics();
+            if(this.filter.type === OpenLayers.Filter.Logical.NOT) {
+                switch(child.type) {
+                    case OpenLayers.Filter.Logical.OR:
+                        type = statics.NONE_OF;
+                        break;
+                    case OpenLayers.Filter.Logical.AND:
+                        type = statics.NOT_ALL_OF;
+                        break;
+                }
+            } else {
+                switch(child.type) {
+                    case OpenLayers.Filter.Logical.OR:
+                        type = statics.ANY_OF;
+                        break;
+                    case OpenLayers.Filter.Logical.AND:
+                        type = statics.ALL_OF;
+                        break;
+                }
+            }
+        }
+        return type;
+    },
+
+<span id='GXC-panel-FilterBuilder-method-setFilter'>    /**
+</span>     *  Change the filter associated with this instance.
+     *
+     * @param {OpenLayers.Filter} filter
+     */
+    setFilter: function(filter) {
+        this.filter = this.customizeFilter(filter);
+        this.changeBuilderType(this.getBuilderType());
+        this.builderTypeCombo.setValue(this.builderType);
+        this.form.remove(this.childFilterContainer);
+        this.form.insert(1, this.createChildFiltersPanel());
+        this.form.doLayout();
+        this.fireEvent(&quot;change&quot;, this);
+    }
+
+});
+</pre>
+</body>
+</html>

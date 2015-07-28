@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+/*
+ * @include OpenLayers/Format/CQL.js
+ * @requires GeoExt/Version.js
+ */
+
+<span id='GeoExt-data-VectorStyleModel'>/**
+</span> * A specific model for CQL Style Rules.
+ *
+ * Preconfigured with an Ajax proxy and a JSON reader.
+ *
+ * @class GeoExt.data.VectorStyleModel
+ */
+Ext.define(&#39;GeoExt.data.VectorStyleModel&#39;, {
+    extend : &#39;Ext.data.Model&#39;,
+    requires : [
+        &#39;Ext.data.JsonReader&#39;,
+        &#39;GeoExt.Version&#39;
+    ],
+<span id='GeoExt-data-VectorStyleModel-property-fields'>    fields : [{
+</span>        name : &quot;elseFilter&quot;,
+        defaultValue : null
+    }, {
+        name : &quot;label&quot;,
+        mapping : &quot;title&quot;,
+        type : &#39;string&#39;
+    }, &quot;name&quot;, &quot;description&quot;, &quot;minScaleDenominator&quot;, &quot;maxScaleDenominator&quot;, {
+        name : &quot;symbolizers&quot;,
+        convert : function(symbolizers, rec) {
+            //symbolizers should be an array of OpenLayers.Symbolizer objects
+            symbolizers = Ext.isArray(symbolizers) ? symbolizers : [symbolizers];
+            for(var i = 0; i &lt; symbolizers.length; i++) {
+                var symbolizer = symbolizers[i];
+                //due to the way that the initial data provided to a store is processed,
+                //the instanceof test no longer works and we need to clone the symbolizer
+                //for it to be recognized as a symbolizer class again
+                if(!( symbolizer instanceof OpenLayers.Symbolizer) &amp;&amp; symbolizer.CLASS_NAME &amp;&amp; symbolizer.clone) {
+                    symbolizers[i] = symbolizer.clone();
+                }
+            }
+            return symbolizers;
+        }
+    }, {
+        name : &quot;filter&quot;,
+        convert : function(filter) {
+            if( typeof filter === &quot;string&quot;) {
+                filter = filter ? OpenLayers.Format.CQL.prototype.read(filter) : null;
+            }
+            return filter;
+        },
+        defaultValue : null
+    }],
+<span id='GeoExt-data-VectorStyleModel-cfg-proxy'>    proxy : {
+</span>        type : &#39;memory&#39;,
+        // TODO GeoExt ist not defined on construction so we&#39;re checking the ExtJS-Version without
+        // GeoExt.isExt4. Maybe this can be improved/beautified
+        reader: (function(){
+            if (Ext.versions.extjs.major &gt; 4) {
+                return {
+                    type: &#39;json&#39;,
+                    rootProperty: &#39;rules&#39;
+                }
+            } else {
+                return {
+                    type: &#39;json&#39;,
+                    root: &#39;rules&#39;
+                }
+            }
+        })()
+    }
+});
+</pre>
+</body>
+</html>

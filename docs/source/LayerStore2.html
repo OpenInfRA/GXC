@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-data-LayerStore'>/**
+</span> * Basic extend of the {@link GeoExt.data.LayerStore} that opts for the GXC
+ * provided {@link GXC.model.Layer} model.
+ */
+Ext.define(&#39;GXC.data.LayerStore&#39;, {
+    extend: &#39;GeoExt.data.LayerStore&#39;,
+    requires: [
+        &#39;GXC.model.Layer&#39;
+    ],
+<span id='GXC-data-LayerStore-cfg-model'>    model: &#39;GXC.model.Layer&#39;,
+</span>
+<span id='GXC-data-LayerStore-cfg-listeners'>    listeners: {
+</span><span id='GXC-data-LayerStore-method-add'>        /**
+</span>         * Persists layer state to Local Storage.
+         *
+         * @inheritDoc
+         */
+        add: function(store, records, index) {
+            Ext.state.Manager.set(&#39;gxc-sources&#39;, this.convertToSources());
+        },
+
+<span id='GXC-data-LayerStore-method-remove'>        /**
+</span>         * Persists layer state to Local Storage.
+         *
+         * @inheritDoc
+         */
+        remove: function(store, record, index) {
+            Ext.state.Manager.set(&#39;gxc-sources&#39;, this.convertToSources());
+        }
+    },
+
+<span id='GXC-data-LayerStore-method-convertToSources'>    /**
+</span>     * Converts the state of the store to an array of GXC.model.LayerSource
+     * configurations.
+     * Temporary layers are not persisted.
+     *
+     * @return {[Object]}
+     */
+    convertToSources: function() {
+        var sources = [];
+
+        this.each(function(record) {
+            var layer = record.getLayer(),
+                raster = layer.CLASS_NAME === &#39;OpenLayers.Layer.WMS&#39;;
+
+            if (!layer.displayInLayerSwitcher || (!raster &amp;&amp; !layer.protocol)) {
+                return;
+            }
+
+            sources.push({
+                url: layer.url || layer.protocol.url,
+                type: raster ? &#39;WMS&#39; : &#39;WFS&#39;,
+                version: raster ? layer.params[&#39;VERSION&#39;] : layer.protocol.version,
+                layer: layer.metadata.name,
+                visibility: layer.getVisibility(),
+                opacity: layer.opacity
+            });
+        });
+
+        return sources;
+    }
+});
+</pre>
+</body>
+</html>

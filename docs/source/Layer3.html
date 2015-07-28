@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-Layer'>/**
+</span> * Allows to open a menu to add new layers to the map view.
+ */
+Ext.define(&#39;GXC.button.Layer&#39;, {
+    extend: &#39;GXC.button.ViewDelegator&#39;,
+    requires: [
+        &#39;GXC.panel.Layer&#39;,
+        &#39;GXC.panel.LayerFileDrop&#39;
+    ],
+
+    alias: &#39;widget.gxc_button_layer&#39;,
+
+<span id='GXC-button-Layer-cfg-tooltip'>    tooltip: &#39;Add Layer&#39;,
+</span>
+<span id='GXC-button-Layer-property-iconCls'>    iconCls: &#39;gxc-icon-add&#39;,
+</span>
+<span id='GXC-button-Layer-property-txtWindowTitle'>    txtWindowTitle: &#39;Add Layer&#39;,
+</span><span id='GXC-button-Layer-property-txtServiceTabTitle'>    txtServiceTabTitle: &#39;OWS Service&#39;,
+</span><span id='GXC-button-Layer-property-txtFileTabTitle'>    txtFileTabTitle: &#39;Local vector file&#39;,
+</span>
+<span id='GXC-button-Layer-method-initComponent'>    initComponent: function() {
+</span>        this.dConfig = {
+            title: this.txtWindowTitle,
+            width: 600,
+            height: 500,
+            layout: &#39;fit&#39;,
+            items: [{
+                xtype: &#39;tabpanel&#39;,
+                items: [{
+                    xtype: &#39;gxc_panel_add&#39;,
+                    title: this.txtServiceTabTitle
+                }, {
+                    xtype: &#39;gxc_panel_layerfiledrop&#39;,
+                    title: this.txtFileTabTitle
+                }]
+            }]
+        };
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

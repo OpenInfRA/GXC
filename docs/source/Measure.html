@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-Measure'>/**
+</span> * An abstract base class for buttons that handle OpenLayers measurement controls.
+ */
+Ext.define(&#39;GXC.button.Measure&#39;, {
+    extend: &#39;GXC.button.OlButton&#39;,
+    requires: [
+        &#39;GXC.button.MeasureViewController&#39;
+    ],
+
+    alias: &#39;widget.gxc_button_measure&#39;,
+
+<span id='GXC-button-Measure-property-controller'>    controller: &#39;GXC.button.MeasureViewController&#39;,
+</span>
+<span id='GXC-button-Measure-property-inject'>    inject: [
+</span>        &#39;mapService&#39;
+    ],
+
+<span id='GXC-button-Measure-cfg-enableToggle'>    enableToggle: true,
+</span>
+<span id='GXC-button-Measure-cfg-toggleGroup'>    /**
+</span>     * Default toggle group for gxc interactions.
+     * @cfg {String}
+     */
+    toggleGroup: &#39;gxc_interaction&#39;,
+
+<span id='GXC-button-Measure-property-handlerType'>    /**
+</span>     * The OpenLayers.Handler type this control will use.
+     * @type {String}
+     */
+    handlerType: null,
+
+<span id='GXC-button-Measure-cfg-txtMeasureTitle'>    /**
+</span>     * Title of measurement notifications.
+     * @cfg {String}
+     */
+    txtMeasureTitle: &#39;Measurement&#39;,
+
+<span id='GXC-button-Measure-cfg-txtMeasurePath'>    /**
+</span>     * Notification body of path measurements.
+     * {0} - length
+     * {1} - Metric unit
+     *
+     * @cfg {String}
+     */
+    txtMeasurePath: &#39;{0} {1}&#39;,
+
+<span id='GXC-button-Measure-cfg-txtMeasurePolygon'>    /**
+</span>     * Notification body of polygon measurements.
+     * {0} - Perimeter
+     * {1} - Metric unit
+     * {2} - Area
+     *
+     * @cfg {String}
+     */
+    txtMeasurePolygon: &#39;Perimeter: {0} {1}&lt;br&gt;Area: {2} {1}&lt;sup&gt;2&lt;/sup&gt;&#39;,
+
+<span id='GXC-button-Measure-method-initComponent'>    initComponent: function(config) {
+</span>        config = config || {};
+
+        if (!this.control &amp;&amp; this.handlerType) {
+            this.initControl();
+        }
+
+        this.map = this.mapService.getMap();
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-Measure-method-initControl'>    initControl: function() {
+</span>        var styleMap = new OpenLayers.StyleMap({
+            &#39;default&#39;: new OpenLayers.Style(null, {
+                rules: [new OpenLayers.Rule({
+                    symbolizer: {
+                        &#39;Point&#39;: {
+                            pointRadius: 4,
+                            graphicName: &#39;square&#39;,
+                            fillColor: &#39;white&#39;,
+                            fillOpacity: 1,
+                            strokeWidth: 1,
+                            strokeOpacity: 1,
+                            strokeColor: &#39;#333333&#39;
+                        },
+                        &#39;Line&#39;: {
+                            strokeWidth: 3,
+                            strokeOpacity: 1,
+                            strokeColor: &#39;#666666&#39;,
+                            strokeDashstyle: &#39;dash&#39;
+                        },
+                        &#39;Polygon&#39;: {
+                            strokeWidth: 2,
+                            strokeOpacity: 1,
+                            strokeColor: &#39;#666666&#39;,
+                            fillColor: &#39;white&#39;,
+                            fillOpacity: 0.3
+                        }
+                    }
+                })]
+            })
+        });
+
+        this.control = new OpenLayers.Control.Measure(
+            OpenLayers.Handler[this.handlerType], {
+            geodesic: true,
+            persist: true,
+            handlerOptions: {
+                layerOptions: {
+                    styleMap: styleMap
+                }
+            }
+        });
+    }
+});
+</pre>
+</body>
+</html>

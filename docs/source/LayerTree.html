@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-model-LayerTree'>/**
+</span> * Model representing layer tree nodes in a tree view.
+ * It extends the {@link GeoExt.data.LayerTreeModel} to present the loading
+ * state of the underlaying OpenLayers Layer.
+ */
+Ext.define(&#39;GXC.model.LayerTree&#39;, {
+    extend: &#39;GeoExt.data.LayerTreeModel&#39;,
+
+<span id='GXC-model-LayerTree-property-fields'>    fields: [{
+</span>        name: &#39;name&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;prefix&#39;,
+        mapping: &#39;metadata.prefix&#39;,
+        convert: function(v, record) {
+            if (v === record.get(&#39;name&#39;)) {
+                return &#39;&#39;;
+            } else {
+                return v;
+            }
+        }
+    }, {
+        name: &#39;loading&#39;,
+        type: &#39;boolean&#39;,
+        persist: false,
+        defaultValue: false
+    }, {
+        name: &#39;query&#39;,
+        type: &#39;boolean&#39;,
+        persist: false,
+        defaultValue: false
+    }],
+
+<span id='GXC-model-LayerTree-method-constructor'>    /**
+</span>     * After calling the parent constructor this implementation binds to
+     * the &quot;loading&quot; events of the records underlaying Layer instance.
+     */
+    constructor: function() {
+        this.callParent(arguments);
+
+        var layer = this.get(&#39;layer&#39;);
+
+        // used to trigger the spinner load icon in the tree when underlaying
+        // layer is retrieving new data
+        if (layer) {
+            if (layer.loading) {
+                this.set(&#39;loading&#39;, true);
+            }
+            layer.events.on({
+                &#39;loadstart&#39;: this.setLoading,
+                &#39;loadend&#39;: this.unsetLoading,
+                scope: this
+            });
+        }
+    },
+
+<span id='GXC-model-LayerTree-method-destroy'>    /**
+</span>     * Remove added event listeners.
+     */
+    destroy: function() {
+        var layer = this.get(&#39;layer&#39;);
+
+        if (layer) {
+            layer.events.un({
+                &#39;loadstart&#39;: this.setLoading,
+                &#39;loadend&#39;: this.unsetLoading,
+                scope: this
+            });
+        }
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-model-LayerTree-method-setLoading'>    setLoading: function() {
+</span>        this.set(&#39;loading&#39;, true);
+    },
+
+<span id='GXC-model-LayerTree-method-unsetLoading'>    unsetLoading: function() {
+</span>        this.set(&#39;loading&#39;, false);
+    }
+});
+</pre>
+</body>
+</html>

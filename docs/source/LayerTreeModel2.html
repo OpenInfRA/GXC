@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-data-LayerTreeModel'>/**
+</span> * Extends the {@link GeoExt.data.LayerTreeModel} to include GXC specific
+ * fields for each layer.
+ */
+Ext.define(&#39;GXC.data.LayerTreeModel&#39;, {
+    extend: &#39;GeoExt.data.LayerTreeModel&#39;,
+<span id='GXC-data-LayerTreeModel-property-fields'>    fields: [{
+</span>        name: &#39;name&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;inRange&#39;,
+        type: &#39;bool&#39;,
+        defaultValue: true
+    }, {
+        name: &#39;inViewport&#39;,
+        type: &#39;bool&#39;,
+        defaultValue: true
+    }, {
+        name: &#39;loading&#39;,
+        type: &#39;boolean&#39;,
+        persist: false,
+        defaultValue: false
+    }, {
+        name: &#39;iconCls&#39;,
+        type: &#39;string&#39;,
+        convert: function(v, record) {
+            var layer = record.get(&#39;layer&#39;),
+                cls = &#39;&#39;;
+
+            if (layer) {
+                cls += &#39;gxc-icon-layer&#39;;
+            }
+
+            if (layer.CLASS_NAME === &#39;OpenLayers.Layer.Vector&#39;) {
+                cls += &#39; gxc-icon-vector&#39;;
+            } else {
+                if (layer.metadata &amp;&amp; layer.metadata.nestedLayers &amp;&amp;
+                    layer.metadata.nestedLayers.length) {
+                    cls += &#39; gxc-icon-layer-group&#39;;
+                } else {
+                    cls += &#39; gxc-icon-raster&#39;;
+                }
+            }
+
+            if (!record.supportsMapProjection()) {
+                cls = &#39;gxc-icon-layer gxc-icon-error&#39;;
+            }
+
+            return cls;
+        }
+    }, {
+        name: &#39;qtip&#39;,
+        type: &#39;string&#39;,
+        convert: function(v, record) {
+            var text = &#39;&#39;,
+                layer = record.get(&#39;layer&#39;);
+
+            if (!record.get(&#39;inRange&#39;)) {
+                text += &#39;&lt;b&gt;Layer is out of range.&lt;/b&gt;&lt;br&gt;&#39;;
+            }
+            if (!record.get(&#39;inViewport&#39;)) {
+                text += &#39;&lt;b&gt;Layer is out of the current map extent.&lt;/b&gt;&lt;br&gt;&#39;;
+            }
+
+            if (!record.supportsMapProjection()) {
+                text += &#39;&lt;b&gt;Layer does not support map projection.&lt;/b&gt;&lt;br&gt;&#39;;
+            }
+
+            if (layer &amp;&amp; layer.metadata &amp;&amp; layer.metadata[&#39;abstract&#39;]) {
+                text += layer.metadata[&#39;abstract&#39;];
+            }
+
+            return text;
+        }
+    }],
+
+<span id='GXC-data-LayerTreeModel-method-set'>    /**
+</span>     * Overrides the models set function to auto-update qtip of the layer node.
+     *
+     * @param {String} fieldName
+     * @param {Any} value
+     */
+    set: function(fieldName, value) {
+        this.callParent(arguments);
+
+        if (fieldName === &#39;inRange&#39; || fieldName === &#39;inViewport&#39;) {
+            this.set(&#39;qtip&#39;);
+        }
+    },
+
+<span id='GXC-data-LayerTreeModel-method-supportsMapProjection'>    /**
+</span>     * Helper method to check if layer supports the maps projection.
+     * @return {Boolean} True if srs is supported.
+     */
+    supportsMapProjection: function() {
+        var layer = this.get(&#39;layer&#39;),
+            supported = true;
+
+        if (layer &amp;&amp;
+            layer.metadata &amp;&amp;
+            layer.metadata.srs &amp;&amp;
+            !layer.metadata.srs[layer.map.getProjection()]) {
+            supported = false;
+        }
+
+        return supported;
+    }
+});
+</pre>
+</body>
+</html>

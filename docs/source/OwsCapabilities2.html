@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-service-OwsCapabilities'>/**
+</span> * A service that allows to retrieve OWS capabilities.
+ */
+Ext.define(&#39;GXC.service.OwsCapabilities&#39;, {
+    requires: [
+        &#39;Deft.promise.Deferred&#39;,
+        &#39;GXC.data.WfsCapabilitiesStore&#39;,
+        &#39;GXC.data.WmsCapabilitiesStore&#39;,
+        &#39;GXC.Cache&#39;
+    ],
+
+<span id='GXC-service-OwsCapabilities-property-cached'>    /**
+</span>     * If the the service should cache remote requests. Defaults to true.
+     * @type {Boolean}
+     */
+    cached: true,
+
+<span id='GXC-service-OwsCapabilities-property-localCache'>    /**
+</span>     * A cache that may be used to improve performance
+     * interacting with many different layers from the same host.
+     * @type {Object}
+     */
+    localCache: null,
+
+<span id='GXC-service-OwsCapabilities-method-constructor'>    /**
+</span>     * @inheritdoc
+     */
+    constructor: function(config) {
+        if (config === null) {
+            config = {};
+        }
+        this.initConfig(config);
+
+        // init the cache
+        this.localCache = Ext.create(&#39;GXC.Cache&#39;);
+
+        return this.callParent(arguments);
+    },
+
+<span id='GXC-service-OwsCapabilities-method-loadLayer'>    /**
+</span>     * Retrieves a layer by name from a capabilities response. Returns a promise
+     * of the layer.
+     *
+     * @param  {String} name    Name of the layer.
+     * @param  {String} url     Url of the ows service.
+     * @param  {String} type    Type of the ows service.
+     * @param  {String} version Version string supported by the ows service.
+     * @return {Deft.Promise|OpenLayers.Layer}
+     */
+    loadLayer: function(name, url, type, version) {
+        return this.loadCapabilities(url, type, version)
+            .then(function(store) {
+                var layer = store.getLayerBy(&#39;name&#39;, name);
+                if (layer) {
+                    return layer;
+                }
+                throw Error(&#39;Layer of name &#39; + name +
+                    &#39; could not be retrieved from &#39; + type + &#39; with url &#39; + url);
+            });
+    },
+
+<span id='GXC-service-OwsCapabilities-method-loadCapabilities'>    /**
+</span>     * Loads ows capabilities as defined by provided parameters.
+     * @param  {String} url     The url of the ows service.
+     * @param  {String} type    A string defining the type of the service (WMS,WFS).
+     * @param  {String} version Version string the service supports.
+     * @return {Deft.Promise}   A promise object resolving to the loaded store.
+     */
+    loadCapabilities: function(url, type, version) {
+        var deferred = Q.defer(),
+            store;
+
+        // retrieve response from cache if any
+        if (this.localCache.exist(url)) {
+            return this.localCache.get(url);
+        } else {
+            this.localCache.set(url, deferred.promise);
+        }
+
+        type = type || &#39;WMS&#39;;
+
+        // init instance
+        store = this.getCapabilitiesStoreInstance(url, type);
+
+        // set version of the ows service
+        if (version) {
+            store.getProxy().extraParams[&#39;version&#39;] = version;
+        }
+
+        store.load({
+            callback: function(records, operation, success) {
+                if (success) {
+                    deferred.resolve(store);
+                } else {
+                    deferred.reject(&#39;Error loading capabilities: &#39; + url);
+                    this.localCache.remove(url);
+                }
+            },
+            scope: this
+        });
+
+        return deferred.promise;
+    },
+
+<span id='GXC-service-OwsCapabilities-method-getCapabilitiesStoreInstance'>    /**
+</span>     * Returns the appropriate OwsCapabilities implementation for a layer source
+     * record.
+     *
+     * @param  {String} url     The url of the ows service.
+     * @param  {String} type    The ows type the store should interact with.
+     * @return {GXC.store.OwsStore}
+     */
+    getCapabilitiesStoreInstance: function(url, type) {
+        var gxcClass;
+
+        switch (type.toLowerCase()) {
+            case &#39;wms&#39;:
+                gxcClass = &#39;GXC.data.WmsCapabilitiesStore&#39;;
+                break;
+            case &#39;wfs&#39;:
+                gxcClass = &#39;GXC.data.WfsCapabilitiesStore&#39;;
+                break;
+            default:
+                Ext.Error.raise({
+                    msg: &#39;OWS Type not supported.&#39;,
+                    type: type
+                });
+        }
+
+        return Ext.create(gxcClass, {
+            url: url
+        });
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-Cache'>/**
+</span> * A simple cache of data that may be used as a local cache of remote data
+ * responses.
+ */
+Ext.define(&#39;GXC.Cache&#39;, {
+
+<span id='GXC-Cache-property-timeout'>    /**
+</span>     * Timeput period that the entry is considered as existent.
+     * @type {Number}
+     */
+    timeout: 30000,
+
+<span id='GXC-Cache-property-data'>    /**
+</span>     * The actual cached data.
+     *
+     * @type {Boolean}
+     * @private
+     */
+    data: null,
+
+<span id='GXC-Cache-method-constructor'>    /**
+</span>     * @inheritDoc
+     */
+    constructor: function() {
+        this.data = {};
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-Cache-method-remove'>    /**
+</span>     * Remove an entry by key.
+     * @param  {String} key [description]
+     */
+    remove: function (key) {
+        delete this.data[key];
+    },
+
+<span id='GXC-Cache-method-exist'>    /**
+</span>     * Checks if an entry exists for the given key.
+     * @param  {String} key
+     * @return {Boolean}
+     */
+    exist: function (key) {
+        return !!this.data[key] &amp;&amp;
+                ((new Date().getTime() - this.data[key]._) &lt; this.timeout);
+    },
+
+<span id='GXC-Cache-method-get'>    /**
+</span>     * Returns an entry by key.
+     * @param  {String} key
+     * @return {Any}
+     */
+    get: function (key) {
+        return this.data[key].data;
+    },
+
+<span id='GXC-Cache-method-set'>    /**
+</span>     * Sets value by key.
+     * @param {String} key
+     * @param {Any} data
+     */
+    set: function (key, data) {
+        this.remove(key);
+        this.data[key] = {
+            _: new Date().getTime(),
+            data: data
+        };
+    }
+});
+</pre>
+</body>
+</html>

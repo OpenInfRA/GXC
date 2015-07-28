@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;GXC.panel.WmcImport&#39;, {
+    extend: &#39;Ext.form.Panel&#39;,
+    requires: [
+        &#39;GXC.form.WmcImportViewController&#39;
+    ],
+
+    controller: &#39;GXC.form.WmcImportViewController&#39;,
+
+    alias: &#39;widget.gxc_panel_wmcimport&#39;,
+
+    bodyPadding: &#39;10px&#39;,
+
+    layout: &#39;fit&#39;,
+
+<span id='global-property-format'>    /**
+</span>     * The OpenLayers format the WMC document will be read with.
+     * @type {OpenLayers.Format.WMC}
+     */
+    format: null,
+
+    initComponent: function() {
+        var items = [{
+                itemId: &#39;wmcField&#39;,
+                fieldLabel: &#39;WMC document&#39;,
+                labelAlign: &#39;top&#39;,
+                xtype: &#39;textarea&#39;
+            }],
+            bbar = [{
+                itemId: &#39;loadButton&#39;,
+                disabled: true,
+                text: &#39;Load&#39;
+            }, {
+                itemId: &#39;clearButton&#39;,
+                text: &#39;Clear&#39;
+            }];
+
+        Ext.apply(this, {
+            items: items,
+            bbar: bbar,
+            format: new OpenLayers.Format.WMC()
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

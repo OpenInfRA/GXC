@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-NavEntry'>/**
+</span> * A simple button that allows to move to the first point in the navigation
+ * history of the map.
+ */
+Ext.define(&#39;GXC.button.NavEntry&#39;, {
+    extend: &#39;GXC.button.Button&#39;,
+
+    alias: &#39;widget.gxc_button_naventry&#39;,
+
+<span id='GXC-button-NavEntry-property-inject'>    inject: [
+</span>        &#39;mapService&#39;
+    ],
+
+<span id='GXC-button-NavEntry-cfg-iconCls'>    iconCls: &#39;gxc-icon-entry&#39;,
+</span>
+<span id='GXC-button-NavEntry-cfg-tooltip'>    tooltip: &#39;Back to first map extent&#39;,
+</span>
+<span id='GXC-button-NavEntry-property-map'>    map: null,
+</span><span id='GXC-button-NavEntry-property-control'>    control: null,
+</span>
+<span id='GXC-button-NavEntry-method-initComponent'>    initComponent: function(config) {
+</span>        var nav, navCtrl;
+        config = config || {};
+
+        this.map = config.map || this.mapService.getMap();
+
+        nav = this.map.getControlsByClass(&#39;OpenLayers.Control.NavigationHistory&#39;);
+        if (!nav.length) {
+            navCtrl = new OpenLayers.Control.NavigationHistory();
+            this.map.addControl(navCtrl);
+            nav = navCtrl;
+        } else {
+            nav = nav[0];
+        }
+
+        this.control = nav;
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-NavEntry-method-handler'>    handler: function() {
+</span>        var stack = this.control.previousStack,
+            length = stack.length,
+            entryPoint = stack[length - 1];
+
+        this.control.restore(entryPoint);
+    }
+});
+</pre>
+</body>
+</html>

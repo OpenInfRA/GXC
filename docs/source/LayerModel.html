@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+/*
+ * @requires GeoExt/Version.js
+ */
+
+<span id='GeoExt-data-LayerModel'>/**
+</span> * The layer model class used by the stores.
+ *
+ * @class GeoExt.data.LayerModel
+ */
+Ext.define(&#39;GeoExt.data.LayerModel&#39;,{
+    alternateClassName: &#39;GeoExt.data.LayerRecord&#39;,
+    extend: &#39;Ext.data.Model&#39;,
+    requires: [
+        &#39;Ext.data.proxy.Memory&#39;,
+        &#39;Ext.data.reader.Json&#39;,
+        &#39;GeoExt.Version&#39;
+    ],
+    alias: &#39;model.gx_layer&#39;,
+    inheritableStatics: {
+<span id='GeoExt-data-LayerModel-static-method-createFromLayer'>        /**
+</span>         * Convenience function for creating new layer model instance object
+         * using a layer object.
+         *
+         * @param {OpenLayers.Layer} layer
+         * @return {GeoExt.data.LayerModel}
+         * @static
+         */
+        createFromLayer: function(layer) {
+            return this.getProxy().reader.readRecords([layer]).records[0];
+        }
+    },
+<span id='GeoExt-data-LayerModel-property-fields'>    fields: [
+</span>        &#39;id&#39;,
+        {name: &#39;title&#39;, type: &#39;string&#39;, mapping: &#39;name&#39;},
+        {name: &#39;legendURL&#39;, type: &#39;string&#39;, mapping: &#39;metadata.legendURL&#39;},
+        {name: &#39;hideTitle&#39;, type: &#39;bool&#39;, mapping: &#39;metadata.hideTitle&#39;},
+        {name: &#39;hideInLegend&#39;, type: &#39;bool&#39;, mapping: &#39;metadata.hideInLegend&#39;}
+    ],
+<span id='GeoExt-data-LayerModel-cfg-proxy'>    proxy: {
+</span>        type: &#39;memory&#39;,
+        reader: {
+            type: &#39;json&#39;
+        }
+    },
+<span id='GeoExt-data-LayerModel-method-getLayer'>    /**
+</span>     * Returns the {OpenLayers.Layer} layer object used in this model instance.
+     *
+     * @return {OpenLayers.Layer}
+     */
+    getLayer: function() {
+        return this.raw;
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-MeasureViewController'>/**
+</span> * A controller that manages OpenLayers measure controls and notifies the
+ * user of measure events.
+ */
+Ext.define(&#39;GXC.button.MeasureViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+<span id='GXC-button-MeasureViewController-cfg-inject'>    /**
+</span>     * Class is injected with
+     * * notificationService
+     *
+     * @cfg {Array}
+     */
+    inject: [
+        &#39;notificationService&#39;
+    ],
+
+<span id='GXC-button-MeasureViewController-property-control'>    control: {
+</span>        view: {
+            toggle: &#39;onToggle&#39;
+        }
+    },
+
+<span id='GXC-button-MeasureViewController-property-popup'>    /**
+</span>     * The window popup the measurement is shown in.
+     * @type {Ext.window.Window}
+     */
+    popup: null,
+
+<span id='GXC-button-MeasureViewController-method-init'>    init: function() {
+</span>        var control = this.getView().control;
+
+        control.events.on({
+            &#39;measure&#39;: this.onMeasure,
+            &#39;measurepartial&#39;: this.onMeasure,
+            scope: this
+        });
+
+        this.popup = Ext.create(&#39;Ext.window.Window&#39;, {
+            bodyPadding: 10,
+            closable: false,
+            title: this.getView().txtMeasureTitle
+        });
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-MeasureViewController-method-onToggle'>    onToggle: function(button, pressed) {
+</span>        if (!pressed) {
+            this.popup.hide();
+        }
+    },
+
+<span id='GXC-button-MeasureViewController-method-onMeasure'>    /**
+</span>     * Called when a measurement completes to show results.
+     */
+    onMeasure: function(event) {
+        if (event.measure &gt; 0) {
+            this.popup.update(this.makeString(event));
+            this.popup.show();
+        }
+    },
+
+<span id='GXC-button-MeasureViewController-method-makeString'>    /**
+</span>     * Makes a string out of measurement results.
+     * @param  {OpenLayers.Event} event
+     * @return {String} The result string
+     */
+    makeString: function(event) {
+        var view = this.getView(),
+            metric = event.measure,
+            metricUnit = event.units,
+            output;
+
+        if (event.order === 2) {
+            output = Ext.util.Format.format(view.txtMeasurePolygon,
+                event.object.getBestLength(event.geometry)[0].toFixed(2),
+                metricUnit,
+                metric.toFixed(2)
+            );
+        } else {
+            output = Ext.util.Format.format(view.txtMeasurePath,
+                metric.toFixed(2),
+                metricUnit
+            );
+        }
+
+        return output;
+    },
+
+<span id='GXC-button-MeasureViewController-method-destroy'>    destroy: function() {
+</span>        var ctrls = this.getView().measureControls;
+
+        for (var key in ctrls) {
+            ctrls[key].events.un({
+                &#39;measure&#39;: this.onMeasure,
+                &#39;measurepartial&#39;: this.onMeasure,
+                scope: this
+            });
+        }
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

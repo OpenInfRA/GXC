@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-WmcImportViewController'>/**
+</span> * ViewController to the GXC.panel.WmcImport class.
+ */
+Ext.define(&#39;GXC.form.WmcImportViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+<span id='GXC-form-WmcImportViewController-property-inject'>    inject: [
+</span>        &#39;mapService&#39;,
+        &#39;layerService&#39;
+    ],
+
+<span id='GXC-form-WmcImportViewController-property-control'>    control: {
+</span>        wmcField: {
+            change: &#39;onWmcFieldChange&#39;
+        },
+        loadButton: {
+            click: &#39;onLoadButtonClick&#39;
+        },
+        clearButton: {
+            click: &#39;onClearButtonClick&#39;
+        }
+    },
+
+<span id='GXC-form-WmcImportViewController-method-onWmcFieldChange'>    onWmcFieldChange: function(field, value) {
+</span>        var saveBtn = this.getLoadButton();
+
+        if (value !== &#39;&#39;) {
+            saveBtn.enable();
+        } else {
+            saveBtn.disable();
+        }
+    },
+
+<span id='GXC-form-WmcImportViewController-method-onLoadButtonClick'>    onLoadButtonClick: function() {
+</span>        var view = this.getView(),
+            format = view.format,
+            wmcField = this.getWmcField(),
+            map = this.mapService.getMap(),
+            layerService = this.layerService,
+            result, layers, lyr, newLayers = [],
+            bounds;
+
+        try {
+            result = format.read(wmcField.getValue());
+            bounds = result.bounds;
+            layers = result.layersContext;
+
+            Ext.Array.each(result.layersContext || [], function(lc) {
+                var attribution = result.descriptionURL ?
+                    &#39;&lt;a href=&quot;&#39; + result.descriptionURL + &#39;&quot; target=&quot;_blank&quot;&gt;&#39; + lc.serviceTitle + &#39;&lt;/a&gt;&#39; :
+                    lc.serviceTitle;
+
+                    if (!lc.service || lc.service.toUpperCase() === &quot;OGC:WMS&quot;) {
+                        lyr = new OpenLayers.Layer.WMS(lc.title, lc.url, {
+                                layers: lc.name,
+                                version: lc.version,
+                                transparent: true
+                            },{
+                                visibility: lc.visibility,
+                                attribution: attribution,
+                                isBaseLayer: false
+                            }
+                        );
+                        newLayers.push(lyr);
+                    }
+            }, this);
+
+            Ext.Array.each(newLayers, function(l) {
+                layerService.addLayer(l);
+            }, this);
+
+            // zoom to provided extent
+            if (result.bounds &amp;&amp; result.projection) {
+                if (result.projection !== map.getProjection()) {
+                    bounds = bounds.transform(result.projection, map.getProjection());
+                }
+                map.zoomToExtent(bounds);
+            }
+        } catch (e) {
+            //
+        }
+    },
+
+<span id='GXC-form-WmcImportViewController-method-onClearButtonClick'>    onClearButtonClick: function() {
+</span>        var wmcField = this.getWmcField();
+
+        wmcField.setValue(&#39;&#39;);
+    }
+});
+</pre>
+</body>
+</html>

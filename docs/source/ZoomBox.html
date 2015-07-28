@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-ZoomBox'>/**
+</span> * An abstract base class for buttons that handle OpenLayers measurement controls.
+ */
+Ext.define(&#39;GXC.button.ZoomBox&#39;, {
+    extend: &#39;GXC.button.OlButton&#39;,
+
+    alias: &#39;widget.gxc_button_zoombox&#39;,
+
+<span id='GXC-button-ZoomBox-property-inject'>    inject: [
+</span>        &#39;mapService&#39;
+    ],
+
+<span id='GXC-button-ZoomBox-cfg-enableToggle'>    enableToggle: true,
+</span>
+<span id='GXC-button-ZoomBox-cfg-toggleGroup'>    /**
+</span>     * Default toggle group for gxc interactions.
+     * @cfg {String}
+     */
+    toggleGroup: &#39;gxc_interaction&#39;,
+
+<span id='GXC-button-ZoomBox-cfg-iconCls'>    iconCls: &#39;gxc-icon-zoom-to-box&#39;,
+</span>
+<span id='GXC-button-ZoomBox-cfg-tooltip'>    tooltip: &#39;Zoom to extent&#39;,
+</span>
+<span id='GXC-button-ZoomBox-method-initComponent'>    /**
+</span>     * @inheritdoc
+     */
+    initComponent: function(config) {
+        config = config || {};
+
+        this.map = config.map || this.mapService.getMap();
+        this.control = config.control || new OpenLayers.Control.ZoomBox({
+            alwaysZoom: true
+        });
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-ZoomBox-method-onEnable'>    onEnable: function() {
+</span>        var map = this.mapService.getMap();
+
+        map.div.style.cursor = &#39;crosshair&#39;;
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-ZoomBox-method-onDisable'>    onDisable: function() {
+</span>        var map = this.mapService.getMap();
+
+        map.div.style.cursor = &#39;auto&#39;;
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-FilterField'>/**
+</span> * A form field representing a comparison filter.
+ */
+Ext.define(&#39;GXC.form.FilterField&#39;, {
+    extend: &#39;Ext.form.FieldContainer&#39;,
+    requires: [
+        &#39;GXC.form.ComparisonComboBox&#39;
+    ],
+
+    alias: &#39;widget.gxc_form_filterfield&#39;,
+
+<span id='GXC-form-FilterField-property-lowerBoundaryTip'>    /**
+</span>     * tooltip for the lower boundary textfield (i18n)
+     *
+     * @type {String}
+     */
+    lowerBoundaryTip: &quot;lower boundary&quot;,
+
+<span id='GXC-form-FilterField-property-upperBoundaryTip'>    /**
+</span>     * tooltip for the lower boundary textfield (i18n)
+     *
+     * @type {String}
+     */
+    upperBoundaryTip: &quot;upper boundary&quot;,
+
+<span id='GXC-form-FilterField-property-caseInsensitiveMatch'>    /**
+</span>     * Should Comparison Filters for Strings do case insensitive matching?
+     * Default is ``&quot;false&quot;``.
+     *
+     * @type {Boolean}
+     */
+    caseInsensitiveMatch: false,
+
+<span id='GXC-form-FilterField-property-filter'>    /**
+</span>     * Property: filter
+     * Optional non-logical filter provided in the initial
+     *     configuration.  To retreive the filter, use &lt;getFilter&gt; instead
+     *     of accessing this property directly.
+     *
+     * @type {Openlayers.Filter}
+     */
+    filter: null,
+
+<span id='GXC-form-FilterField-property-attributes'>    /**
+</span>     * A configured attributes store for use in
+     *     the filter property combo.
+     *
+     * @type {GeoExt.data.AttributeStore}
+     */
+    attributes: null,
+
+<span id='GXC-form-FilterField-property-attributesComboConfig'>    /**
+</span>     * attributesComboConfig
+     *
+     * @type {Object}
+     */
+    attributesComboConfig: null,
+
+<span id='GXC-form-FilterField-method-initComponent'>    initComponent: function() {
+</span>
+        if(!this.filter) {
+            this.filter = this.createDefaultFilter();
+        }
+        // Maintain compatibility with QueryPanel, which relies on &quot;remote&quot;
+        // mode and the filterBy filter applied in it&#39;s attributeStore&#39;s load
+        // listener *after* the initial combo filtering.
+        //TODO Assume that the AttributeStore is already loaded and always
+        // create a new one without geometry fields.
+        var mode = &quot;remote&quot;, attributes = new GeoExt.data.AttributeStore();
+        if (this.attributes) {
+            if (this.attributes.getCount() != 0) {
+                mode = &quot;local&quot;;
+                this.attributes.each(function(r) {
+                    var match = /gml:((Multi)?(Point|Line|Polygon|Curve|Surface|Geometry)).*/.exec(r.get(&quot;type&quot;));
+                    match || attributes.add([r]);
+                });
+            } else {
+                attributes = this.attributes;
+            }
+        }
+
+        var defAttributesComboConfig = {
+            xtype: &quot;combo&quot;,
+            store: attributes,
+            editable: mode == &quot;local&quot;,
+            // typeAhead: true,
+            forceSelection: true,
+            queryMode: mode,
+            triggerAction: &quot;all&quot;,
+            ref: &quot;property&quot;,
+            allowBlank: this.allowBlank,
+            displayField: &quot;name&quot;,
+            valueField: &quot;name&quot;,
+            value: this.filter.property,
+            listeners: {
+                select: function(combo, records) {
+                    record = records.length ? records[0] : records;
+                    this.items.get(1).enable();
+                    this.filter.property = record.get(&quot;name&quot;);
+                    this.fireEvent(&quot;change&quot;, this.filter, this);
+                },
+                // workaround for select event not being fired when tab is hit
+                // after field was autocompleted with forceSelection
+                &quot;blur&quot;: function(combo) {
+                    var index = combo.store.findExact(&quot;name&quot;, combo.getValue());
+                    if (index != -1) {
+                        combo.fireEvent(&quot;select&quot;, combo, combo.store.getAt(index));
+                    } else if (combo.startValue != null) {
+                        combo.setValue(combo.startValue);
+                    }
+                },
+                scope: this
+            },
+            width: 120
+        };
+        this.attributesComboConfig = this.attributesComboConfig || {};
+        Ext.applyIf(this.attributesComboConfig, defAttributesComboConfig);
+
+        this.items = this.createFilterItems();
+
+        this.addEvents(
+<span id='GXC-form-FilterField-property-change'>            /**
+</span>             * Event: change
+             * Fires when the filter changes.
+             *
+             * Listener arguments:
+             * filter - {OpenLayers.Filter} This filter.
+             * this - {gxp.form.FilterField} (TODO change sequence of event parameters)
+             */
+            &quot;change&quot;
+        );
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-form-FilterField-method-validateValue'>    /**
+</span>     * Method: validateValue
+     * Performs validation checks on the filter field.
+     *
+     * Returns:
+     * {Boolean} True if value is valid.
+     */
+    validateValue: function(value, preventMark) {
+        if (this.filter.type === OpenLayers.Filter.Comparison.BETWEEN) {
+            return (this.filter.property !== null &amp;&amp; this.filter.upperBoundary !== null &amp;&amp;
+                this.filter.lowerBoundary !== null);
+        } else {
+            return (this.filter.property !== null &amp;&amp;
+                this.filter.value !== null &amp;&amp; this.filter.type !== null);
+        }
+    },
+
+<span id='GXC-form-FilterField-method-createDefaultFilter'>    /**
+</span>     * Method: createDefaultFilter
+     * May be overridden to change the default filter.
+     *
+     * Returns:
+     * {OpenLayers.Filter} By default, returns a comparison filter.
+     */
+    createDefaultFilter: function() {
+        return new OpenLayers.Filter.Comparison({matchCase: !this.caseInsensitiveMatch});
+    },
+
+<span id='GXC-form-FilterField-method-createFilterItems'>    /**
+</span>     * Method: createFilterItems
+     * Creates a panel config containing filter parts.
+     */
+    createFilterItems: function() {
+        var isBetween = this.filter.type === OpenLayers.Filter.Comparison.BETWEEN;
+        return [
+            this.attributesComboConfig, Ext.applyIf({
+                xtype: &quot;gxc_form_comparisoncombobox&quot;,
+                ref: &quot;type&quot;,
+                disabled: this.filter.property == null,
+                allowBlank: this.allowBlank,
+                value: this.filter.type,
+                listeners: {
+                    select: function(combo, records) {
+                        this.items.get(2).enable();
+                        this.items.get(3).enable();
+                        this.items.get(4).enable();
+                        this.setFilterType(records[0].get(&quot;value&quot;));
+                        this.fireEvent(&quot;change&quot;, this.filter, this);
+                    },
+                    scope: this
+                }
+            }, this.comparisonComboConfig), {
+                xtype: &quot;textfield&quot;,
+                disabled: this.filter.type == null,
+                hidden: isBetween,
+                ref: &quot;value&quot;,
+                value: this.filter.value,
+                width: 50,
+                grow: true,
+                growMin: 50,
+                anchor: &quot;100%&quot;,
+                allowBlank: this.allowBlank,
+                listeners: {
+                    &quot;change&quot;: function(field, value) {
+                        this.filter.value = value;
+                        this.fireEvent(&quot;change&quot;, this.filter, this);
+                    },
+                    scope: this
+                }
+            }, {
+                xtype: &quot;textfield&quot;,
+                disabled: this.filter.type == null,
+                hidden: !isBetween,
+                value: this.filter.lowerBoundary,
+                tooltip: this.lowerBoundaryTip,
+                grow: true,
+                growMin: 30,
+                ref: &quot;lowerBoundary&quot;,
+                anchor: &quot;100%&quot;,
+                allowBlank: this.allowBlank,
+                listeners: {
+                    &quot;change&quot;: function(field, value) {
+                        this.filter.lowerBoundary = value;
+                        this.fireEvent(&quot;change&quot;, this.filter, this);
+                    },
+                    &quot;render&quot;: function(c) {
+                        Ext.QuickTips.register({
+                            target: c.getEl(),
+                            text: this.lowerBoundaryTip
+                        });
+                    },
+                    // &quot;autosize&quot;: function(field, width) {
+                    //     field.setWidth(width);
+                    // },
+                    scope: this
+                }
+            }, {
+                xtype: &quot;textfield&quot;,
+                disabled: this.filter.type == null,
+                hidden: !isBetween,
+                grow: true,
+                growMin: 30,
+                ref: &quot;upperBoundary&quot;,
+                value: this.filter.upperBoundary,
+                allowBlank: this.allowBlank,
+                listeners: {
+                    &quot;change&quot;: function(field, value) {
+                        this.filter.upperBoundary = value;
+                        this.fireEvent(&quot;change&quot;, this.filter, this);
+                    },
+                    &quot;render&quot;: function(c) {
+                        Ext.QuickTips.register({
+                            target: c.getEl(),
+                            text: this.upperBoundaryTip
+                        });
+                    },
+                    scope: this
+                }
+            }
+        ];
+    },
+
+<span id='GXC-form-FilterField-method-setFilterType'>    setFilterType: function(type) {
+</span>        this.filter.type = type;
+        if (type === OpenLayers.Filter.Comparison.BETWEEN) {
+            this.items.get(2).hide();
+            this.items.get(3).show();
+            this.items.get(4).show();
+        } else {
+            this.items.get(2).show();
+            this.items.get(3).hide();
+            this.items.get(4).hide();
+        }
+        this.doLayout();
+    },
+
+<span id='GXC-form-FilterField-method-setFilter'>    /**
+</span>     * @param {OpenLayers.Filter} Change the filter object to be
+     *  used.
+     */
+    setFilter: function(filter) {
+        var previousType = this.filter.type;
+        this.filter = filter;
+        if (previousType !== filter.type) {
+            this.setFilterType(filter.type);
+        }
+        this[&#39;property&#39;].setValue(filter.property);
+        this[&#39;type&#39;].setValue(filter.type);
+        if (filter.type === OpenLayers.Filter.Comparison.BETWEEN) {
+            this[&#39;lowerBoundary&#39;].setValue(filter.lowerBoundary);
+            this[&#39;upperBoundary&#39;].setValue(filter.upperBoundary);
+        } else {
+            this[&#39;value&#39;].setValue(filter.value);
+        }
+        this.fireEvent(&quot;change&quot;, this.filter, this);
+    }
+
+});
+</pre>
+</body>
+</html>

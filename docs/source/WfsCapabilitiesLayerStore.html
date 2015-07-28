@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+/*
+ * @include GeoExt/data/reader/WfsCapabilities.js
+ * @requires GeoExt/data/WfsCapabilitiesLayerModel.js
+ * @requires GeoExt/data/OwsStore.js
+ */
+
+<span id='GeoExt-data-WfsCapabilitiesLayerStore'>/**
+</span> * Small helper class to make creating stores for remote WFS layer data easier.
+ * 
+ * The store is pre-configured with a built-in Ext.data.proxy.Ajax and
+ * GeoExt.data.reader.WfsCapabilities. The proxy is configured to allow caching
+ * and issues requests via GET.
+ * 
+ * If you require some other proxy/reader combination then you&#39;ll have to
+ * configure this with your own proxy or create a basic
+ * GeoExt.data.LayerStore and configure as needed.
+ *
+ * @class GeoExt.data.WfsCapabilitiesLayerStore
+ */
+Ext.define(&#39;GeoExt.data.WfsCapabilitiesLayerStore&#39;,{
+    extend: &#39;GeoExt.data.OwsStore&#39;,
+    requires: [&#39;GeoExt.data.reader.WfsCapabilities&#39;],
+<span id='GeoExt-data-WfsCapabilitiesLayerStore-cfg-model'>    model: &#39;GeoExt.data.WfsCapabilitiesLayerModel&#39;,
+</span>    alternateClassName: [
+        &#39;GeoExt.data.WFSCapabilitiesStore&#39;,
+        &#39;GeoExt.data.WfsCapabilitiesStore&#39;
+    ]
+});
+</pre>
+</body>
+</html>

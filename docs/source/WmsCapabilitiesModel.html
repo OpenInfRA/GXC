@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-data-WmsCapabilitiesModel'>/**
+</span> * The model for WMS layers coming from a WMS GetCapabilities document.
+ */
+Ext.define(&#39;GXC.data.WmsCapabilitiesModel&#39;, {
+    extend: &#39;Ext.data.Model&#39;,
+
+    alias: &#39;model.gxc_wmscapabilitiesmodel&#39;,
+
+<span id='GXC-data-WmsCapabilitiesModel-cfg-attributionCls'>    /**
+</span>     * CSS class name for the attribution DOM elements.
+     * Element class names append &#39;-link&#39;, &#39;-image&#39;, and &#39;-title&#39; as
+     * appropriate.  Default is &#39;gx-attribution&#39;.
+     *
+     * @cfg {String}
+     */
+    attributionCls: &#39;gxc-attribution&#39;,
+
+<span id='GXC-data-WmsCapabilitiesModel-property-fields'>    fields: [{
+</span>        name: &#39;title&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;text&#39;,
+        type: &#39;string&#39;,
+        mapping: &#39;title&#39;
+    }, {
+        name: &#39;legendURL&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;hideTitle&#39;,
+        type: &#39;bool&#39;
+    }, {
+        name: &#39;hideInLegend&#39;,
+        type: &#39;bool&#39;
+    }, {
+        name: &#39;name&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;abstract&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;queryable&#39;,
+        type: &#39;boolean&#39;
+    }, {
+        name: &#39;opaque&#39;,
+        type: &#39;boolean&#39;
+    }, {
+        name: &#39;noSubsets&#39;,
+        type: &#39;boolean&#39;
+    }, {
+        name: &#39;cascaded&#39;,
+        type: &#39;int&#39;
+    }, {
+        name: &#39;fixedWidth&#39;,
+        type: &#39;int&#39;
+    }, {
+        name: &#39;fixedHeight&#39;,
+        type: &#39;int&#39;
+    }, {
+        name: &#39;minScale&#39;,
+        type: &#39;float&#39;
+    }, {
+        name: &#39;maxScale&#39;,
+        type: &#39;float&#39;
+    }, {
+        name: &#39;prefix&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;attribution&#39;,
+        type: &#39;string&#39;,
+        convert: function(v, rec) {
+            var markup = [],
+                attrCls = rec.attributionCls,
+                logoTmpl = &#39;&lt;img class=&quot;{0}-image&quot; src=&quot;{1}&quot; /&gt;&#39;,
+                titleTmpl = &#39;&lt;span class=&quot;{0}-title&quot;&gt;{1}&lt;/span&gt;&#39;,
+                hrefTempl = &#39;&lt;a class=&quot;{0}-link&quot; href=&quot;{1}&quot;&gt;{2}&lt;/a&gt;&#39;,
+                logoMarkup, titleMarkup, hrefMarkup;
+
+            if (v.logo) {
+                logoMarkup = Ext.String.format(logoTmpl, attrCls, v.logo.href);
+                markup.push(logoMarkup);
+            }
+            if (v.title) {
+                titleMarkup = Ext.String.format(titleTmpl, attrCls, v.title);
+                markup.push(titleMarkup);
+            }
+            if (v.href){
+                for(var i = 0; i &lt; markup.length; i++){
+                    hrefMarkup = Ext.String.format(hrefTempl, attrCls, v.href, markup[i]);
+                    markup[i] = hrefMarkup;
+                }
+            }
+            return markup.join(&#39; &#39;);
+        }
+    }, {
+        name: &#39;formats&#39;
+    }, {
+        name: &#39;infoFormats&#39;
+    }, {
+        name: &#39;styles&#39;
+    }, {
+        name: &#39;srs&#39;
+    }, {
+        name: &#39;dimensions&#39;
+    }, {
+        name: &#39;bbox&#39;
+    }, {
+        name: &#39;llbbox&#39;
+    }, {
+        name: &#39;keywords&#39;
+    }, {
+        name: &#39;identifiers&#39;
+    }, {
+        name: &#39;authorityURLs&#39;
+    }, {
+        name: &#39;metadataURLs&#39;
+    }, {
+        name: &#39;nestedLayers&#39;,
+        defaultValue: [],
+        convert: null
+    }, {
+        name: &#39;iconCls&#39;,
+        type: &#39;string&#39;,
+        convert: function(value, record) {
+            return (record.get(&#39;name&#39;) ? &#39;gxc-icon-raster&#39; : &#39;&#39;);
+        }
+    }, {
+        name: &#39;leaf&#39;,
+        type: &#39;boolean&#39;,
+        mapping: &#39;nestedLayers&#39;,
+        convert: function(v) {
+            return !(Ext.isArray(v) &amp;&amp; v.length);
+        }
+    }],
+
+<span id='GXC-data-WmsCapabilitiesModel-method-getLayer'>    /**
+</span>     * Returns a new OpenLayers Layer that is created using the records
+     * attributes or undefined of no real layer is derievable.
+     * @return {OpenLayers.Layer} the ol layer
+     */
+    getLayer: function() {
+        // guard clause to only return &#39;real&#39; layers or undefined
+        if (!this.get(&#39;name&#39;)) {
+            return undefined
+        }
+
+        var meta = this.store.getProxy().getReader().metaData,
+            exceptions = meta.exceptions ? meta.exceptions.formats : [],
+            exceptions = this.serviceExceptionFormat(exceptions),
+            format = this.imageFormat(),
+            version = meta.version,
+            transparent = this.imageTransparent(),
+            metadata = this.getData();
+
+        // we add meta information to the layer to allow
+        // recreation of the layer from metadata or creation of
+        // nested layers without recalling capabilities
+        metadata[&#39;exceptions&#39;] = exceptions;
+        metadata[&#39;format&#39;] = format;
+        metadata[&#39;version&#39;] = version;
+        metadata[&#39;transparent&#39;] = transparent;
+        metadata[&#39;url&#39;] = meta.request.getmap.href;
+
+        // one may use service information like contact info
+        metadata.service = Ext.clone(meta.service);
+
+        var layerOptions = {
+            singleTile: true,
+            attribution: this.get(&#39;attribution&#39;),
+            metadata: metadata
+        };
+
+        console.log(this.get(&#39;minScale&#39;));
+
+        if (this.get(&#39;minScale&#39;)) {
+            layerOptions.minScale = this.get(&#39;minScale&#39;);
+        }
+        if (this.get(&#39;maxScale&#39;)) {
+            layerOptions.maxScale = this.get(&#39;maxScale&#39;);
+        }
+
+        return new OpenLayers.Layer.WMS(
+            this.get(&#39;title&#39;) || this.get(&#39;name&#39;),  // human readable title
+            meta.request.getmap.href,               // url of wms service
+            {                                       // extra wms params
+                layers: this.get(&#39;name&#39;),
+                exceptions: exceptions,
+                format: this.imageFormat(),
+                transparent: this.imageTransparent(),
+                version: meta.version
+            },
+            layerOptions
+        );
+    },
+
+<span id='GXC-data-WmsCapabilitiesModel-method-serviceExceptionFormat'>    /**
+</span>     * @param {String[]} formats An array of service exception format strings.
+     * @return {String} The (supposedly) best service exception format.
+     * @private
+     */
+    serviceExceptionFormat: function(formats) {
+        if (OpenLayers.Util.indexOf(formats,
+            &#39;application/vnd.ogc.se_inimage&#39;)&gt;-1) {
+            return &#39;application/vnd.ogc.se_inimage&#39;;
+        }
+        if (OpenLayers.Util.indexOf(formats,
+            &#39;application/vnd.ogc.se_xml&#39;)&gt;-1) {
+            return &#39;application/vnd.ogc.se_xml&#39;;
+        }
+        return formats[0];
+    },
+
+<span id='GXC-data-WmsCapabilitiesModel-method-imageFormat'>    /**
+</span>     * @return {String} The (supposedly) best mime type for requesting
+     *     tiles.
+     * @private
+     */
+    imageFormat: function() {
+        var formats = this.get(&#39;formats&#39;);
+        if (this.get(&#39;opaque&#39;) &amp;&amp;
+            OpenLayers.Util.indexOf(formats, &#39;image/jpeg&#39;)&gt;-1) {
+            return &#39;image/jpeg&#39;;
+        }
+        if (OpenLayers.Util.indexOf(formats, &#39;image/png&#39;)&gt;-1) {
+            return &#39;image/png&#39;;
+        }
+        if (OpenLayers.Util.indexOf(formats, &#39;image/png; mode=24bit&#39;)&gt;-1) {
+            return &#39;image/png; mode=24bit&#39;;
+        }
+        if (OpenLayers.Util.indexOf(formats, &#39;image/gif&#39;)&gt;-1) {
+            return &#39;image/gif&#39;;
+        }
+        return formats[0];
+    },
+
+<span id='GXC-data-WmsCapabilitiesModel-method-imageTransparent'>    /**
+</span>     * @return {Boolean} The TRANSPARENT param.
+     * @private
+     */
+    imageTransparent: function() {
+        var opaque = this.get(&#39;opaque&#39;);
+        return opaque == undefined || !opaque;
+    }
+});
+</pre>
+</body>
+</html>

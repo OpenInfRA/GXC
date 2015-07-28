@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-AddViewController'>/**
+</span> * ViewController of the Add component.
+ */
+Ext.define(&#39;GXC.panel.AddViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+    requires: [
+        &#39;GXC.panel.WfsCapabilities&#39;,
+        &#39;GXC.panel.WmsCapabilities&#39;
+    ],
+
+<span id='GXC-panel-AddViewController-property-inject'>    inject: [
+</span>        &#39;appContext&#39;,
+        &#39;notificationService&#39;,
+        &#39;serviceStore&#39;
+    ],
+
+<span id='GXC-panel-AddViewController-property-control'>    control: {
+</span>        &#39;view&#39;: {
+            &#39;boxready&#39;: &#39;onViewBoxready&#39;
+        },
+        &#39;serviceTypeComboBox&#39;: {
+            &#39;change&#39;: &#39;onServiceTypeComboBoxSelect&#39;
+        },
+        &#39;serviceComboBox&#39;: {
+            &#39;change&#39;: &#39;onServiceComboBoxSelect&#39;
+        },
+        &#39;previewMap&#39;: true,
+        &#39;capabilitiesGrid&#39;: {
+            live: true,
+            listeners: {
+                &#39;capabilitiesloaderror&#39;: &#39;onCapabilitiesLoadError&#39;,
+                &#39;itemclick&#39;: &#39;onCapabilitiesGridItemClick&#39;
+            }
+        },
+        &#39;addServiceFieldset&#39;: true,
+        &#39;serviceForm&#39;: true,
+        &#39;saveService&#39;: {
+            &#39;click&#39;: &#39;onSaveServiceClick&#39;
+        }
+    },
+
+<span id='GXC-panel-AddViewController-method-onViewBoxready'>    /**
+</span>     * Called when the box model of the component is ready.
+     * Masks the layer selection list.
+     * @param  {GXC.panel.Add} panel
+     */
+    onViewBoxready: function(panel) {
+        this.maskPreview();
+    },
+
+<span id='GXC-panel-AddViewController-method-onServiceTypeComboBoxSelect'>    /**
+</span>     * Called when the filter box is changed to filter WMS/WFS layers.
+     * @param  {Ext.form.ComboBox} combo
+     * @param  {String} newValue
+     * @param  {String} oldValue
+     */
+    onServiceTypeComboBoxSelect: function(combo, newValue, oldValue) {
+        var store = this.getServiceComboBox().getStore();
+
+        store.clearFilter(true);
+        store.filter(&#39;type&#39;, newValue);
+    },
+
+<span id='GXC-panel-AddViewController-method-onServiceComboBoxSelect'>    /**
+</span>     * Called when a WMS/WFS service is selected from the dropdown box.
+     * @param  {Ext.form.ComboBox} combo
+     * @param  {[type]} newValue
+     * @param  {[type]} oldValue
+     */
+    onServiceComboBoxSelect: function(combo, newValue, oldValue) {
+        var store = combo.getStore(),
+            service = store.getById(newValue),
+            type = service.get(&#39;type&#39;);
+
+        this.emptyPreview();
+        this.maskPreview();
+
+        var grid = this.getCapabilitiesGrid(),
+            options = {
+                service: service,
+                itemId: &#39;capabilitiesGrid&#39;,
+                autoScroll: true,
+                flex: 1
+            };
+
+        if (grid) {
+            grid.hide().destroy();
+        }
+
+        // We decide on the type of selected service which capabilities
+        // view to render.
+        switch (type) {
+            case &#39;WMS&#39;:
+                Ext.apply(options, {
+                    xtype: &#39;gxc_panel_wmscapabilities&#39;
+                });
+                break;
+            case &#39;WFS&#39;:
+                Ext.apply(options, {
+                    xtype: &#39;gxc_panel_wfscapabilities&#39;
+                });
+                break;
+            default:
+                throw ({
+                    name: &#39;OgcTypeError&#39;,
+                    desc: &#39;Service type not supported: &#39; + type
+                });
+        }
+
+        this.getView().add(options);
+    },
+
+<span id='GXC-panel-AddViewController-method-onCapabilitiesLoadError'>    /**
+</span>     * Called on load error.
+     * @param  {Ext.data.Store} store
+     */
+    onCapabilitiesLoadError: function(store) {
+      var view = this.getView(),
+          store = view.store,
+          template = Ext.Template(view.txtCapabilitiesLoadErrorMessage);
+      this.emptyPreview();
+      this.maskPreview();
+      this.notificationService.error(
+        view.txtCapabilitiesLoadErrorTitle,
+        template.append(store.getProxy().url)
+      );
+    },
+
+<span id='GXC-panel-AddViewController-method-onCapabilitiesGridItemClick'>    /**
+</span>     * Called when a layer is selected with single click to preview the layer.
+     * @param  {Ext.grid.Panel} grid
+     * @param  {[type]} record [description]
+     */
+    onCapabilitiesGridItemClick: function(grid, record) {
+        var map = this.getPreviewMap().map,
+            layer = record.getLayer();
+
+        this.emptyPreview();
+
+        if (layer) {
+            map.addLayer(layer.clone());
+            map.zoomToExtent(record.get(&#39;llbbox&#39;));
+            this.unmaskPreview();
+        }
+    },
+
+<span id='GXC-panel-AddViewController-method-onSaveServiceClick'>    /**
+</span>     * Called when a service is added via the form. Adds the layer to the
+     * services dropdown list.
+     */
+    onSaveServiceClick: function() {
+        var view = this.getServiceForm(),
+            form = view.getForm(),
+            values = form.getValues(),
+            model;
+
+        model = this.serviceStore.add(values);
+        if (model) {
+            form.reset();
+            this.getAddServiceFieldset().collapse();
+            this.getServiceComboBox().select(model);
+        }
+    },
+
+<span id='GXC-panel-AddViewController-method-emptyPreview'>    /**
+</span>     * Empties the preview panel.
+     * @return {[type]} [description]
+     */
+    emptyPreview: function() {
+        var map = this.getPreviewMap().map,
+            layers = map.layers;
+
+        if (layers.length &gt; 1) {
+            map.removeLayer(layers[1]);
+        }
+    },
+
+<span id='GXC-panel-AddViewController-method-maskPreview'>    /**
+</span>     * Masks the preview panel.
+     */
+    maskPreview: function() {
+        var view = this.getView(),
+            el = this.getPreviewMap().getEl();
+
+        el.mask(view.txtPreviewMask, view.previewMaskCls);
+    },
+
+<span id='GXC-panel-AddViewController-method-unmaskPreview'>    /**
+</span>     * Unmasks the preview panel.
+     */
+    unmaskPreview: function() {
+        this.getPreviewMap().getEl().unmask();
+    }
+});
+</pre>
+</body>
+</html>

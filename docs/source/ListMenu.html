@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ux-grid-menu-ListMenu'>/**
+</span> * This is a supporting class for {@link Ext.ux.grid.filter.ListFilter}.
+ * Although not listed as configuration options for this class, this class
+ * also accepts all configuration options from {@link Ext.ux.grid.filter.ListFilter}.
+ */
+Ext.define(&#39;Ext.ux.grid.menu.ListMenu&#39;, {
+    extend: &#39;Ext.menu.Menu&#39;,
+    
+<span id='Ext-ux-grid-menu-ListMenu-cfg-idField'>    /**
+</span>     * @cfg {String} idField
+     * Defaults to &#39;id&#39;.
+     */
+    idField :  &#39;id&#39;,
+
+<span id='Ext-ux-grid-menu-ListMenu-cfg-labelField'>    /**
+</span>     * @cfg {String} labelField
+     * Defaults to &#39;text&#39;.
+     */
+    labelField :  &#39;text&#39;,
+<span id='Ext-ux-grid-menu-ListMenu-cfg-paramPrefix'>    /**
+</span>     * @cfg {String} paramPrefix
+     * Defaults to &#39;Loading...&#39;.
+     */
+    loadingText : &#39;Loading...&#39;,
+<span id='Ext-ux-grid-menu-ListMenu-cfg-loadOnShow'>    /**
+</span>     * @cfg {Boolean} loadOnShow
+     * Defaults to true.
+     */
+    loadOnShow : true,
+<span id='Ext-ux-grid-menu-ListMenu-cfg-single'>    /**
+</span>     * @cfg {Boolean} single
+     * Specify true to group all items in this list into a single-select
+     * radio button group. Defaults to false.
+     */
+    single : false,
+
+<span id='Ext-ux-grid-menu-ListMenu-cfg-plain'>    plain: true,
+</span>
+<span id='Ext-ux-grid-menu-ListMenu-method-constructor'>    constructor : function (cfg) {
+</span>        var me = this,
+            options,
+            i,
+            len,
+            value;
+            
+        me.selected = [];
+        me.addEvents(
+<span id='Ext-ux-grid-menu-ListMenu-event-checkchange'>            /**
+</span>             * @event checkchange
+             * Fires when there is a change in checked items from this list
+             * @param {Object} item Ext.menu.CheckItem
+             * @param {Object} checked The checked value that was set
+             */
+            &#39;checkchange&#39;
+        );
+
+        me.callParent(arguments);
+
+        // A ListMenu which is completely unconfigured acquires its store from the unique values of its field in the store
+        if (!me.store &amp;&amp; !me.options) {
+            me.options = me.grid.store.collect(me.dataIndex, false, true);
+        }
+
+        if (!me.store &amp;&amp; me.options) {
+            options = [];
+            for(i = 0, len = me.options.length; i &lt; len; i++) {
+                value = me.options[i];
+                switch (Ext.type(value)) {
+                    case &#39;array&#39;: 
+                        options.push(value);
+                        break;
+                    case &#39;object&#39;:
+                        options.push([value[me.idField], value[me.labelField]]);
+                        break;
+                    default:
+                        if (value != null) {
+                            options.push([value, value]);
+                        }
+                }
+            }
+
+            me.store = Ext.create(&#39;Ext.data.ArrayStore&#39;, {
+                fields: [me.idField, me.labelField],
+                data:   options,
+                listeners: {
+                    load: me.onLoad,
+                    scope:  me
+                }
+            });
+            me.loaded = true;
+            me.autoStore = true;
+        } else {
+            me.add({
+                text: me.loadingText,
+                iconCls: &#39;loading-indicator&#39;
+            });
+            me.store.on(&#39;load&#39;, me.onLoad, me);
+        }
+    },
+
+<span id='Ext-ux-grid-menu-ListMenu-method-destroy'>    destroy : function () {
+</span>        var me = this,
+            store = me.store;
+            
+        if (store) {
+            if (me.autoStore) {
+                store.destroyStore();
+            } else {
+                store.un(&#39;unload&#39;, me.onLoad, me);
+            }
+        }
+        me.callParent();
+    },
+
+<span id='Ext-ux-grid-menu-ListMenu-method-show'>    /**
+</span>     * Lists will initially show a &#39;loading&#39; item while the data is retrieved from the store.
+     * In some cases the loaded data will result in a list that goes off the screen to the
+     * right (as placement calculations were done with the loading item). This adapter will
+     * allow show to be called with no arguments to show with the previous arguments and
+     * thus recalculate the width and potentially hang the menu from the left.
+     */
+    show : function () {
+        var me = this;
+        if (me.loadOnShow &amp;&amp; !me.loaded &amp;&amp; !me.store.loading) {
+            me.store.load();
+        }
+        me.callParent();
+    },
+
+<span id='Ext-ux-grid-menu-ListMenu-method-onLoad'>    /** @private */
+</span>    onLoad : function (store, records) {
+        var me = this,
+            gid, itemValue, i, len,
+            listeners = {
+                checkchange: me.checkChange,
+                scope: me
+            };
+
+        Ext.suspendLayouts();
+        me.removeAll(true);
+        gid = me.single ? Ext.id() : null;
+        for (i = 0, len = records.length; i &lt; len; i++) {
+            itemValue = records[i].get(me.idField);
+            me.add(Ext.create(&#39;Ext.menu.CheckItem&#39;, {
+                text: records[i].get(me.labelField),
+                group: gid,
+                checked: Ext.Array.contains(me.selected, itemValue),
+                hideOnClick: false,
+                value: itemValue,
+                listeners: listeners
+            }));
+        }
+
+        me.loaded = true;
+        Ext.resumeLayouts(true);
+        me.fireEvent(&#39;load&#39;, me, records);
+    },
+
+<span id='Ext-ux-grid-menu-ListMenu-method-getSelected'>    /**
+</span>     * Get the selected items.
+     * @return {Array} selected
+     */
+    getSelected : function () {
+        return this.selected;
+    },
+
+<span id='Ext-ux-grid-menu-ListMenu-method-setSelected'>    /** @private */
+</span>    setSelected : function (value) {
+        value = this.selected = [].concat(value);
+
+        if (this.loaded) {
+            this.items.each(function(item){
+                item.setChecked(false, true);
+                for (var i = 0, len = value.length; i &lt; len; i++) {
+                    if (item.value == value[i]) {
+                        item.setChecked(true, true);
+                    }
+                }
+            });
+        }
+    },
+
+<span id='Ext-ux-grid-menu-ListMenu-method-checkChange'>    /**
+</span>     * Handler for the &#39;checkchange&#39; event from an check item in this menu
+     * @param {Object} item Ext.menu.CheckItem
+     * @param {Object} checked The checked value that was set
+     */
+    checkChange : function (item, checked) {
+        var value = [];
+        this.items.each(function(item){
+            if (item.checked) {
+                value.push(item.value);
+            }
+        });
+        this.selected = value;
+
+        this.fireEvent(&#39;checkchange&#39;, item, checked);
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-FillSymbolizerViewController'>/**
+</span> * ViewController to the GXC.form.FillSymbolizer class.
+ */
+Ext.define(&#39;GXC.form.FillSymbolizerViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+<span id='GXC-form-FillSymbolizerViewController-property-control'>    control: {
+</span>        &#39;view&#39;: {
+            &#39;collapse&#39;: &#39;onViewCollapse&#39;,
+            &#39;expand&#39;: &#39;onViewExpand&#39;
+        },
+        &#39;colorField&#39;: {
+            &#39;change&#39;: &#39;onColorFieldChange&#39;
+        },
+        &#39;opacitySlider&#39;: {
+            &#39;changecomplete&#39;: &#39;onOpacitySliderChangecomplete&#39;
+        }
+    },
+
+<span id='GXC-form-FillSymbolizerViewController-method-onViewCollapse'>    onViewCollapse: function(view) {
+</span>        var symbolizer = view.symbolizer;
+
+        if (symbolizer.fill !== false) {
+            symbolizer.fill = false;
+            view.fireEvent(&quot;change&quot;, symbolizer);
+        }
+    },
+
+<span id='GXC-form-FillSymbolizerViewController-method-onViewExpand'>    /**
+</span>     * Activates fill property of the symbolizer on expand.
+     * @param  {GXC.form.FillSymbolizer} view The view
+     */
+    onViewExpand: function(view) {
+        var symbolizer = view.symbolizer;
+
+        symbolizer.fill = true;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+<span id='GXC-form-FillSymbolizerViewController-method-onColorFieldChange'>    /**
+</span>     * Sets the color property of the symbolizer if value is valid.
+     * @param  {GXC.form.ColorField} field
+     * @param  {String} newValue
+     */
+    onColorFieldChange: function(field, newValue) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer,
+            modified;
+
+        if (field.isValid()) {
+            newValue = newValue.startsWith(&#39;#&#39;) ? newValue : &#39;#&#39; + newValue;
+            modified = symbolizer[view.colorProperty] != newValue;
+            symbolizer[view.colorProperty] = newValue;
+            modified &amp;&amp; view.fireEvent(&quot;change&quot;, symbolizer);
+        }
+    },
+
+<span id='GXC-form-FillSymbolizerViewController-method-onOpacitySliderChangecomplete'>    /**
+</span>     * Sets the opacity property of the symbolizer if the value is valid.
+     * @param  {Ext.form.Slider} slider
+     * @param  {Number} value
+     */
+    onOpacitySliderChangecomplete: function(slider, value) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer[view.opacityProperty] = value / 100;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-service-Map'>/**
+</span> * @class
+ */
+Ext.define(&#39;GXC.service.Map&#39;, {
+    requires: [
+        &#39;GXC.Version&#39;
+    ],
+
+<span id='GXC-service-Map-property-inject'>    inject: [
+</span>        &#39;appConfig&#39;,
+        &#39;layerStore&#39;
+    ],
+
+    config: {
+<span id='GXC-service-Map-cfg-map'>        map: null
+</span>    },
+
+<span id='GXC-service-Map-method-constructor'>    constructor: function(config) {
+</span>        var appConfig = this.appConfig,
+            projections = appConfig.get(&#39;projections&#39;, {}),
+            mapOptions = appConfig.get(&#39;mapOptions&#39;, {});
+
+        this.initConfig(config);
+
+        // merge user provided projections into OpenLayers defaults
+        Ext.Object.each(projections, function(key, props) {
+            if (props.def) {
+                Proj4js.defs[key] = props.def;
+            }
+            if (props.maxExtent || props.yx) {
+                OpenLayers.Projection.defaults[key] = {
+                    maxExtent: props.maxExtent,
+                    yx: props.yx
+                };
+            }
+        });
+
+        mapOptions = Ext.apply({
+            theme: null,            // we don&#39;t want openlayers styling
+            fallThrough: true,      // bubble events to ext components
+            allOverlays: true,      // no base layers
+            fractionalZoom: true,   // user defined scale
+            zoomMethod: null,       // zoom slider may get out of sync
+            layers: [
+                // a fake base layer that the projection will be read of
+                new OpenLayers.Layer(&#39;gxc_base_&#39;, {
+                    isBaseLayer: true,
+                    displayInLayerSwitcher: false
+                })
+            ],
+            controls: [
+                // attribution as defined per layer
+                new OpenLayers.Control.Attribution(),
+                // no mouse wheel navigation due to bug
+                new OpenLayers.Control.Navigation({
+                    zoomWheelEnabled: false
+                }),
+                // allow to open map via center params
+                new OpenLayers.Control.ArgParser()
+            ]
+        }, mapOptions);
+
+        // center is always provided in EPSG:4326
+        var center = new OpenLayers.LonLat(mapOptions.center);
+        mapOptions.center = center.transform(&#39;EPSG:4326&#39;, mapOptions.projection);
+
+        this.setMap(new OpenLayers.Map(mapOptions));
+        this.addMousePositionControl();
+
+        // bind the injected layer store to the map effectivly syncing layers.
+        this.layerStore.bindMap(this.getMap());
+
+        return this.callParent(arguments);
+    },
+
+<span id='GXC-service-Map-method-addMousePositionControl'>    /**
+</span>     * Adds the custom mouse position control to the OpenLayers map object.
+     */
+    addMousePositionControl: function() {
+        var displayProjection = this.map.displayProjection ||
+                this.map.getProjection(),
+            index = displayProjection.indexOf(&#39;:&#39;),
+            code = displayProjection,
+            prefix = displayProjection,
+            digits;
+
+        if (index !== -1) {
+            code = displayProjection.substring(index + 1);
+            prefix = &#39;&lt;a target=&quot;_blank&quot; href=&quot;http://epsg.io/&#39; + code + &#39;/&quot;&gt;&#39; +
+                    displayProjection + &#39;&lt;/a&gt;: &#39;;
+        }
+
+        digits = (new OpenLayers.Projection(displayProjection).getUnits() === &#39;m&#39; ?
+            2 : 5);
+
+        this.map.addControl(new OpenLayers.Control.GXCMousePosition({
+            prefix: prefix,
+            separator: &#39; | &#39;,
+            numDigits: digits
+        }));
+    }
+});
+</pre>
+</body>
+</html>

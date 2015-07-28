@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-OwsCapabilitiesViewController'>/**
+</span> * A ViewController to the GXC.panel.OwsCapabilities class.
+ */
+Ext.define(&#39;GXC.panel.OwsCapabilitiesViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+<span id='GXC-panel-OwsCapabilitiesViewController-property-inject'>    inject: [
+</span>        &#39;appContext&#39;
+    ],
+
+<span id='GXC-panel-OwsCapabilitiesViewController-property-control'>    control: {
+</span>        &#39;view&#39;: {
+            &#39;boxready&#39;: &#39;onViewBoxready&#39;,
+            &#39;itemdblclick&#39;: &#39;onItemDblClick&#39;
+        },
+        &#39;addButton&#39;: {
+            &#39;click&#39;: &#39;onAddButtonClick&#39;
+        }
+    },
+
+<span id='GXC-panel-OwsCapabilitiesViewController-method-onViewBoxready'>    onViewBoxready: function(view) {
+</span>      var service = view.service,
+          store = view.store;
+
+      store.load({
+          params: {
+              version: service.get(&#39;version&#39;)
+          },
+          callback: this.onStoreLoad,
+          scope: this
+      });
+    },
+
+<span id='GXC-panel-OwsCapabilitiesViewController-method-onItemDblClick'>    /**
+</span>     * Double clicking an entry effectivly adds the layer to the map.
+     */
+    onItemDblClick: function(panel, record, item, index) {
+        this.addLayer(record);
+    },
+
+<span id='GXC-panel-OwsCapabilitiesViewController-property-onStoreLoad'>    /**
+</span>     * To be implemented in child classes.
+     * @type {[type]}
+     */
+    onStoreLoad: Ext.emptyFn,
+
+<span id='GXC-panel-OwsCapabilitiesViewController-method-onAddButtonClick'>    /**
+</span>     * Adds a selected layer to the map.
+     * @param  {Ext.button.Button} button
+     */
+    onAddButtonClick: function(button) {
+        var grid = this.getView(),
+            selection = grid.getSelectionModel().getSelection(),
+            length = selection.length;
+
+        for (var i = 0; i &lt; length; i++) {
+            this.addLayer(selection[i]);
+        }
+    },
+
+<span id='GXC-panel-OwsCapabilitiesViewController-method-addLayer'>    /**
+</span>     * Hands the layer to the applications context to effectivly adding the layer
+     * to the apps map view.
+     * @param  {Ext.data.Model} record The Layer record
+     */
+    addLayer: function(record) {
+        var layer = record.getLayer().clone();
+        if (layer) {
+            this.appContext.addLayer(layer);
+        }
+    },
+
+<span id='GXC-panel-OwsCapabilitiesViewController-method-onStoreLoad'>    onStoreLoad: function(store, records, success) {
+</span>      var view = this.getView();
+
+      if (!success) {
+        view.fireEvent(&#39;capabilitiesloaderror&#39;, store);
+      }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-FeatureInfo'>/**
+</span> * Triggers a OpenLayers WMSGetFeatureInfo control that can be used to query
+ * for feature information.
+ */
+Ext.define(&#39;GXC.button.FeatureInfo&#39;, {
+    extend: &#39;GXC.button.OlButton&#39;,
+    requires: [
+        &#39;Ext.grid.property.Grid&#39;,
+        &#39;Ext.layout.container.Accordion&#39;,
+        &#39;GeoExt.window.Popup&#39;
+    ],
+
+    alias: &#39;widget.gxc_button_featureinfo&#39;,
+
+<span id='GXC-button-FeatureInfo-cfg-inject'>    /**
+</span>     * Component is injected with mapService and notificationService.
+     *
+     * @cfg {Array}
+     */
+    inject: [
+        &#39;mapService&#39;,
+        &#39;notificationService&#39;
+    ],
+
+<span id='GXC-button-FeatureInfo-property-enableToggle'>    /**
+</span>     * Allows the toggling of the underlying OL control.
+     *
+     * cfg {Boolean} enableToggle
+     */
+    enableToggle: true,
+
+<span id='GXC-button-FeatureInfo-cfg-toggleGroup'>    /**
+</span>     * Default toggle group for gxc interactions.
+     * @cfg {String}
+     */
+    toggleGroup: &#39;gxc_interaction&#39;,
+
+<span id='GXC-button-FeatureInfo-cfg-iconCls'>    /**
+</span>     * The GXC icon class for this button.
+     *
+     * @cfg {String} iconCls
+     */
+    iconCls: &#39;gxc-icon-info&#39;,
+
+<span id='GXC-button-FeatureInfo-property-tooltip'>    /**
+</span>     * The tooltip for this button.
+     * @type {String}
+     */
+    tooltip: &#39;WMS Feature Info&#39;,
+
+<span id='GXC-button-FeatureInfo-property-txtNoInfoTitle'>    txtNoInfoTitle: &#39;WMS feature info&#39;,
+</span><span id='GXC-button-FeatureInfo-property-txtNoInfo'>    txtNoInfo: &#39;No WMS feature info available at this position&#39;,
+</span>
+<span id='GXC-button-FeatureInfo-method-initComponent'>    initComponent: function() {
+</span>        this.map = this.mapService.getMap();
+
+        this.control = new OpenLayers.Control.WMSGetFeatureInfo({
+            drillDown: true,
+            queryVisible: false,
+            infoFormat: &#39;application/vnd.ogc.gml&#39;,
+            vendorParams: {
+                &#39;EXCEPTIONS&#39;: &#39;application/vnd.ogc.se_xml&#39;
+            },
+            maxFeatures: 3,
+            eventListeners: {
+                nogetfeatureinfo: this.noGetFeatureInfoHandler,
+                getfeatureinfo: this.getFeatureInfoHandler,
+                scope: this
+            }
+        });
+
+        this.callParent(arguments);
+    },
+
+
+<span id='GXC-button-FeatureInfo-method-onEnable'>    onEnable: function() {
+</span>        var map = this.mapService.getMap(),
+            layers = map.layers,
+            query = [],
+            layer;
+
+        this._highlightLayer = new OpenLayers.Layer.Vector(&quot;_gxc_highlight&quot;, {
+            displayInLayerSwitcher: false,
+            isBaseLayer: false
+            }
+        );
+
+        map.addLayer(this._highlightLayer);
+
+        for (var i = 0; i &lt; layers.length; i++) {
+            layer = layers[i];
+            if (layer.getVisibility() &amp;&amp; layer.metadata.queryable) {
+                query.push(layers[i]);
+            }
+        }
+
+        this.control.layers = query;
+        map.div.style.cursor = &#39;help&#39;;
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-FeatureInfo-method-onDisable'>    onDisable: function() {
+</span>        var map = this.mapService.getMap();
+
+        map.div.style.cursor = &#39;auto&#39;;
+
+        map.removeLayer(this._highlightLayer);
+        this._highlightLayer.destroy();
+        delete this._highlightLayer;
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-FeatureInfo-method-noGetFeatureInfoHandler'>    noGetFeatureInfoHandler: function() {
+</span>        if (this._popup &amp;&amp; this._popup.isVisible()) {
+            this._popup.close();
+        }
+
+        if (this._highlightLayer) {
+            this._highlightLayer.destroyFeatures();
+        }
+
+        this.notificationService.error(this.txtNoInfoTitle, this.txtNoInfo);
+    },
+
+<span id='GXC-button-FeatureInfo-method-getFeatureInfoHandler'>    getFeatureInfoHandler: function(e) {
+</span>        var featureItems = [],
+            features = e.features,
+            map = this.mapService.getMap(),
+            projection = map.getProjection(),
+            extent = map.getExtent();
+
+        if (this._popup &amp;&amp; this._popup.isVisible()) {
+            this._popup.close();
+        }
+
+        this._highlightLayer.destroyFeatures();
+
+        Ext.each(features, function(feature) {
+            // naive workaround to check for geometries returned
+            // in other projection that requested
+            // geoserver always returns EPSG:4326
+            var geom = feature.geometry;
+            if (geom &amp;&amp;
+                !geom.getBounds().intersectsBounds(extent)) {
+                feature.geometry = geom.transform(&#39;EPSG:4326&#39;, projection);
+            }
+            featureItems.push({
+                xtype: &#39;propertygrid&#39;,
+                title: feature.fid,
+                source: feature.attributes
+            });
+        });
+
+        this._highlightLayer.addFeatures(features);
+        console.log(this._highlightLayer);
+        this._highlightLayer.redraw();
+
+        if (featureItems.length &gt; 0) {
+            this._popup = Ext.create(&#39;GeoExt.window.Popup&#39;, {
+                title: &#39;Feature Info&#39;,
+                width: 400,
+                height: 300,
+                layout: &#39;accordion&#39;,
+                map: e.object.map,
+                location: e.xy,
+                items: featureItems
+            }).show();
+        }
+    }
+});
+</pre>
+</body>
+</html>

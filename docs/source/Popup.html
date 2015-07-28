@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Copyright (c) 2008-2015 The Open Source Geospatial Foundation
+ *
+ * Published under the BSD license.
+ * See https://github.com/geoext/geoext2/blob/master/license.txt for the full
+ * text of the license.
+ */
+
+/*
+ * @include OpenLayers/Feature/Vector.js
+ * @include OpenLayers/Geometry.js
+ * @include GeoExt/panel/Map.js
+ * @requires GeoExt/Version.js
+ */
+
+<span id='GeoExt-window-Popup'>/**
+</span> * A popup is a specialized window that supports anchoring to a particular
+ * location in a {@link GeoExt.panel.Map MapPanel}.
+ *
+ * When a popup is anchored to a {@link #location}, that means that
+ * the popup will visibly point to the location on the map,
+ * and move accordingly when the map is panned or zoomed.
+ *
+ * When you use the popup in an application, make sure to include the proper
+ * stylesheet depending on the Ext theme that you use: `popup-classic.css`,
+ * `popup-access.css`, &#39;popup-gray.css` or `popup-neptune.css`.
+ *
+ * Example:
+ *
+ *     var popup = Ext.create(&#39;GeoExt.window.Popup&#39;, {
+ *         title: &quot;My Popup&quot;,
+ *         location: feature,
+ *         width: 200,
+ *         html: &quot;&lt;div&gt;Popup content&lt;/div&gt;&quot;,
+ *         collapsible: true
+ *     });
+ *
+ * Or create it via `xtype` declaration:
+ *
+ * Example:
+ *
+ *     var popup = {
+ *         xtype: &#39;gx_popup&#39;,
+ *         title: &quot;My Popup&quot;,
+ *         location: feature,
+ *         width: 200,
+ *         html: &quot;&lt;div&gt;Popup content&lt;/div&gt;&quot;,
+ *         collapsible: true
+ *     };
+ */
+Ext.define(&#39;GeoExt.window.Popup&#39;, {
+    extend: &#39;Ext.window.Window&#39;,
+    alias: &#39;widget.gx_popup&#39;,
+    alternateClassName : &#39;GeoExt.Popup&#39;,
+    requires: [
+        &#39;GeoExt.Version&#39;
+    ],
+
+    /*
+     * Some Ext.Window defaults need to be overriden here
+     * because some Ext.Window behavior is not currently supported.
+     */
+
+<span id='GeoExt-window-Popup-property-insideViewport'>    /**
+</span>     * Whether the popup is currently inside the map viewport.
+     *
+     * @property {Boolean} insideViewport
+     * @private
+     */
+    insideViewport: null,
+
+<span id='GeoExt-window-Popup-property-animCollapse'>    /**
+</span>     * Animate the transition when the panel is collapsed. Collapsing animation
+     * is not supported yet for popups.
+     *
+     * @property {Boolean} animCollapse
+     * @private
+     */
+    animCollapse: false,
+
+<span id='GeoExt-window-Popup-property-draggable'>    /**
+</span>     * Enable dragging of this Panel. Because the popup defaults to being
+     * anchored, and anchored popups should not be draggable.
+     *
+     * @property {Boolean} draggable
+     * @private
+     */
+    draggable: false,
+
+<span id='GeoExt-window-Popup-property-shadow'>    /**
+</span>     * Give the popup window a shadow. Because shadows are not supported yet for
+     * popups (the shadow does not look good with the anchor).
+     *
+     * @property {Boolean} shadow
+     * @private
+     */
+    shadow: false,
+
+<span id='GeoExt-window-Popup-cfg-unpinnable'>    /**
+</span>     * The popup should have a &quot;unpin&quot; tool that unanchors it from
+     * its location.
+     *
+     * @cfg {Boolean} unpinnable
+     */
+    unpinnable: true,
+
+<span id='GeoExt-window-Popup-cfg-map'>    /**
+</span>     * The map this popup will be anchored to (only required if `anchored`
+     * is set to `true` and the map cannot be derived from the `location`&#39;s
+     * layer).
+     *
+     * @cfg {GeoExt.panel.Map/OpenLayers.Map} map
+     */
+    map: null,
+
+<span id='GeoExt-window-Popup-cfg-anchored'>    /**
+</span>     * The popup begins anchored to its location.
+     *
+     * @cfg {Boolean} anchored
+     */
+    anchored: true,
+
+<span id='GeoExt-window-Popup-cfg-panIn'>    /**
+</span>     * The popup should pan the map so that the popup is fully in view when it
+     * is rendered.
+     *
+     * @cfg {Boolean} panIn
+     */
+    panIn: true,
+
+<span id='GeoExt-window-Popup-cfg-location'>    /**
+</span>     * A location for this popup&#39;s anchor.
+     *
+     * @cfg {OpenLayers.Feature.Vector/OpenLayers.LonLat/OpenLayers.Pixel} location
+     */
+    location: null,
+
+<span id='GeoExt-window-Popup-property-cls'>    /**
+</span>     * Custom class name for GeoExt popups.
+     *
+     * @inheritdoc
+     */
+    cls: &quot;gx-popup&quot;,
+
+<span id='GeoExt-window-Popup-property-anchoredCls'>    /**
+</span>     * CSS class name to determine anchored state.
+     *
+     * @property {String} anchoredCls
+     * @private
+     */
+    anchoredCls: &quot;gx-popup-anc&quot;,
+
+<span id='GeoExt-window-Popup-property-ancSize'>    /**
+</span>     * Size of the popups anchor.
+     * @type {Object}
+     */
+    ancSize: {
+        width: 32,
+        height: 16
+    },
+
+<span id='GeoExt-window-Popup-property-ancOffset'>    /**
+</span>     * Offset of the popups anchor.
+     * @type {Object}
+     */
+    ancOffset: {
+        left: 5,
+        right: 5
+    },
+
+<span id='GeoExt-window-Popup-cfg-anchorPosition'>    /**
+</span>     * Controls the anchor position for the popup. If set to `auto`, the anchor
+     * will be positioned on the top or the bottom of the window, minimizing map
+     * movement. Supported values are `bottom-left`, `bottom-right`, `top-left`,
+     * `top-right` or `auto`.
+     *
+     * @cfg {String} anchorPosition
+     */
+    anchorPosition: &quot;auto&quot;,
+
+<span id='GeoExt-window-Popup-cfg-alwaysOnTop'>    /**
+</span>     * Shall this popup be always on top? Setting this to true helps in cases
+     * where the popups are working on a map panel that itself is inside of a
+     * window. Future versions of ExtJS do also have such a configuration option
+     * (http://docs.sencha.com/extjs/5.0.1/#!/api/Ext.util.Floating-cfg-alwaysOnTop)
+     * We do not full mimic the behaviour of that configuration but only support
+     * the boolean variant.
+     *
+     * @cfg {Boolean} alwaysOnTop
+     */
+    alwaysOnTop: false,
+
+<span id='GeoExt-window-Popup-method-initComponent'>    initComponent: function() {
+</span>        if(this.map instanceof GeoExt.panel.Map) {
+            this.map = this.map.map;
+        }
+        if(!this.map &amp;&amp; this.location instanceof OpenLayers.Feature.Vector &amp;&amp;
+                                                        this.location.layer) {
+            this.map = this.location.layer.map;
+        }
+        if (this.location instanceof OpenLayers.Feature.Vector) {
+            this.location = this.location.geometry;
+        }
+        if (this.location instanceof OpenLayers.Geometry) {
+            if (typeof this.location.getCentroid == &quot;function&quot;) {
+                this.location = this.location.getCentroid();
+            }
+            this.location = this.location.getBounds().getCenterLonLat();
+        } else if (this.location instanceof OpenLayers.Pixel) {
+            this.location = this.map.getLonLatFromViewPortPx(this.location);
+        } else {
+            this.anchored = false;
+        }
+
+        var mapExtent =  this.map.getExtent();
+        if (mapExtent &amp;&amp; this.location) {
+            this.insideViewport = mapExtent.containsLonLat(this.location);
+        }
+
+        if(this.anchored) {
+            this.addAnchorEvents();
+        }
+
+        this.callParent(arguments);
+    },
+
+<span id='GeoExt-window-Popup-method-initTools'>    /**
+</span>     * Initializes the tools on the popup.  In particular it adds the &#39;unpin&#39;
+     * tool if the popup is unpinnable.
+     *
+     * @private
+     */
+    initTools : function() {
+        if(this.unpinnable) {
+            if (!this.tools) {
+                this.tools = [];
+            }
+            this.tools.push({
+                type:&#39;unpin&#39;,
+                handler: Ext.bind(this.unanchorPopup, this, [])
+            });
+        }
+        this.callParent(arguments);
+    },
+
+<span id='GeoExt-window-Popup-method-show'>    /**
+</span>     * Override.
+     *
+     * @inheritdoc
+     * @private
+     */
+    show: function() {
+        this.callParent(arguments);
+        if(this.anchored) {
+            this.addCls(this.anchoredCls);
+            this.position();
+            if(this.panIn &amp;&amp; !this._mapMove) {
+                this.panIntoView();
+            }
+        }
+    },
+
+<span id='GeoExt-window-Popup-method-maximize'>    /**
+</span>     * Override.
+     *
+     * @inheritdoc
+     * @private
+     */
+    maximize: function() {
+        if(!this.maximized &amp;&amp; this.anc) {
+            this.unanchorPopup();
+        }
+        this.callParent(arguments);
+    },
+
+<span id='GeoExt-window-Popup-method-setSize'>    /**
+</span>     * Sets the size of the popup, taking into account the size of the anchor.
+     *
+     * @param {Integer} w the width to apply.
+     * @param {Integer} h the height to apply.
+     */
+    setSize: function(w, h) {
+        var ancSize;
+        if(this.anc) {
+            ancSize = this.ancSize;
+
+            if(typeof w == &#39;object&#39;) {
+                h = w.height - ancSize.height;
+                w = w.width;
+            } else if(!isNaN(h)){
+                h = h - ancSize.height;
+            }
+        }
+        this.callParent([w,h]);
+    },
+
+<span id='GeoExt-window-Popup-method-position'>    /**
+</span>     * Positions the popup relative to its current location.
+     *
+     * @private
+     */
+    position: function() {
+        var anchoredCls = this.anchoredCls;
+
+        if(this._mapMove === true) {
+            this.insideViewport = this.map.getExtent().containsLonLat(this.location);
+            if(this.insideViewport !== this.isVisible()) {
+                this.setVisible(this.insideViewport);
+            }
+        }
+
+        if(this.isVisible()) {
+            var locationPx = this.map.getPixelFromLonLat(this.location),
+                mapBox = Ext.fly(this.map.div).getBox(true),
+                top = locationPx.y + mapBox.y,
+                left = locationPx.x + mapBox.x,
+                elSize = this.el.getSize(),
+                ancSize = this.ancSize,
+                ancPos = this.anchorPosition;
+
+            if (ancPos.indexOf(&quot;right&quot;) &gt; -1 || locationPx.x &gt; mapBox.width / 2) {
+                // right
+                this.removeCls(anchoredCls + &quot;-left&quot;);
+                this.addCls(anchoredCls + &quot;-right&quot;);
+                left -= elSize.width - this.ancOffset.right - ancSize.width / 2;
+            } else {
+                // left
+                this.removeCls(anchoredCls + &quot;-right&quot;);
+                this.addCls(anchoredCls + &quot;-left&quot;);
+                left -= this.ancOffset.left + ancSize.width / 2;
+            }
+
+            if (ancPos.indexOf(&quot;bottom&quot;) &gt; -1 || locationPx.y &gt; mapBox.height / 2) {
+                // bottom
+                this.removeCls(anchoredCls + &quot;-top&quot;);
+                this.addCls(anchoredCls + &quot;-bottom&quot;);
+                top -= elSize.height + ancSize.height;
+            } else {
+                // top
+                this.removeCls(anchoredCls + &quot;-bottom&quot;);
+                this.addCls(anchoredCls + &quot;-top&quot;);
+                top += ancSize.height; // ok
+            }
+
+            this.setPagePosition(left, top);
+            this.handleAlwaysOnTop();
+        }
+    },
+
+<span id='GeoExt-window-Popup-method-handleAlwaysOnTop'>    /**
+</span>     * If we have been configured with #alwaysOnTop being `true`, we only need
+     * to manually change our z-indexing in ExtJS 4. ExtJS 5 brings its own
+     * version of `alwaysOnTop`.
+     *
+     * @private
+     */
+    handleAlwaysOnTop: function() {
+        if (this.alwaysOnTop &amp;&amp; Ext.versions.core.major === 4) {
+            Ext.WindowManager.bringToFront(this.id);
+        }
+    },
+
+<span id='GeoExt-window-Popup-method-unanchorPopup'>    /**
+</span>     * Unanchors a popup from its location. This removes the popup from its
+     * MapPanel and adds it to the page body.
+     *
+     * @private
+     */
+    unanchorPopup: function() {
+        this.removeAnchorEvents();
+
+        //make the window draggable
+        this.draggable = true;
+        this.header.addCls(&quot;x-window-header-draggable&quot;);
+        var ddDelegate = &#39;#&#39; + Ext.escapeId(this.header.id),
+            ddConfig = Ext.applyIf({
+                el: this.el,
+                delegate: ddDelegate,
+                constrain: this.constrain,
+                // `constrainHeader` in an Ext.window.Window maps
+                // to `constrainDelegate` of the Ext.util.ComponentDragger
+                constrainDelegate: this.constrainHeader ? ddDelegate : false,
+                constrainTo: this.constrainTo
+            }, this.draggable);
+        this.dd = new Ext.util.ComponentDragger(this, ddConfig);
+
+        //remove anchor
+        this.removeCls(this.anchoredCls);
+
+        //hide unpin tool
+        this.tools.unpin.hide();
+    },
+
+<span id='GeoExt-window-Popup-method-panIntoView'>    /**
+</span>     * Pans the MapPanel&#39;s map so that an anchored popup can come entirely
+     * into view, with padding specified as per normal OpenLayers. Map popup
+     * padding.
+     *
+     * @private
+     */
+    panIntoView: function() {
+        var mapBox = Ext.fly(this.map.div).getBox(true);
+
+        //assumed viewport takes up whole body element of map panel
+        var popupPos =  this.getPosition(true);
+        popupPos[0] -= mapBox.x;
+        popupPos[1] -= mapBox.y;
+
+        var panelSize = [mapBox.width, mapBox.height]; // [X,Y]
+
+        var popupSize = this.getSize();
+
+        var newPos = [popupPos[0], popupPos[1]];
+
+        //For now, using native OpenLayers popup padding.  This may not be ideal.
+        var padding = this.map.paddingForPopups;
+
+        // X
+        if(popupPos[0] &lt; padding.left) {
+            newPos[0] = padding.left;
+        } else if(popupPos[0] + popupSize.width &gt; panelSize[0] - padding.right) {
+            newPos[0] = panelSize[0] - padding.right - popupSize.width;
+        }
+
+        // Y
+        if(popupPos[1] &lt; padding.top) {
+            newPos[1] = padding.top;
+        } else if(popupPos[1] + popupSize.height &gt; panelSize[1] - padding.bottom) {
+            newPos[1] = panelSize[1] - padding.bottom - popupSize.height;
+        }
+
+        var dx = popupPos[0] - newPos[0];
+        var dy = popupPos[1] - newPos[1];
+
+        this.map.pan(dx, dy);
+    },
+
+<span id='GeoExt-window-Popup-method-onMapMove'>    /**
+</span>     * Called during map movements; does reposition the popup.
+     *
+     * @private
+     */
+    onMapMove: function() {
+        if (!(this.hidden &amp;&amp; this.insideViewport)){
+            this._mapMove = true;
+            this.position();
+            delete this._mapMove;
+        }
+    },
+
+<span id='GeoExt-window-Popup-method-addAnchorEvents'>    /**
+</span>     * Adds appropriate anchor events.
+     *
+     * @private
+     */
+    addAnchorEvents: function() {
+        this.map.events.on({
+            &quot;move&quot; : this.onMapMove,
+            scope : this
+        });
+
+        this.on({
+            &quot;resize&quot;: this.position,
+            scope: this
+        });
+    },
+
+<span id='GeoExt-window-Popup-method-removeAnchorEvents'>    /**
+</span>     * Removes previously bound anchor events.
+     *
+     * @private
+     */
+    removeAnchorEvents: function() {
+        //stop position with location
+        this.map.events.un({
+            &quot;move&quot; : this.onMapMove,
+            scope : this
+        });
+
+        this.un(&quot;resize&quot;, this.position, this);
+    },
+
+<span id='GeoExt-window-Popup-method-beforeDestroy'>    /**
+</span>     * Cleanup events before destroying the popup.
+     *
+     * @private
+     */
+    beforeDestroy: function() {
+        if(this.anchored) {
+            this.removeAnchorEvents();
+        }
+        this.callParent(arguments);
+    }
+
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-MapViewController'>/**
+</span> * A View Controller to the GXC.panel.Map.
+ */
+Ext.define(&#39;GXC.panel.MapViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+<span id='GXC-panel-MapViewController-property-inject'>    inject: [
+</span>        &#39;appConfig&#39;,
+        &#39;appContext&#39;,
+        &#39;layerService&#39;,
+        &#39;notificationService&#39;
+    ],
+
+<span id='GXC-panel-MapViewController-property-observe'>    observe: {
+</span>        appContext: {
+            &#39;zoomtoextent&#39;: &#39;onZoomToExtent&#39;
+        }
+    },
+
+<span id='GXC-panel-MapViewController-property-control'>    control: {
+</span>        &#39;view&#39;: {
+            boxready: &#39;onViewBoxready&#39;
+        }
+    },
+
+<span id='GXC-panel-MapViewController-method-onViewBoxready'>    /**
+</span>     * Called when the panels box model is ready loading initial data.
+     */
+    onViewBoxready: function(view, width, height) {
+        this.appContext.mapIsReady(view, width, height);
+        this.loadInitialData();
+    },
+
+<span id='GXC-panel-MapViewController-method-loadInitialData'>    /**
+</span>     * Loads the initial data sources forwarding to the injected mapService.
+     * While loading, the map is masked with a generic loading mask.
+     */
+    loadInitialData: function() {
+        var me = this,
+            view = this.getView(),
+            service = this.layerService;
+
+        view.setLoading(true);
+
+        service.loadInitialData()
+            .then(function() {
+                me.appContext.initialDataLoaded();
+            }).fail(function(error) {
+                me.notificationService.error(&#39;Error&#39;, error);
+            }).fin(function() {
+                view.setLoading(false);
+            }).done();
+    },
+
+<span id='GXC-panel-MapViewController-method-onZoomToExtent'>    /**
+</span>     * Called to zoom to the provided extent.
+     */
+    onZoomToExtent: function(extent) {
+        var map = this.getView().map;
+        map.zoomToExtent(extent);
+    }
+});
+</pre>
+</body>
+</html>

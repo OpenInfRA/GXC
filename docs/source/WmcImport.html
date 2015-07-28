@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-WmcImport'>/**
+</span> * Opens a panel that allows to import WMS-Layers from a WMC-format.
+ */
+Ext.define(&#39;GXC.button.WmcImport&#39;, {
+    extend: &#39;GXC.button.Button&#39;,
+    requires: [
+        &#39;GXC.panel.WmcImport&#39;
+    ],
+
+<span id='GXC-button-WmcImport-property-inject'>    inject: [
+</span>        &#39;mapService&#39;
+    ],
+
+    alias: &#39;widget.gxc_button_wmcimport&#39;,
+
+<span id='GXC-button-WmcImport-cfg-iconCls'>    /**
+</span>     * The GXC icon class.
+     * @cfg {String}
+     */
+    iconCls: &#39;gxc-icon-wmc-import&#39;,
+
+<span id='GXC-button-WmcImport-property-format'>    /**
+</span>     * The OpenLayers format to write WMC documents.
+     * @type {OpenLayers.Format.WMC}
+     */
+    format: null,
+
+<span id='GXC-button-WmcImport-cfg-tooltip'>    tooltip: &#39;Import WMS layers as WMC document&#39;,
+</span>
+<span id='GXC-button-WmcImport-method-initComponent'>    initComponent: function() {
+</span>        this.format = new OpenLayers.Format.WMC();
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-WmcImport-method-handler'>    handler: function() {
+</span>        Ext.create(&#39;Ext.window.Window&#39;, {
+            layout: &#39;fit&#39;,
+            width: 400,
+            height: 400,
+            items: [{
+                xtype: &#39;gxc_panel_wmcimport&#39;
+            }]
+        }).show();
+    },
+
+<span id='GXC-button-WmcImport-method-destroy'>    destroy: function() {
+</span>        this.format.destroy();
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

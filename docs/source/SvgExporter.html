@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
+*/
+<span id='Ext-draw-engine-SvgExporter'>/**
+</span> * A utility class for exporting a {@link Ext.draw.Surface Surface} to a string
+ * that may be saved or used for processing on the server.
+ *
+ * @singleton
+ */
+Ext.define(&#39;Ext.draw.engine.SvgExporter&#39;, function(){
+   var commaRe = /,/g,
+       fontRegex = /(-?\d*\.?\d*){1}(em|ex|px|in|cm|mm|pt|pc|%)\s(&#39;*.*&#39;*)/,
+       rgbColorRe = /rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+       rgbaColorRe = /rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,([\d\.]+)\)/g,
+       surface, len, width, height,
+
+   init = function(s){
+       surface = s;
+       len = surface.length;
+       width = surface.width;
+       height = surface.height;
+   },
+   spriteProcessor = {
+       path: function(sprite){
+
+           var attr = sprite.attr,
+               path = attr.path,
+               pathString = &#39;&#39;,
+               props, p, pLen;
+
+           if (Ext.isArray(path[0])) {
+               pLen = path.length;
+               for (p = 0; p &lt; pLen; p++) {
+                   pathString += path[p].join(&#39; &#39;);
+               }
+           } else if (Ext.isArray(path)) {
+               pathString = path.join(&#39; &#39;);
+           } else {
+               pathString = path.replace(commaRe,&#39; &#39;);
+           }
+
+           props = toPropertyString({
+               d: pathString,
+               fill: attr.fill || &#39;none&#39;,
+               stroke: attr.stroke,
+               &#39;fill-opacity&#39;: attr.opacity,
+               &#39;stroke-width&#39;: attr[&#39;stroke-width&#39;],
+               &#39;stroke-opacity&#39;: attr[&#39;stroke-opacity&#39;],
+               &quot;z-index&quot;: attr.zIndex,
+               transform: sprite.matrix.toSvg()
+           });
+
+           return &#39;&lt;path &#39; + props + &#39;/&gt;&#39;;
+       },
+       text: function(sprite){
+
+           // TODO
+           // implement multi line support (@see Svg.js tuneText)
+
+           var attr = sprite.attr,
+               match = fontRegex.exec(attr.font),
+               size = (match &amp;&amp; match[1]) || &quot;12&quot;,
+               // default font family is Arial
+               family = (match &amp;&amp; match[3]) || &#39;Arial&#39;,
+               text = attr.text,
+               factor = (Ext.isFF3_0 || Ext.isFF3_5) ? 2 : 4,
+               tspanString = &#39;&#39;,
+               props;
+
+           sprite.getBBox();
+           tspanString += &#39;&lt;tspan x=&quot;&#39; + (attr.x || &#39;&#39;) + &#39;&quot; dy=&quot;&#39;;
+           tspanString += (size/factor)+&#39;&quot;&gt;&#39;;
+           tspanString += Ext.htmlEncode(text) + &#39;&lt;/tspan&gt;&#39;;
+
+
+           props = toPropertyString({
+               x: attr.x,
+               y: attr.y,
+               &#39;font-size&#39;: size,
+               &#39;font-family&#39;: family,
+               &#39;font-weight&#39;: attr[&#39;font-weight&#39;],
+               &#39;text-anchor&#39;: attr[&#39;text-anchor&#39;],
+               // if no fill property is set it will be black
+               fill: attr.fill || &#39;#000&#39;,
+               &#39;fill-opacity&#39;: attr.opacity,
+               transform: sprite.matrix.toSvg()
+           });
+
+
+
+           return &#39;&lt;text &#39;+ props + &#39;&gt;&#39; +  tspanString + &#39;&lt;/text&gt;&#39;;
+       },
+       rect: function(sprite){
+
+           var attr = sprite.attr,
+               props =  toPropertyString({
+                   x: attr.x,
+                   y: attr.y,
+                   rx: attr.rx,
+                   ry: attr.ry,
+                   width: attr.width,
+                   height: attr.height,
+                   fill: attr.fill || &#39;none&#39;,
+                   &#39;fill-opacity&#39;: attr.opacity,
+                   stroke: attr.stroke,
+                   &#39;stroke-opacity&#39;: attr[&#39;stroke-opacity&#39;],
+                   &#39;stroke-width&#39;:attr[&#39;stroke-width&#39;],
+                   transform: sprite.matrix &amp;&amp; sprite.matrix.toSvg()
+               });
+
+           return &#39;&lt;rect &#39; + props + &#39;/&gt;&#39;;
+       },
+       circle: function(sprite){
+
+           var attr = sprite.attr,
+               props = toPropertyString({
+                   cx: attr.x,
+                   cy: attr.y,
+                   r: attr.radius,
+                   fill: attr.translation.fill || attr.fill || &#39;none&#39;,
+                   &#39;fill-opacity&#39;: attr.opacity,
+                   stroke: attr.stroke,
+                   &#39;stroke-opacity&#39;: attr[&#39;stroke-opacity&#39;],
+                   &#39;stroke-width&#39;:attr[&#39;stroke-width&#39;],
+                   transform: sprite.matrix.toSvg()
+               });
+
+           return &#39;&lt;circle &#39; + props + &#39; /&gt;&#39;;
+       },
+       image: function(sprite){
+
+           var attr = sprite.attr,
+               props = toPropertyString({
+                   x: attr.x - (attr.width/2 &gt;&gt; 0),
+                   y: attr.y - (attr.height/2 &gt;&gt; 0),
+                   width: attr.width,
+                   height: attr.height,
+                   &#39;xlink:href&#39;: attr.src,
+                   transform: sprite.matrix.toSvg()
+               });
+
+           return &#39;&lt;image &#39; + props + &#39; /&gt;&#39;;
+       }
+   },
+   svgHeader = function(){
+       var svg = &#39;&lt;?xml version=&quot;1.0&quot; standalone=&quot;yes&quot;?&gt;&#39;;
+       svg += &#39;&lt;!DOCTYPE svg PUBLIC &quot;-//W3C//DTD SVG 1.1//EN&quot; &quot;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&quot;&gt;&#39;;
+       return svg;
+   },
+   svgContent = function(){
+       var svg = &#39;&lt;svg width=&quot;&#39;+width+&#39;px&quot; height=&quot;&#39;+height+&#39;px&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; version=&quot;1.1&quot;&gt;&#39;,
+           defs = &#39;&#39;, item, itemsLen, items, gradient,
+           getSvgString, colorstops, stop,
+           coll, keys, colls, k, kLen, key, collI, i, j, stopsLen, sortedItems, za, zb;
+
+       items = surface.items.items;
+       itemsLen = items.length;
+
+
+       getSvgString = function(node){
+
+           var childs = node.childNodes,
+               childLength = childs.length,
+               i = 0,
+               attrLength,
+               j,
+               svgString = &#39;&#39;, child, attr, tagName, attrItem;
+
+               for(; i &lt; childLength; i++){
+                   child = childs[i];
+                   attr = child.attributes;
+                   tagName = child.tagName;
+
+                   svgString += &#39;&lt;&#39; +tagName;
+
+                   for(j = 0, attrLength = attr.length; j &lt; attrLength; j++){
+                       attrItem = attr.item(j);
+                       svgString += &#39; &#39;+attrItem.name+&#39;=&quot;&#39;+attrItem.value+&#39;&quot;&#39;;
+                   }
+
+                   svgString += &#39;&gt;&#39;;
+
+                   if(child.childNodes.length &gt; 0){
+                       svgString += getSvgString(child);
+                   }
+
+                   svgString += &#39;&lt;/&#39; + tagName + &#39;&gt;&#39;;
+
+               }
+           return svgString;
+       };
+
+
+       if(surface.getDefs){
+           defs = getSvgString(surface.getDefs());
+       }else{
+           // IE
+           coll = surface.gradientsColl;
+           if (coll) {
+               keys  = coll.keys;
+               colls = coll.items;
+               k     = 0;
+               kLen  = keys.length;
+           }
+
+           for (; k &lt; kLen; k++) {
+               key   = keys[k];
+               collI = colls[k];
+
+               gradient = surface.gradientsColl.getByKey(key);
+               defs += &#39;&lt;linearGradient id=&quot;&#39; + key + &#39;&quot; x1=&quot;0&quot; y1=&quot;0&quot; x2=&quot;1&quot; y2=&quot;1&quot;&gt;&#39;;
+
+               var color = gradient.colors.replace(rgbColorRe, &#39;rgb($1|$2|$3)&#39;);
+               color = color.replace(rgbaColorRe, &#39;rgba($1|$2|$3|$4)&#39;)
+               colorstops = color.split(&#39;,&#39;);
+               for(i=0, stopsLen = colorstops.length; i &lt; stopsLen; i++){
+                   stop = colorstops[i].split(&#39; &#39;);
+                   color = Ext.draw.Color.fromString(stop[1].replace(/\|/g,&#39;,&#39;));
+                   defs += &#39;&lt;stop offset=&quot;&#39;+stop[0]+&#39;&quot; stop-color=&quot;&#39; + color.toString() + &#39;&quot; stop-opacity=&quot;1&quot;&gt;&lt;/stop&gt;&#39;;
+               }
+               defs += &#39;&lt;/linearGradient&gt;&#39;;
+           }
+       }
+
+       svg += &#39;&lt;defs&gt;&#39; + defs + &#39;&lt;/defs&gt;&#39;;
+
+       // thats the background rectangle
+       svg += spriteProcessor.rect({
+           attr: {
+                   width: &#39;100%&#39;,
+                   height: &#39;100%&#39;,
+                   fill: &#39;#fff&#39;,
+                   stroke: &#39;none&#39;,
+                   opacity: &#39;0&#39;
+           }
+       });
+
+       // Sort the items (stable sort guaranteed)
+       sortedItems = new Array(itemsLen);
+       for(i = 0; i &lt; itemsLen; i++){
+           sortedItems[i] = i;
+       }
+       sortedItems.sort(function (a, b) {
+           za = items[a].attr.zIndex || 0;
+           zb = items[b].attr.zIndex || 0;
+           if (za == zb) {
+               return a - b;
+           }
+           return za - zb;
+       });
+
+       for(i = 0; i &lt; itemsLen; i++){
+           item = items[sortedItems[i]];
+           if(!item.attr.hidden){
+               svg += spriteProcessor[item.type](item);
+           }
+       }
+
+       svg += &#39;&lt;/svg&gt;&#39;;
+
+       return svg;
+   },
+   toPropertyString = function(obj){
+       var propString = &#39;&#39;,
+           key;
+
+       for(key in obj){
+
+           if(obj.hasOwnProperty(key) &amp;&amp; obj[key] != null){
+               propString += key +&#39;=&quot;&#39;+ obj[key]+&#39;&quot; &#39;;
+           }
+
+       }
+
+       return propString;
+   };
+
+   return {
+       singleton: true,
+
+<span id='Ext-draw-engine-SvgExporter-method-generate'>       /**
+</span>        * Exports the passed surface to a SVG string representation
+        * @param {Ext.draw.Surface} surface The surface to export
+        * @param {Object} [config] Any configuration for the export. Currently this is
+        * unused but may provide more options in the future
+        * @return {String} The SVG as a string
+        */
+       generate: function(surface, config){
+           config = config || {};
+           init(surface);
+           return svgHeader() + svgContent();
+       }
+   };
+});</pre>
+</body>
+</html>

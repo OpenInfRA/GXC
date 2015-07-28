@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-SelectFeature'>/**
+</span> * Triggers a OpenLayers WMSGetFeatureInfo control that can be used to query
+ * for feature information.
+ */
+Ext.define(&#39;GXC.button.SelectFeature&#39;, {
+    extend: &#39;GXC.button.OlButton&#39;,
+    requires: [
+        &#39;Ext.grid.property.Grid&#39;,
+        &#39;GeoExt.window.Popup&#39;
+    ],
+
+    alias: &#39;widget.gxc_button_selectfeature&#39;,
+
+<span id='GXC-button-SelectFeature-cfg-inject'>    /**
+</span>     * Component is injected with mapService and notificationService.
+     *
+     * @cfg {Array}
+     */
+    inject: [
+        &#39;appConfig&#39;,
+        &#39;mapService&#39;
+    ],
+
+<span id='GXC-button-SelectFeature-property-enableToggle'>    /**
+</span>     * Allows the toggling of the underlying OL control.
+     *
+     * cfg {Boolean} enableToggle
+     */
+    enableToggle: true,
+
+<span id='GXC-button-SelectFeature-cfg-toggleGroup'>    /**
+</span>     * Default toggle group for gxc interactions.
+     * @cfg {String}
+     */
+    toggleGroup: &#39;gxc_interaction&#39;,
+
+<span id='GXC-button-SelectFeature-cfg-iconCls'>    /**
+</span>     * The GXC icon class for this button.
+     *
+     * @cfg {String} iconCls
+     */
+    iconCls: &#39;gxc-icon-vector-info&#39;,
+
+<span id='GXC-button-SelectFeature-property-tooltip'>    /**
+</span>     * The tooltip for this button.
+     * @type {String}
+     */
+    tooltip: &#39;Select Feature&#39;,
+
+<span id='GXC-button-SelectFeature-property-boxselection'>    /**
+</span>     * Switch to determine if a boxselection is in progress.
+     *
+     * @type {Boolean}
+     * @private
+     */
+    boxselection: false,
+
+<span id='GXC-button-SelectFeature-method-initComponent'>    initComponent: function() {
+</span>        this.map = this.mapService.getMap();
+
+        this.control = new OpenLayers.Control.SelectFeature([], {
+            box: true,
+            multiple: true,
+            clickout: true,
+            toggle: true,
+            eventListeners: {
+                boxselectionstart: this.onBoxSelectionStart,
+                boxselectionend: this.onBoxSelectionEnd,
+                scope: this
+            },
+            onSelect: this.onSelect,
+            scope: this
+        });
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-SelectFeature-method-onEnable'>    onEnable: function() {
+</span>        var map = this.mapService.getMap(),
+            layers = map.layers,
+            query = [],
+            layer;
+
+        for (var i = 0; i &lt; layers.length; i++) {
+            layer = layers[i];
+            if (layer.getVisibility() &amp;&amp;
+                layer.CLASS_NAME === &#39;OpenLayers.Layer.Vector&#39;) {
+                query.push(layers[i]);
+            }
+        }
+
+        this.control.setLayer(query);
+
+        map.div.style.cursor = &#39;help&#39;;
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-SelectFeature-method-onDisable'>    onDisable: function() {
+</span>        var map = this.mapService.getMap();
+
+        this.control.unselectAll();
+
+        map.div.style.cursor = &#39;auto&#39;;
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-SelectFeature-method-onBoxSelectionStart'>    onBoxSelectionStart: function() {
+</span>        this.boxselection = true;
+    },
+
+<span id='GXC-button-SelectFeature-method-onBoxSelectionEnd'>    onBoxSelectionEnd: function(e) {
+</span>        var layers = e.layers,
+            features = [];
+
+        Ext.Array.each(layers, function(layer) {
+            features.push.apply(features, layer.selectedFeatures);
+        }, this);
+
+        this.showPropertiesWindow(features);
+
+        this.boxselection = false;
+    },
+
+<span id='GXC-button-SelectFeature-method-onSelect'>    onSelect: function(feature) {
+</span>        if (!this.boxselection) {
+            this.showPropertiesWindow([feature]);
+        }
+    },
+
+<span id='GXC-button-SelectFeature-method-showPropertiesWindow'>    showPropertiesWindow: function(features) {
+</span>        var featureItems = [];
+
+        Ext.each(features, function(feature) {
+            var sourceConfig = {};
+
+            Ext.Object.each(feature.attributes, function(key) {
+                sourceConfig[key] = {
+                    editor: Ext.create(&#39;Ext.form.DisplayField&#39;)
+                };
+            });
+
+            console.log(feature);
+
+            featureItems.push({
+                xtype: &#39;propertygrid&#39;,
+                title: feature.fid,
+                source: feature.attributes,
+                sourceConfig: sourceConfig
+            });
+        });
+
+        if (featureItems.length &gt; 0) {
+            Ext.create(&#39;Ext.window.Window&#39;, {
+                title: &#39;Properties&#39;,
+                width: 300,
+                height: 250,
+                layout: &#39;accordion&#39;,
+                items: featureItems
+            }).show();
+        }
+    }
+});
+</pre>
+</body>
+</html>

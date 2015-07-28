@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-ViewDelegatorViewController'>/**
+</span> * Simple button controller which initializes the delegated component by xtype
+ * and caches a reference.
+ *
+ * @class
+ */
+Ext.define(&#39;GXC.button.ViewDelegatorViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+    requires: [
+        &#39;Ext.window.Window&#39;
+    ],
+
+<span id='GXC-button-ViewDelegatorViewController-property-control'>    control: {
+</span><span id='GXC-button-ViewDelegatorViewController-property-view'>        /**
+</span>         * It&#39;s user configurable if the DelegateView button is responding to click of toggle events.
+         * Therefore we listen for both here.
+         */
+        view: {
+            boxready: &#39;onViewBoxready&#39;,
+            click: &#39;onViewClick&#39;,
+            toggle: &#39;onViewToggle&#39;
+        }
+    },
+
+<span id='GXC-button-ViewDelegatorViewController-property-delegate'>    /**
+</span>     * The view this controller is adding to the viewport.
+     * @type {Ext.Component}
+     */
+    delegate: null,
+
+<span id='GXC-button-ViewDelegatorViewController-method-onViewBoxready'>    /**
+</span>     * Checks if the delegate should be visible on render.
+     * @return {[type]} [description]
+     */
+    onViewBoxready: function() {
+        var view = this.getView();
+
+        if (view.pressed) {
+            this.showDelegate();
+        }
+    },
+
+<span id='GXC-button-ViewDelegatorViewController-method-onViewClick'>    /**
+</span>     * Called when the button is clicked.
+     * @return {undefined}
+     */
+    onViewClick: function() {
+        if (!this.getView().enableToggle) {
+            this.showDelegate();
+        }
+    },
+
+<span id='GXC-button-ViewDelegatorViewController-method-onViewToggle'>    /**
+</span>     * Called when the button is toggled.
+     * @param  {Ext.button.Button} button  The button itself.
+     * @param  {Boolean} pressed The state of the button.
+     * @return {undfined}
+     */
+    onViewToggle: function(button, pressed) {
+        if (pressed) {
+            this.showDelegate();
+        } else {
+            this.delegate.close();
+        }
+    },
+
+<span id='GXC-button-ViewDelegatorViewController-method-showDelegate'>    /**
+</span>     * Initializes a view as defined by the xtypeDelegate config.
+     * View will be added to the component found by targetQuery or inserted as a child component of a floating window.
+     * @return {undefined}
+     */
+    showDelegate: function() {
+        var view = this.getView(),
+            cmp;
+
+        if (this.delegate) {
+            return this.delegate.show();
+        }
+
+        this.delegate = Ext.create(view.dType, view.dConfig);
+
+        this.delegate.on({
+            &#39;close&#39;: this.onDelegateClose,
+            &#39;beforedestroy&#39;: this.onDelegateBeforeDestroy,
+            scope: this
+        });
+
+        // positions the delegte if configured
+        if (view.dShowAt) {
+            this.delegate.showAt.apply(this.delegate, view.dShowAt);
+        }
+
+        if (view.dShowBy &amp;&amp; view.dShowBy.length) {
+            if (Ext.isString(view.dShowBy[0])) {
+                view.dShowBy[0] = Ext.ComponentQuery.query(view.dShowBy[0])[0];
+            }
+            this.delegate.showBy.apply(this.delegate, view.dShowBy);
+        }
+
+        if (!this.delegate.isVisible()) {
+            this.delegate.show();
+        }
+    },
+
+<span id='GXC-button-ViewDelegatorViewController-method-onDelegateClose'>    /**
+</span>     * Synchronizes button state and delegates show state.
+     */
+    onDelegateClose: function() {
+        var view = this.getView();
+
+        if (view.enableToggle) {
+            view.toggle(false, false);
+        }
+    },
+
+<span id='GXC-button-ViewDelegatorViewController-method-onDelegateBeforeDestroy'>    /**
+</span>     * Unbind event handlers.
+     */
+    onDelegateBeforeDestroy: function() {
+        this.delegate.un({
+            &#39;close&#39;: this.onDelegateClose,
+            &#39;beforedestroy&#39;: this.onDelegateBeforeDestroy,
+            scope: this
+        });
+
+        this.delegate = null;
+    }
+});
+</pre>
+</body>
+</html>

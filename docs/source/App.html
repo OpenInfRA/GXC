@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-App'>/**
+</span> * # GXC.App
+ *
+ * This is the main class that most GXC driven application will inherit from in the
+ * form of:
+ *
+ *      Ext.application({
+ *          name: &#39;HTW&#39;,
+ *          extend: &#39;GXC.App&#39;,
+ *          autoCreateViewport: false
+ *      });
+ *
+ * By providing preconfigured service providers at runtime, it is possible to build
+ * applications declaratively via configuration. GXC components will consult
+ * service providers to access the map object, stores and further functionality.
+ *
+ * @class
+ */
+Ext.define(&#39;GXC.App&#39;, {
+    extend: &#39;Deft.mvc.Application&#39;,
+    requires: [
+        &#39;Deft.mixin.Controllable&#39;,
+        &#39;Deft.mixin.Injectable&#39;,
+        &#39;Ext.app.Application&#39;,
+        &#39;Ext.tip.QuickTipManager&#39;,
+        &#39;Ext.state.LocalStorageProvider&#39;,
+        &#39;Ext.state.CookieProvider&#39;,
+        &#39;GXC.config.AppConfig&#39;,
+        &#39;GXC.context.AppContext&#39;,
+        &#39;GXC.service.*&#39;,
+        &#39;GXC.data.LayerStore&#39;,
+        &#39;GXC.data.LayerSourceStore&#39;,
+        &#39;GXC.data.LayerTreeStore&#39;,
+        &#39;GXC.data.ServiceStore&#39;,
+        &#39;GXC.Version&#39;,
+        &#39;GXC.Viewport&#39;
+    ],
+
+<span id='GXC-App-method-init'>    /**
+</span>     * Initialized the Application Object.
+     * @return {undefined}
+     */
+    init: function() {
+        this.beforeInit();
+        Deft.Injector.configure(this.buildInjectorConfiguration());
+        return this.afterInit();
+    },
+
+<span id='GXC-App-method-buildInjectorConfiguration'>    /**
+</span>     * Wires the defined services providers that will be injected into
+     * requesting objects at runtime.
+     * @return {Object} A keyed object of services providers.
+     */
+    buildInjectorConfiguration: function() {
+        return {
+            appConfig: {
+                className: &#39;GXC.config.AppConfig&#39;,
+                parameters: [{
+                    environment: window.GXC_ENV
+                }]
+            },
+            appContext: &#39;GXC.context.AppContext&#39;,
+            layerService: &#39;GXC.service.Layer&#39;,
+            layerStore: &#39;GXC.data.LayerStore&#39;,
+            layerSourceStore: &#39;GXC.data.LayerSourceStore&#39;,
+            layerTreeStore: &#39;GXC.data.LayerTreeStore&#39;,
+            serviceStore: &#39;GXC.data.ServiceStore&#39;,
+            mapService: &#39;GXC.service.Map&#39;,
+            notificationService: {
+                className: &#39;GXC.service.Notification&#39;,
+                parameters: {
+                    successCmpId: &#39;notificationBar&#39;,
+                    errorCmpId: &#39;notificationBar&#39;
+                }
+            },
+            owsCapabilitiesService: &#39;GXC.service.OwsCapabilities&#39;,
+            sourceService: &#39;GXC.service.Source&#39;
+        };
+    },
+
+<span id='GXC-App-method-beforeInit'>    /**
+</span>     * @protected
+     * Runs at the start of the init() method. Override in subclasses if needed.
+     */
+    beforeInit: function() {
+        // Init state provider
+        if (Ext.supports.LocalStorage) {
+            Ext.state.Manager.setProvider(
+                Ext.create(&#39;Ext.state.LocalStorageProvider&#39;)
+            );
+        } else {
+            Ext.state.Manager.setProvider(
+                Ext.create(&#39;Ext.state.CookieProvider&#39;)
+            );
+        }
+        // Do not send HTTP OPTIONS request if not necessary
+        Ext.Ajax.useDefaultXhrHeader = false;
+    },
+
+<span id='GXC-App-method-afterInit'>    /**
+</span>     * @protected
+     * Runs at the end of the init() method.
+     */
+    afterInit: function() {
+        this.constrainFloaringComponents();
+
+        Ext.tip.QuickTipManager.init();
+        Ext.create(&#39;GXC.Viewport&#39;);
+    },
+
+<span id='GXC-App-method-constrainFloaringComponents'>    /**
+</span>     * Helper function that overrides ExtJS internals to constraint floating components
+     * inside of the GXC container. This way, floating components like menus, tooltips
+     * and floating panels are visible during fullscreen mode.
+     */
+    constrainFloaringComponents: function() {
+        var config = Deft.Injector.resolve(&#39;appConfig&#39;),
+            container = config.getContainer();
+
+<span id='GXC-App-method-doAutoRender'>        /**
+</span>         * Handles autoRender.
+         * Floating Components may have an ownerCt. If they are asking to be constrained, constrain them within that
+         * ownerCt, and have their z-index managed locally. Floating Components are always rendered to document.body
+         */
+        Ext.AbstractComponent.prototype.doAutoRender = function() {
+            var me = this;
+            if (!me.rendered) {
+                if (me.floating) {
+                    me.render(container.dom);
+                } else {
+                    me.render(Ext.isBoolean(me.autoRender) ? Ext.getBody() : me.autoRender);
+                }
+            }
+        };
+
+        Ext.tip.QuickTipManager.init = function (autoRender, config) {
+            var me = this;
+
+            if (!me.tip) {
+                if (!Ext.isReady) {
+                    Ext.onReady(function(){
+                        Ext.tip.QuickTipManager.init(autoRender, config);
+                    });
+                    return;
+                }
+
+                var tipConfig = Ext.apply({ disabled: me.disabled, id: &#39;ext-quicktips-tip&#39; }, config),
+                    className = tipConfig.className,
+                    xtype = tipConfig.xtype;
+
+                if (className) {
+                    delete tipConfig.className;
+                } else if (xtype) {
+                    className = &#39;widget.&#39; + xtype;
+                    delete tipConfig.xtype;
+                }
+
+                if (autoRender !== false) {
+                    tipConfig.renderTo = container.dom;
+                }
+
+                me.tip = Ext.create(className || &#39;Ext.tip.QuickTip&#39;, tipConfig);
+
+                // private.
+                // Need a globally accessble way of testing whether QuickTipsManager is both loaded AND initialized.
+                Ext.quickTipsActive = true;
+            }
+        };
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-panel-Style'>/**
+</span> * @class
+ */
+Ext.define(&#39;GXC.panel.Style&#39;, {
+    extend: &#39;Ext.panel.Panel&#39;,
+    requires: [
+        &#39;GXC.panel.StyleViewController&#39;
+    ],
+
+<span id='GXC-panel-Style-property-controller'>    controller: &#39;GXC.panel.StyleViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_panel_style&#39;,
+
+<span id='GXC-panel-Style-property-titleText'>    /* i18n */
+</span>    titleText: &#39;General&#39;,
+<span id='GXC-panel-Style-property-nameFieldText'>    nameFieldText: &#39;Name&#39;,
+</span><span id='GXC-panel-Style-property-titleFieldText'>    titleFieldText: &#39;Title&#39;,
+</span><span id='GXC-panel-Style-property-abstractFieldText'>    abstractFieldText: &#39;Abstract&#39;,
+</span><span id='GXC-panel-Style-property-cancelText'>    /** api: config[cancelText] (i18n) */
+</span>    cancelText: &quot;Cancel&quot;,
+<span id='GXC-panel-Style-property-saveText'>    /** api: config[saveText] (i18n) */
+</span>    saveText: &quot;Save&quot;,
+<span id='GXC-panel-Style-cfg-bodyPadding'>    /* ~i18n */
+</span>
+    bodyPadding: &#39;10px&#39;,
+
+<span id='GXC-panel-Style-property-userStyle'>    /**
+</span>     * The user style that is in editing.
+     * @type {OpenLayers.Style}
+     */
+    userStyle: null,
+
+<span id='GXC-panel-Style-method-initComponent'>    initComponent: function() {
+</span>        var userStyle = this.userStyle;
+
+        Ext.apply(this, {
+            items: [{
+                xtype: &#39;fieldset&#39;,
+                title: this.titleText,
+                items: [{
+                    itemId: &#39;nameField&#39;,
+                    xtype: &#39;displayfield&#39;,
+                    fieldLabel: this.nameFieldText,
+                    name: &#39;name&#39;,
+                    value: userStyle.name,
+                    maskRe: /[A-Za-z0-9_]/
+                }, {
+                    itemId: &#39;titleField&#39;,
+                    xtype: &#39;textfield&#39;,
+                    fieldLabel: this.titleFieldText,
+                    name: &#39;title&#39;,
+                    value: userStyle.title
+                }, {
+                    itemId: &#39;descriptionField&#39;,
+                    xtype: &#39;textarea&#39;,
+                    fieldLabel: this.abstractFieldText,
+                    name: &#39;description&#39;,
+                    value: userStyle.description
+                }]
+            }],
+            bbar: [&#39;-&gt;&#39;, {
+                itemId: &#39;cancelButton&#39;,
+                text: this.cancelText,
+                iconCls: &#39;cancel&#39;
+            }, {
+                itemId: &#39;saveButton&#39;,
+                text: this.saveText,
+                iconCls: &#39;save&#39;
+            }]
+        });
+
+        this.addEvents(
+<span id='GXC-panel-Style-property-change'>            /** api: events[change]
+</span>             *  Fires when any style property changes.
+             *
+             *  Listener arguments:
+             *  * component - ``gxp.StylePropertiesDialog`` This dialog.
+             *  * userStyle - ``OpenLayers.Style`` The updated style.
+             */
+            &#39;change&#39;
+        );
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-panel-Style-method-destroy'>    destroy: function() {
+</span>        this.userStyle = null;
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

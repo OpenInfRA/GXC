@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-StrokeSymbolizerViewController'>/**
+</span> * ViewController of StrokeSymbolizer.
+ */
+Ext.define(&#39;GXC.form.StrokeSymbolizerViewController&#39;, {
+    extend: &#39;Deft.mvc.ViewController&#39;,
+
+<span id='GXC-form-StrokeSymbolizerViewController-property-control'>    control: {
+</span>        &#39;view&#39;: {
+            &#39;collapse&#39;: &#39;onViewCollapse&#39;,
+            &#39;expand&#39;: &#39;onViewExpand&#39;
+        },
+        &#39;styleCombo&#39;: {
+            &#39;select&#39;: &#39;onStyleComboSelect&#39;
+        },
+        &#39;colorField&#39;: {
+            &#39;change&#39;: &#39;onColorFieldChange&#39;
+        },
+        &#39;widthField&#39;: {
+            &#39;change&#39;: &#39;onWidthFieldChange&#39;
+        },
+        &#39;opacitySlider&#39;: {
+            &#39;changecomplete&#39;: &#39;onOpacitySliderChangecomplete&#39;
+        }
+    },
+
+<span id='GXC-form-StrokeSymbolizerViewController-method-onViewCollapse'>    onViewCollapse: function(view) {
+</span>        var symbolizer = view.symbolizer;
+
+        if (symbolizer.stroke !== false) {
+            symbolizer.stroke = false;
+            view.fireEvent(&quot;change&quot;, symbolizer);
+        }
+    },
+
+<span id='GXC-form-StrokeSymbolizerViewController-method-onViewExpand'>    /**
+</span>     * Sets the stroke property of the symbolizer to true on expand.
+     * @param  {GXC.form.StrokeSymbolizer} view
+     */
+    onViewExpand: function(view) {
+        var symbolizer = view.symbolizer;
+
+        symbolizer.stroke = true;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+<span id='GXC-form-StrokeSymbolizerViewController-method-onStyleComboSelect'>    /**
+</span>     * Sets the strokeDashstyle property on the StrokeSymbolizer.
+     * @param  {Ext.form.field.ComboBox} combo
+     * @param  {Array} records
+     */
+    onStyleComboSelect: function(combo, records) {
+        var view = this.getView();
+
+        view.symbolizer.strokeDashstyle = records[0].get(&#39;value&#39;);
+        view.fireEvent(&#39;change&#39;, this.symbolizer);
+    },
+
+<span id='GXC-form-StrokeSymbolizerViewController-method-onColorFieldChange'>    /**
+</span>     * Sets the strokeColor property on the StrokeSymbolizer.
+     * @param  {GXC.form.ColorField} field
+     */
+    onColorFieldChange: function(field) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer,
+            newValue = field.getValue(),
+            modified;
+
+        newValue = newValue.startsWith(&#39;#&#39;) ? newValue : &#39;#&#39; + newValue;
+        modified = symbolizer.strokeColor != newValue;
+        symbolizer.strokeColor = newValue;
+        modified &amp;&amp; view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+<span id='GXC-form-StrokeSymbolizerViewController-method-onWidthFieldChange'>    /**
+</span>     * Sets the strokeWidth property on the StrokeSymbolizer.
+     * @param  {Ext.form.field.Number} field
+     * @param  {Number} value
+     */
+    onWidthFieldChange: function(field, value) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        value = parseFloat(value);
+
+        if (isNaN(value)) {
+            delete symbolizer.strokeWidth;
+        } else {
+            symbolizer.strokeWidth = value;
+        }
+
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    },
+
+<span id='GXC-form-StrokeSymbolizerViewController-method-onOpacitySliderChangecomplete'>    /**
+</span>     * Sets the strokeOpacity property on the StrokeSymbolizer.
+     * @param  {Ext.slider.Slider} slider
+     * @param  {Number} value
+     */
+    onOpacitySliderChangecomplete: function(slider, value) {
+        var view = this.getView(),
+            symbolizer = view.symbolizer;
+
+        symbolizer.strokeOpacity = value / 100;
+        view.fireEvent(&quot;change&quot;, symbolizer);
+    }
+});
+</pre>
+</body>
+</html>

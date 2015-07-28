@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-model-Style'>/**
+</span> * A simple model to represent style instances. The actual SLD style is mapped
+ * to the userStyle attribute.
+ */
+Ext.define(&#39;GXC.model.Style&#39;, {
+    extend: &#39;Ext.data.Model&#39;,
+
+<span id='GXC-model-Style-cfg-idProperty'>    idProperty: &#39;name&#39;,
+</span>
+<span id='GXC-model-Style-property-fields'>    fields: [{
+</span>        name: &#39;name&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;title&#39;,
+        type: &#39;string&#39;,
+        convert: function(value, record) {
+            if (!value) {
+                return record.get(&#39;name&#39;);
+            }
+            return value;
+        }
+    }, {
+        name: &#39;abstract&#39;,
+        type: &#39;string&#39;
+    }, {
+        name: &#39;legend&#39;
+    }, {
+        name: &#39;userStyle&#39;
+    }, {
+        name: &#39;edited&#39;,
+        type: &#39;boolean&#39;,
+        defaultValue: false
+    }],
+
+<span id='GXC-model-Style-method-set'>    set: function(fieldName, newValue) {
+</span>        if (fieldName === &#39;userStyle&#39;) {
+            this.set(&#39;edited&#39;, true);
+            this.set(&#39;name&#39;, newValue.name);
+            this.set(&#39;title&#39;, newValue.title || newValue.name);
+            this.set(&#39;abstract&#39;, newValue.description);
+        }
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

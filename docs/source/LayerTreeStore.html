@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-data-LayerTreeStore'>/**
+</span> * Store that holds the data of a layer tree.
+ */
+Ext.define(&#39;GXC.data.LayerTreeStore&#39;, {
+    extend: &#39;Ext.data.TreeStore&#39;,
+    requires: [
+        &#39;GeoExt.tree.LayerLoader&#39;,
+        &#39;GeoExt.tree.LayerContainer&#39;
+    ],
+
+<span id='GXC-data-LayerTreeStore-property-inject'>    inject: [
+</span>        &#39;layerStore&#39;
+    ],
+
+<span id='GXC-data-LayerTreeStore-cfg-model'>    model: &#39;GXC.data.LayerTreeModel&#39;,
+</span>
+<span id='GXC-data-LayerTreeStore-method-constructor'>    constructor: function() {
+</span>        this.root = {
+            plugins: [{
+                ptype: &#39;gx_layercontainer&#39;,
+                loader: Ext.create(&#39;GeoExt.tree.LayerLoader&#39;, {
+                    store: this.layerStore
+                })
+            }],
+            expanded: true
+        };
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

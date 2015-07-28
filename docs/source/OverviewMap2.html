@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-button-OverviewMap'>/**
+</span> * Shows a floating OverviewMap map above the mappanel.
+ */
+Ext.define(&#39;GXC.button.OverviewMap&#39;, {
+    extend: &#39;GXC.button.ViewDelegator&#39;,
+    requires: [
+        &#39;GXC.OverviewMap&#39;
+    ],
+
+    alias: &#39;widget.gxc_button_overviewmap&#39;,
+
+<span id='GXC-button-OverviewMap-cfg-inject'>    /**
+</span>     * Component is injected with
+     * * mapService
+     *
+     * @cfg {Array}
+     */
+    inject: [
+        &#39;mapService&#39;
+    ],
+
+<span id='GXC-button-OverviewMap-property-map'>    /**
+</span>     * The Openlayers map the overview is associated with.
+     * @property {OpenLayers.Map} map
+     */
+    map: null,
+
+<span id='GXC-button-OverviewMap-property-ov'>    /**
+</span>     * The overview OpenLayers Overview control.
+     * @property {OpenLayers.Control.OverviewMap}
+     */
+    ov: null,
+
+<span id='GXC-button-OverviewMap-cfg-ovWidth'>    /**
+</span>     * The default width of the overview map.
+     * @cfg {Number}
+     */
+    ovWidth: 250,
+
+<span id='GXC-button-OverviewMap-cfg-ovHeight'>    /**
+</span>     * The default height of the overview map.
+     * @cfg {Number}
+     */
+    ovHeight: 250,
+
+<span id='GXC-button-OverviewMap-cfg-iconCls'>    /**
+</span>     * The default icon of the button.
+     * @cfg {String}
+     */
+    iconCls: &#39;gxc-icon-map&#39;,
+
+<span id='GXC-button-OverviewMap-cfg-tooltip'>    /**
+</span>     * The tooltip of the button.
+     * @cfg {String}
+     */
+    tooltip: &#39;Show overview map&#39;,
+
+<span id='GXC-button-OverviewMap-property-txtWindowTitle'>    txtWindowTitle: &#39;Overview&#39;,
+</span>
+<span id='GXC-button-OverviewMap-cfg-toggleGroup'>    toggleGroup: null,
+</span>
+<span id='GXC-button-OverviewMap-cfg-untoggleByEsc'>    /**
+</span>     * Allows to untoggle the button by pressing the ESC key.
+     * @cfg {Boolean}
+     */
+    untoggleByEsc: false,
+
+<span id='GXC-button-OverviewMap-method-initComponent'>    initComponent: function() {
+</span>        this.map = this.mapService.getMap();
+
+        this.dShowBy = [&#39;gxc_panel_map&#39;, &#39;bl&#39;, [10, -35 - this.ovHeight]];
+
+        this.dConfig = {
+            title: this.txtWindowTitle,
+            layout: &#39;fit&#39;,
+            items: [{
+                xtype: &#39;gxc_overviewmap&#39;,
+                map: this.map,
+                layersFn: function(layer) {
+                    return (layer.getVisibility() &amp;&amp;
+                        layer.CLASS_NAME !== &#39;OpenLayers.Layer.Vector&#39;);
+                },
+                dynamic: true
+            }],
+            width: this.ovWidth,
+            height: this.ovHeight,
+            resizable: {
+                heightIncrement: 10,
+                widthIncrement: 10
+            },
+            listeners: {
+                move: function() {
+                    // quick fix for wrong mouse positions in events
+                    this.down(&#39;gxc_overviewmap&#39;).reinitControl();
+                }
+            }
+        };
+
+        this.callParent(arguments);
+    },
+
+<span id='GXC-button-OverviewMap-method-destroy'>    /**
+</span>     * Disposes of linked objects.
+     *
+     * @inheritDoc
+     */
+    destroy: function() {
+        delete this.map;
+        delete this.ov;
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

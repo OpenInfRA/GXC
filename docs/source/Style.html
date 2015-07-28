@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='GXC-form-Style'>/**
+</span> * A form to style WMS layers.
+ *
+ * @class
+ */
+Ext.define(&#39;GXC.form.Style&#39;, {
+    extend: &#39;Ext.form.Panel&#39;,
+    requires: [
+        &#39;Ext.layout.container.Column&#39;,
+        &#39;Ext.layout.container.VBox&#39;,
+        &#39;Ext.form.FieldSet&#39;,
+        &#39;Ext.form.field.File&#39;,
+        &#39;Ext.grid.Panel&#39;,
+        &#39;Ext.form.field.ComboBox&#39;,
+        &#39;GXC.data.StyleStore&#39;,
+        &#39;GXC.form.CodeMirror&#39;,
+        &#39;GXC.form.StyleViewController&#39;
+    ],
+
+<span id='GXC-form-Style-property-controller'>    controller: &#39;GXC.form.StyleViewController&#39;,
+</span>
+    alias: &#39;widget.gxc_form_style&#39;,
+
+    config: {
+<span id='GXC-form-Style-property-layer'>        /**
+</span>         * The layer this form is supposed to style.
+         * @type {OpenLayers.Layer}
+         */
+        layer: null,
+
+<span id='GXC-form-Style-property-layerStyles'>        /**
+</span>         * The actual style that this layer is associated with.
+         * @type {String}
+         */
+        layerStyles: null,
+
+<span id='GXC-form-Style-property-layerSldBody'>        /**
+</span>         * The SLD_BODY param that is set.
+         * @type {String}
+         */
+        layerSldBody: null
+    },
+
+<span id='GXC-form-Style-cfg-layout'>    layout: {
+</span>        type: &#39;vbox&#39;,
+        align: &#39;stretch&#39;
+    },
+
+<span id='GXC-form-Style-cfg-defaults'>    defaults: {
+</span>        border: 0
+    },
+
+<span id='GXC-form-Style-property-txtAdvertisedStyles'>    txtAdvertisedStyles: &#39;Advertised styles&#39;,
+</span><span id='GXC-form-Style-property-txtSldBody'>    txtSldBody: &#39;Custom SLD&#39;,
+</span><span id='GXC-form-Style-property-txtLoadSld'>    txtLoadSld: &#39;Select SLD file&#39;,
+</span><span id='GXC-form-Style-property-txtLoadSldLabel'>    txtLoadSldLabel: &#39;Load SLD&#39;,
+</span><span id='GXC-form-Style-property-txtLoadSldValidationError'>    txtLoadSldValidationError: &#39;Only XML/SLD files allowed&#39;,
+</span><span id='GXC-form-Style-property-txtSaveAsFileSldBody'>    txtSaveAsFileSldBody: &#39;Save as File&#39;,
+</span><span id='GXC-form-Style-property-txtApplySldBody'>    txtApplySldBody: &#39;Apply SLD&#39;,
+</span><span id='GXC-form-Style-property-txtResetSldBody'>    txtResetSldBody: &#39;Reset to default&#39;,
+</span><span id='GXC-form-Style-property-txtStyle'>    txtStyle: &#39;Style&#39;,
+</span><span id='GXC-form-Style-property-txtStyleAbstract'>    txtStyleAbstract: &#39;Abstract&#39;,
+</span><span id='GXC-form-Style-property-txtLayerStyle'>    txtLayerStyle: &#39;Apply&#39;,
+</span><span id='GXC-form-Style-property-txtSLDStyle'>    txtSLDStyle: &#39;Apply custom SLD&#39;,
+</span>
+<span id='GXC-form-Style-method-initComponent'>    initComponent: function(config) {
+</span>        var items = [],
+            editor,
+            styleStore;
+
+        this.initConfig(config);
+
+        // may actually be null, which is ok
+        this.layerStyles = this.layer.params.STYLES;
+
+        // some layers may not define styles in capabilities
+        if (this.layer.metadata.styles) {
+            styleStore = Ext.create(&#39;GXC.data.StyleStore&#39;, {
+                data: this.layer.metadata.styles
+            });
+
+            items.push({
+                flex: 1,
+                title: this.txtAdvertisedStyles,
+                xtype: &#39;gridpanel&#39;,
+                itemId: &#39;styleGrid&#39;,
+                store: styleStore,
+                columns: [{
+                    text: &#39;Title&#39;,
+                    flex: 1,
+                    dataIndex: &#39;title&#39;
+                }, {
+                    text: &#39;Abstract&#39;,
+                    flex: 2,
+                    dataIndex: &#39;abstract&#39;
+                }]
+            });
+        }
+
+        items.push({
+            flex: 3,
+            title: this.txtSldBody,
+            xtype: &#39;panel&#39;,
+            layout: &#39;fit&#39;,
+            items: [{
+                xtype: &#39;gxc_form_codemirror&#39;,
+                itemId: &#39;sldBodyTextArea&#39;
+            }],
+            bbar: [{
+                xtype: &#39;button&#39;,
+                text: this.txtApplySldBody,
+                itemId: &#39;applySldBodyButton&#39;
+            }, {
+                xtype: &#39;button&#39;,
+                text: this.txtResetSldBody,
+                itemId: &#39;resetSldBodyButton&#39;
+            }, {
+                xtype: &#39;button&#39;,
+                text: this.txtSaveAsFileSldBody,
+                itemId: &#39;saveAsFileSldBodyButton&#39;
+            }]
+        });
+
+        Ext.apply(this, {
+            items: items
+        });
+
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>
