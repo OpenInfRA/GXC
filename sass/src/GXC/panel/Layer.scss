@@ -1,0 +1,32 @@
+.gxc-layer-tree .x-grid-cell-treecolumn {
+    cursor: move;
+}
+
+.gxc-layer-tree .x-grid-cell {
+    padding: 5px;
+    padding-bottom: 0;
+}
+
+.gxc-layer-tree .x-action-col-icon {
+    margin-left: 3px;
+}
+
+.gxc-layer-tree .gxc-legend {
+    padding-left: 18px;
+}
+
+.gxc-layer-tree .x-tree-elbow, .gxc-layer-tree .x-tree-elbow-end {
+    width: 3px !important;
+}
+
+.gx-tree-row-disabled {
+    opacity: 0.75;
+}
+
+.gx-tree-row-outofrange .x-tree-node-text {
+    text-decoration: line-through;
+}
+
+.gx-tree-row-outofviewport .x-tree-node-text {
+    font-style: italic;
+}

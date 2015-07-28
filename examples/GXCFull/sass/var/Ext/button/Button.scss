@@ -1,0 +1,79 @@
+/**
+ * @var {string/list}
+ * The background-gradient for the `default` button UI.  Can be either the name of a
+ * predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ */
+$button-default-background-gradient: 'none' !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default` button UI when the cursor is over the button.
+ * Can be either the name of a predefined gradient or a list of color stops. Used as the
+ * `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-default-background-gradient-over: 'none' !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default` button UI when the button is focused.  Can be
+ * either the name of a predefined gradient or a list of color stops. Used as the `$type`
+ * parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-default-background-gradient-focus: $button-default-background-gradient-over !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default` button UI when the button is pressed.  Can be
+ * either the name of a predefined gradient or a list of color stops. Used as the `$type`
+ * parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-default-background-gradient-pressed: 'none' !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default` button UI when the button is disabled.  Can be
+ * either the name of a predefined gradient or a list of color stops. Used as the `$type`
+ * parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-default-background-gradient-disabled: 'none' !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI.  Can be either the name of
+ * a predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ */
+$button-toolbar-background-gradient: 'none' !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the cursor is over the
+ * button. Can be either the name of a predefined gradient or a list of color stops. Used
+ * as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-toolbar-background-gradient-over: 'none' !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the button is focused.
+ * Can be either the name of a predefined gradient or a list of color stops. Used as the
+ * `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+// $button-toolbar-background-gradient-focus: $button-toolbar-background-gradient-over !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the button is pressed.
+ * Can be either the name of a predefined gradient or a list of color stops. Used as the
+ * `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-toolbar-background-gradient-pressed: 'none' !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the button is disabled.
+ * Can be either the name of a predefined gradient or a list of color stops. Used as the
+ * `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-toolbar-background-gradient-disabled: 'none' !default;

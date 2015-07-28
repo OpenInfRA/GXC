@@ -1,0 +1,46 @@
+  <!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.2.0/codemirror.css"/>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/theme/default/style.css"/>
+    <style type="text/css">
+    html {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    #gxc-container {
+      height: 100%;
+      width: 100%;
+    }
+    </style>
+    <title>Simple GXC client</title>
+</head>
+<body>
+    <div id="gxc-container"></div>
+
+    <!-- GeoServer print information -->
+    <!-- <script src="http://localhost:8080/geoserver/pdf/info.json?var=printCapabilities"></script> -->
+    <!-- Application configuration file -->
+    <script src="./resources/config.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/q.js/1.2.0/q.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/OpenLayers.js"></script>
+    <!-- <x-compile> -->
+        <!-- <x-bootstrap> -->
+            <link rel="stylesheet" href="bootstrap.css">
+            <script src="../../../../ext/ext-dev.js"></script>
+            <script src="./bootstrap.js"></script>
+        <!-- </x-bootstrap> -->
+        <script src="app.js"></script>
+    <!-- </x-compile> -->
+</body>
+</html>

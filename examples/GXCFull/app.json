@@ -1,0 +1,11 @@
+{
+    "name": "GXCFull",
+
+    "requires": [
+        "GXC"
+    ],
+
+    "resources": [],
+
+    "id": "1ad0bebf-39de-49a3-ae76-3d02c13f9fbb"
+}

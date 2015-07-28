@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GXC Spec Runner</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
+  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/theme/default/style.css">
+  <link rel="stylesheet" href="../../../ext/packages/ext-theme-classic/build/resources/ext-theme-classic-all.css"/>
+</head>
+
+<body>
+  <div id="mocha"></div>
+
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/q.js/1.2.0/q.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/OpenLayers.js"></script>
+  <script src="../../../ext/ext-all.js"></script>
+  <script src="../node_modules/mocha/mocha.js"></script>
+  <script src="../node_modules/chai/chai.js"></script>
+  <script src="../node_modules/chai-as-promised/lib/chai-as-promised.js"></script>
+  <script src="../node_modules/sinon-chai/lib/sinon-chai.js"></script>
+  <script src="../node_modules/sinon/pkg/sinon.js"></script>
+  <script>
+    var expect = chai.expect;
+
+    Ext.Loader.setConfig({
+      enabled : true,
+      paths   : {
+        GeoExt : '../node_modules/GeoExt/src/GeoExt',
+        Deft: '../node_modules/DeftJS/packages/deft/src/js',
+        GXC: '../src'
+      }
+    });
+
+    // make sure this gets loaded first to support IoC and ViewController
+    Ext.syncRequire([
+      'Deft.mixin.Controllable',
+      'Deft.mixin.Injectable'
+    ]);
+
+    mocha.setup('bdd');
+    chai.should();
+  </script>
+  <!-- test specs -->
+  <!-- <script src="button/test.ViewDelegator.js"></script> -->
+  <!-- <script src="config/test.AppConfig.js"></script> -->
+  <!-- <script src="controller/test.AbstractViewController.js"></script> -->
+  <!-- <script src="model/test.Layer.js"></script> -->
+  <!-- <script src="panel/test.Print.js"></script> -->
+  <!-- <script src="service/test.OwsCapabilities.js"></script> -->
+  <script src="reader/test.WmsNestedCapabilities.js"></script>
+  <script>(window.mochaPhantomJS || window.mocha).run();</script>
+</body>
+</html>

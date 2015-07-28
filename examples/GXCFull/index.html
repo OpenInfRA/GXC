@@ -1,0 +1,66 @@
+  <!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/theme/default/style.css"/>
+    <style type="text/css">
+    html {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    .row {
+      margin: auto;
+      height: 100%;
+      width: 100%;
+    }
+
+    #gxc-container {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      margin: auto;
+    }
+
+    #gxc-container:-webkit-full-screen {
+      width: 100%;
+      height: 100%;
+    }
+
+    #gxc-container:-moz-full-screen {
+      width: 100%;
+      height: 100%;
+    }
+    </style>
+    <title>GXCFull</title>
+</head>
+<body>
+  <div class="row">
+    <div id="gxc-container"></div>
+  </div>
+    <!-- GeoServer print information -->
+    <script src="http://localhost:8081/geoserver/pdf/info.json?var=printCapabilities"></script>
+    <!-- Application configuration file -->
+    <script src="./resources/config.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/q.js/1.2.0/q.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2014-11-29/FileSaver.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/proj4js/1.1.0/proj4js-combined.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/OpenLayers.debug.js"></script>
+    <!-- <x-compile> -->
+        <!-- <x-bootstrap> -->
+            <link rel="stylesheet" href="bootstrap.css">
+            <script src="../../../../ext/ext-dev.js"></script>
+            <script src="./bootstrap.js"></script>
+        <!-- </x-bootstrap> -->
+        <script src="app.js"></script>
+    <!-- </x-compile> -->
+</body>
+</html>

@@ -1,0 +1,13 @@
+.gxc-layerfiledrop > div {
+    height: inherit;
+    border: 4px dashed #bbb;
+    border-radius: 5px;
+    font: 20pt bold Vollkorn;
+    color: #bbb;
+    display: -webkit-flex; /* Safari */
+    -webkit-align-items: center; /* Safari 7.0+ */
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+}

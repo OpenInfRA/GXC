@@ -1,0 +1,12 @@
+/**
+ * Removes padding from overview map to fill whole component and adds
+ * dusty background.
+ */
+.gx-overview-map .olControlOverviewMapElement {
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.gx-overview-map .olMap {
+    cursor: crosshair;
+}

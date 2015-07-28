@@ -1,0 +1,22 @@
+.gxc-panel-map .olControlMousePosition {
+    background: $panel-base-color;
+    border-radius: 3px;
+    padding: 5px;
+    bottom: 3px;
+    right: 3px;
+}
+
+.gxc-panel-map .olControlAttribution {
+    background: $panel-base-color;
+    border-radius: 3px;
+    padding: 5px;
+    bottom: 30px;
+    right: 3px;
+}
+.gx-zoomslider::before {
+  content: url(../resources/GXC/images/silk/magnifier_zoom_in.png);
+}
+
+.gx-zoomslider::after {
+  content: url(../resources/GXC/images/silk/magnifier_zoom_out.png);
+}
