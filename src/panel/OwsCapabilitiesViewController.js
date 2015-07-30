@@ -39,12 +39,6 @@ Ext.define('GXC.panel.OwsCapabilitiesViewController', {
     },
 
     /**
-     * To be implemented in child classes.
-     * @type {[type]}
-     */
-    onStoreLoad: Ext.emptyFn,
-
-    /**
      * Adds a selected layer to the map.
      * @param  {Ext.button.Button} button
      */
@@ -70,11 +64,16 @@ Ext.define('GXC.panel.OwsCapabilitiesViewController', {
         }
     },
 
-    onStoreLoad: function(store, records, success) {
-      var view = this.getView();
+    onStoreLoad: function(records, operation, success) {
+      var view = this.getView(),
+          err, req, title, message;
 
       if (!success) {
-        view.fireEvent('capabilitiesloaderror', store);
+        err = operation.error;
+        req = operation.request;
+        title = err.statusText;
+        message = "Error connecting to: " + req.proxy.url;
+        view.fireEvent('capabilitiesloaderror', title, message);
       }
     }
 });

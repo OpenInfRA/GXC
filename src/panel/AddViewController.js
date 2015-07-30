@@ -114,16 +114,12 @@ Ext.define('GXC.panel.AddViewController', {
      * Called on load error.
      * @param  {Ext.data.Store} store
      */
-    onCapabilitiesLoadError: function(store) {
-      var view = this.getView(),
-          store = view.store,
-          template = Ext.Template(view.txtCapabilitiesLoadErrorMessage);
+    onCapabilitiesLoadError: function(title, message) {
+      var view = this.getView();
+
       this.emptyPreview();
       this.maskPreview();
-      this.notificationService.error(
-        view.txtCapabilitiesLoadErrorTitle,
-        template.append(store.getProxy().url)
-      );
+      this.notificationService.error(title, message);
     },
 
     /**
