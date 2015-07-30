@@ -54,10 +54,10 @@ services that are available at startup.
 The configuration should be available at runtime via the global variable
 "GXC_ENV" in simple JSON format. It is devided in the following categories:
 
-*   `proxyHost`
+*   `proxy.host`
     An optional proxy host to use with Ajax requests to OWS services.
 
-*   `viewportDomId`
+*   `targetId`
     The DOM node id that the application will be inserted to.
 
 *   `viewportItems`
@@ -75,7 +75,7 @@ The configuration should be available at runtime via the global variable
 *   `services`
     An array of WMS/WFS services that will be available for adding layers.
 
-## `viewportDomId`
+## `targetId`
 This is the target DOM node that the application will be inserted to. By
 sticking to a given DOM node instead of launching the ExtJS application as a
 Ext.viewport.Viewport it is possible to place GXC inside an existing website.
@@ -94,44 +94,44 @@ To find out the components `xtype` look at the API documantation of said item.
 GXC provides the following components (available settings see GXC API):
 
 ### Buttons
-* {@link GXC.button.FeatureInfo}
-* {@link GXC.button.Fullscreen}
-* {@link GXC.button.Geolocate}
-* {@link GXC.button.Graticule}
-* {@link GXC.button.MeasurePath}
-* {@link GXC.button.MeasurePolygon}
-* {@link GXC.button.NavEntry}
-* {@link GXC.button.NavNext}
-* {@link GXC.button.NavPrevious}
-* {@link GXC.button.OverviewMap}
-* {@link GXC.button.ZoomIn}
-* {@link GXC.button.ZoomOut}
-* {@link GXC.button.ZoomToMaxExtent}
+* GXC.button.FeatureInfo
+* GXC.button.Fullscreen
+* GXC.button.Geolocate
+* GXC.button.Graticule
+* GXC.button.MeasurePath
+* GXC.button.MeasurePolygon
+* GXC.button.NavEntry
+* GXC.button.NavNext
+* GXC.button.NavPrevious
+* GXC.button.OverviewMap
+* GXC.button.ZoomIn
+* GXC.button.ZoomOut
+* GXC.button.ZoomToMaxExtent
 
 A special case it the {@link GXC.button.ViewDelegator} button that can be used
 to delegate other components, e.g. the {@link GXC.panel.Add} panel to open a
 floating window to add new layers to the map.
 
 ### Panels and Components
-* {@link GXC.component.ScaleLine}
-* {@link GXC.panel.Add}
-* {@link GXC.panel.Edit}
-* {@link GXC.panel.Layer}
-* {@link GXC.panel.LayerFileDrop}
-* {@link GXC.panel.Legend}
-* {@link GXC.panel.Map}
-* {@link GXC.panel.Print}
-* {@link GXC.panel.Service}
-* {@link GXC.panel.WfsCapabilities}
-* {@link GXC.panel.WmsCapabilities}
-* {@link GXC.form.CodeMirror}
-* {@link GXC.form.Style}
-* {@link GXC.form.ZoomChooser}
+* GXC.component.ScaleLine
+* GXC.panel.Add
+* GXC.panel.Edit
+* GXC.panel.Layer
+* GXC.panel.LayerFileDrop
+* GXC.panel.Legend
+* GXC.panel.Map
+* GXC.panel.Print
+* GXC.panel.Service
+* GXC.panel.WfsCapabilities
+* GXC.panel.WmsCapabilities
+* GXC.form.CodeMirror
+* GXC.form.Style
+* GXC.form.ZoomChooser
 
 Typically these will be wrapped in standard ExtJS components to form the layout
 of the application. At the uppermost level, these are always
-{@link Ext.layout.container.Border} regions as described in the docs. (The GXC
-viewport is actually a {@link Ext.panel.Panel} with layout `border` predfined.)
+Ext.layout.container.Border regions as described in the docs. (The GXC
+viewport is actually a Ext.panel.Panel with layout `border` predfined.)
 
 A very simple app that only holds the map in the center region, a toolbar with
 some zoom buttons and a layer tree in the west region (left side) of the map may
