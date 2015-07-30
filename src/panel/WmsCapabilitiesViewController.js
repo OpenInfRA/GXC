@@ -1,35 +1,6 @@
 Ext.define('GXC.panel.WmsCapabilitiesViewController', {
     extend: 'GXC.panel.OwsCapabilitiesViewController',
 
-    // control: {
-    //     'view': {
-    //         'boxready': 'onViewBoxready',
-    //         'itemdblclick': 'onItemDblClick'
-    //     },
-    //     'addButton': {
-    //         'click': 'onAddButtonClick'
-    //     }
-    // },
-
-    /**
-     * Loads the treestore as soon as the panel is loaded.
-     * @param  {GXC.panel.WmsCapabilities} panel
-     */
-    // onViewBoxready: function(panel) {
-    //     var service = panel.service,
-    //         store = panel.getStore();
-    //
-    //     store.on('load', function(records, operation, success) {
-    //         if (success)
-    //           if (records.length) {
-    //             var root = store.setRootNode(records[0]);
-    //             root.expand(true);
-    //         }
-    //     });
-    //
-    //     this.callParent(arguments);
-    // },
-
     /**
      * Double clicking an entry effectivly adds the layer to the map.
      */
